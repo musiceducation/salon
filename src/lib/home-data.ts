@@ -14,9 +14,16 @@ export type HomeSlot = {
   label: string;
 };
 
+function canQueryDatabase(): boolean {
+  return Boolean(process.env.DATABASE_URL) && process.env.STATIC_EXPORT !== "1";
+}
+
 export async function getHomeProducts(): Promise<HomeProduct[]> {
   if (process.env.STATIC_EXPORT === "1") {
     return staticShopCatalogForExport;
+  }
+  if (!canQueryDatabase()) {
+    return [];
   }
   try {
     return await prisma.product.findMany({
@@ -40,6 +47,9 @@ export async function getHomeSlotsForService(
   locale: Locale,
   serviceKey: string,
 ): Promise<HomeSlot[]> {
+  if (!canQueryDatabase()) {
+    return [];
+  }
   try {
     const rows = await prisma.availabilitySlot.findMany({
       where: {
