@@ -21,6 +21,7 @@ export function ShopPromoBanner(p: Props) {
           alt=""
           fill
           sizes="100vw"
+          loading="lazy"
           unoptimized
           className="object-cover object-center"
         />
