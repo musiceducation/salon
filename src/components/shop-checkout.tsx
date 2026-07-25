@@ -9,7 +9,7 @@ import {
   localPaymentAccount,
   paymentMethodLabel,
   paymentMethodNote,
-  paymentMethodQrSrc,
+  resolveCheckoutPaymentMethod,
   visibleShopPaymentMethods,
   type ShopPaymentMethod,
 } from "@/lib/shop-payment-methods";
@@ -67,13 +67,21 @@ function buildStaticOrderLines(
   const pname = product ? (locale === "zh-HK" ? product.nameZh : product.nameEn) : "—";
   const payLabel = paymentMethodLabel(paymentMethod, locale);
   const payAccount = localPaymentAccount(paymentMethod);
+  const accountLabel =
+    locale === "zh-HK"
+      ? paymentMethod === "mpay"
+        ? "商戶編號"
+        : "收款帳號"
+      : paymentMethod === "mpay"
+        ? "Merchant ID"
+        : "Pay to";
   if (locale === "zh-HK") {
     return [
       "【藝能網店訂購】",
       `商品：${pname} × ${quantity}`,
       `金額：${totalFormatted}`,
       `付款方式：${payLabel}`,
-      payAccount ? `收款帳號：${payAccount}` : "",
+      payAccount ? `${accountLabel}：${payAccount}` : "",
       customerName.trim() ? `稱呼：${customerName.trim()}` : "",
       customerEmail.trim() ? `電郵：${customerEmail.trim()}` : "",
     ]
@@ -85,7 +93,7 @@ function buildStaticOrderLines(
     `Item: ${pname} × ${quantity}`,
     `Total: ${totalFormatted}`,
     `Payment: ${payLabel}`,
-    payAccount ? `Pay to: ${payAccount}` : "",
+    payAccount ? `${accountLabel}: ${payAccount}` : "",
     customerName.trim() ? `Name: ${customerName.trim()}` : "",
     customerEmail.trim() ? `Email: ${customerEmail.trim()}` : "",
   ]
@@ -203,6 +211,29 @@ function StarRow({ value, align = "center" }: { value: number; align?: "center" 
       <span aria-hidden>★★★★★</span>
       <span className="ml-1 tabular-nums text-neutral-500">({value.toFixed(1)})</span>
     </div>
+  );
+}
+
+function paymentAccountLabel(method: PaymentMethod, t: ShopCheckoutCopy): string {
+  return method === "mpay" ? t.shopPaymentMpayMerchantLabel : t.shopPaymentAccountLabel;
+}
+
+/** MPay 聚易用收款海報 — portrait 714×960, sized for mobile scan. */
+function MpayCollectionQr({ alt, caption }: { alt: string; caption: string }) {
+  return (
+    <figure className="mt-4 flex flex-col items-center rounded-xl border border-neutral-200 bg-neutral-50/90 px-3 py-4 sm:px-5 sm:py-5">
+      <Image
+        src={publicAssetPath("/shop/mpay-collection-qr.jpg")}
+        alt={alt}
+        width={714}
+        height={960}
+        className="h-auto w-full max-w-[280px] rounded-lg bg-white shadow-sm ring-1 ring-neutral-100 sm:max-w-[320px]"
+        unoptimized
+      />
+      <figcaption className="mt-3 max-w-xs text-center text-xs leading-relaxed text-neutral-600 sm:max-w-sm">
+        {caption}
+      </figcaption>
+    </figure>
   );
 }
 
@@ -547,11 +578,16 @@ export function ShopCheckout({
   }, []);
 
   useEffect(() => {
-    const visible = visibleShopPaymentMethods();
-    if (!visible.includes(paymentMethod)) {
-      setPaymentMethod(visible[0] ?? defaultCheckoutPaymentMethod());
+    const resolved = resolveCheckoutPaymentMethod(paymentMethod);
+    if (resolved !== paymentMethod) {
+      setPaymentMethod(resolved);
     }
   }, [paymentMethod]);
+
+  const checkoutPaymentMethod = useMemo(
+    () => resolveCheckoutPaymentMethod(paymentMethod),
+    [paymentMethod],
+  );
 
   function nextIdempotencyKey() {
     const key = createIdempotencyKey();
@@ -617,11 +653,6 @@ export function ShopCheckout({
     addToCart(product, 1);
   }
 
-  function proceedFromCart() {
-    setCartOpen(false);
-    scrollToCheckout();
-  }
-
   async function onCheckout(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (isStaticSite) {
@@ -642,7 +673,7 @@ export function ShopCheckout({
         },
         body: JSON.stringify({
           locale,
-          paymentMethod,
+          paymentMethod: checkoutPaymentMethod,
           customerName,
           customerEmail,
           items: [{ productId: selectedProductId, quantity }],
@@ -662,7 +693,7 @@ export function ShopCheckout({
           orderId: String(data.orderId),
           paymentMethod: (typeof data.paymentMethod === "string"
             ? data.paymentMethod
-            : paymentMethod) as PaymentMethod,
+            : checkoutPaymentMethod) as PaymentMethod,
           amountCents: Number(data.amountCents) || 0,
           currency: typeof data.currency === "string" ? data.currency : "mop",
           paymentAccount: String(data.paymentAccount),
@@ -722,7 +753,7 @@ export function ShopCheckout({
   }
 
   const subtotalCents = selectedProduct ? selectedProduct.priceCents * quantity : 0;
-  const selectedPayAccount = localPaymentAccount(paymentMethod);
+  const selectedPayAccount = localPaymentAccount(checkoutPaymentMethod);
 
   function openStaticWhatsappOrder() {
     if (!orderHelpWhatsappUrl || !selectedProduct) {
@@ -736,9 +767,21 @@ export function ShopCheckout({
       customerName,
       customerEmail,
       totalLine,
-      paymentMethod,
+      checkoutPaymentMethod,
     );
     window.open(appendTextToWhatsappUrl(orderHelpWhatsappUrl, text), "_blank", "noopener,noreferrer");
+  }
+
+  function proceedFromCart() {
+    setCartOpen(false);
+    if (isStaticSite) {
+      scrollToCheckout();
+      if (orderHelpWhatsappUrl && selectedProduct) {
+        openStaticWhatsappOrder();
+      }
+      return;
+    }
+    scrollToCheckout();
   }
 
   const staticMailtoHref =
@@ -751,7 +794,7 @@ export function ShopCheckout({
             customerName,
             customerEmail,
             priceDisplay(subtotalCents, selectedProduct.currency),
-            paymentMethod,
+            checkoutPaymentMethod,
           ),
         )}`
       : null;
@@ -926,7 +969,7 @@ export function ShopCheckout({
             ) : (
               <p className="mt-1 text-neutral-500">Select a product to see totals.</p>
             )}
-            {!isStaticSite && paymentMethod !== "stripe_card" ? (
+            {!isStaticSite && checkoutPaymentMethod !== "stripe_card" ? (
               <p className="mt-2 text-sm text-neutral-500">{t.shopPaymentHintLocal}</p>
             ) : null}
           </div>
@@ -977,28 +1020,16 @@ export function ShopCheckout({
               })}
             </div>
             <div className="mt-3 rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-700">
-              <p>{paymentMethodNote(paymentMethod, locale)}</p>
+              <p>{paymentMethodNote(checkoutPaymentMethod, locale)}</p>
               {selectedPayAccount ? (
                 <p className="mt-2 font-medium text-neutral-900">
-                  {t.shopPaymentAccountLabel}：{selectedPayAccount}
+                  {paymentAccountLabel(checkoutPaymentMethod, t)}：{selectedPayAccount}
                 </p>
               ) : null}
-              {paymentMethodQrSrc(paymentMethod) ? (
-                <figure className="mt-3">
-                  <Image
-                    src={publicAssetPath(paymentMethodQrSrc(paymentMethod)!)}
-                    alt={t.shopPaymentQrAlt}
-                    width={300}
-                    height={512}
-                    className="mx-auto h-auto w-full max-w-[220px] rounded-lg border border-neutral-100 bg-white"
-                    priority={paymentMethod === "mpay"}
-                  />
-                  <figcaption className="mt-2 text-center text-xs text-neutral-500">
-                    {t.shopPaymentQrCaption}
-                  </figcaption>
-                </figure>
-              ) : null}
             </div>
+            {checkoutPaymentMethod === "mpay" ? (
+              <MpayCollectionQr alt={t.shopPaymentQrAlt} caption={t.shopPaymentQrCaption} />
+            ) : null}
           </fieldset>
 
           <div className={labelClass}>
@@ -1070,7 +1101,7 @@ export function ShopCheckout({
             >
               {isSubmitting
                 ? "Processing..."
-                : paymentMethod === "stripe_card"
+                : checkoutPaymentMethod === "stripe_card"
                   ? t.shopPayCardCta
                   : t.shopPayLocalCta}
             </button>
@@ -1091,24 +1122,13 @@ export function ShopCheckout({
               {localPaymentData.currency.toUpperCase()}
             </p>
             <p>
-              {t.shopPaymentAccountLabel}：{localPaymentData.paymentAccount}
+              {paymentAccountLabel(localPaymentData.paymentMethod, t)}：{localPaymentData.paymentAccount}
             </p>
             <p>
               {t.shopPaymentNoteLabel}：{paymentMethodNote(localPaymentData.paymentMethod, locale)}
             </p>
-            {paymentMethodQrSrc(localPaymentData.paymentMethod) ? (
-              <figure className="mt-4">
-                <Image
-                  src={publicAssetPath(paymentMethodQrSrc(localPaymentData.paymentMethod)!)}
-                  alt={t.shopPaymentQrAlt}
-                  width={300}
-                  height={512}
-                  className="mx-auto h-auto w-full max-w-[240px] rounded-lg border border-neutral-100 bg-white"
-                />
-                <figcaption className="mt-2 text-center text-xs text-neutral-500">
-                  {t.shopPaymentQrCaption}
-                </figcaption>
-              </figure>
+            {localPaymentData.paymentMethod === "mpay" ? (
+              <MpayCollectionQr alt={t.shopPaymentQrAlt} caption={t.shopPaymentQrCaption} />
             ) : null}
             <p className="mt-2 text-neutral-500">
               {localPaymentData.proofViaWhatsapp
@@ -1209,6 +1229,7 @@ export function ShopCheckout({
         }
         t={t}
         isStaticSite={isStaticSite}
+        paymentMethodLabel={paymentMethodLabel(checkoutPaymentMethod, locale)}
         onClose={() => setCartOpen(false)}
         onCheckout={proceedFromCart}
         onQuantityChange={setQuantity}

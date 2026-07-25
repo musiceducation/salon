@@ -63,7 +63,7 @@ export function SalonHeader(t: Nav) {
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:px-6 sm:py-3.5">
         <Link
           href={`/${t.locale}`}
-          className="shrink-0 font-[family-name:var(--font-display)] text-lg font-semibold leading-tight tracking-tight text-zinc-900 sm:text-xl"
+          className="shrink-0 font-display text-lg font-semibold leading-tight tracking-tight text-zinc-900 sm:text-xl"
         >
           {t.brandName}
         </Link>
@@ -135,7 +135,7 @@ export function SalonHeader(t: Nav) {
           shopPath={t.productsPath}
           baseClass={navMobile}
           activeClass={navMobileActive}
-          rowClassName="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-xs font-medium"
+          rowClassName="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-4 gap-y-1 text-center text-[0.8125rem] font-medium"
         />
       </div>
     </header>

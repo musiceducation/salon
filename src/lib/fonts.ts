@@ -29,9 +29,12 @@ export const fontSansLatin = DM_Sans({
  * `preload: false` and no `subsets` are deliberate: Google splits CJK into ~100
  * unicode-range chunks, so preloading would fetch far more than a page needs. Without
  * preload the browser downloads only the chunks whose characters actually appear.
+ *
+ * Only weight 600 is requested — every `heading-*` utility is semibold, and each extra
+ * weight duplicates the whole ~100-file chunk set in the build output.
  */
 export const fontDisplayCjk = Noto_Serif_TC({
-  weight: ["600", "700"],
+  weight: "600",
   preload: false,
   display: "swap",
   variable: "--font-display-cjk",

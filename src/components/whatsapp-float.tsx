@@ -8,18 +8,17 @@ type Props = {
   href: string;
   title: string;
   body: string;
-  sansClassName: string;
 };
 
 /** Server component — bubble via CSS hover/focus-within (no client JS). */
-export function WhatsAppFloat({ href, title, body, sansClassName }: Props) {
+export function WhatsAppFloat({ href, title, body }: Props) {
   return (
     <div className="group fixed bottom-4 right-4 z-[60] flex max-w-md flex-row items-end justify-end gap-2 sm:bottom-6 sm:right-6">
       <div
-        className={`${sansClassName} pointer-events-none order-1 mb-0.5 max-w-xs rounded-2xl border border-zinc-200/80 bg-white p-3.5 pr-2 text-left text-sm text-zinc-800 opacity-0 shadow-2xl transition-opacity duration-150 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100 sm:p-4 [@media(hover:none)]:hidden`}
+        className="pointer-events-none order-1 mb-0.5 max-w-xs rounded-2xl border border-zinc-200/80 bg-white p-3.5 pr-2 text-left text-sm text-zinc-800 opacity-0 shadow-2xl transition-opacity duration-150 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100 sm:p-4 [@media(hover:none)]:hidden"
       >
         <p className="font-semibold text-zinc-900">{title}</p>
-        <p className="mt-1 leading-relaxed text-zinc-600">{body}</p>
+        <p className="mt-1 leading-cjk text-zinc-600">{body}</p>
       </div>
       <a
         href={href}

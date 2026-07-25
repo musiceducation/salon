@@ -129,16 +129,14 @@ export default async function LocaleHomePage({ params }: HomePageProps) {
     areaServed: { "@type": "Place", name: "Macau" },
   };
 
-  const displayName = display.className;
-  const sansName = sans.className;
-
   const bookingNoSlotsHint = t.bookingNoSlotsLine.replace("{phone}", t.phone);
 
   return (
     <div
       id="main-content"
+      lang={locale}
       tabIndex={-1}
-      className={`min-h-screen bg-zinc-50 text-zinc-900 ${display.variable} ${sans.variable} [font-family:var(--font-sans-body),ui-sans-serif,system-ui,sans-serif]${whatsappUrl ? " pb-28 [padding-bottom:max(7rem,env(safe-area-inset-bottom,0px))] sm:pb-32" : ""}`}
+      className={`min-h-screen bg-zinc-50 text-zinc-900${whatsappUrl ? " pb-28 [padding-bottom:max(7rem,env(safe-area-inset-bottom,0px))] sm:pb-32" : ""}`}
     >
       <script
         type="application/ld+json"
@@ -174,28 +172,22 @@ export default async function LocaleHomePage({ params }: HomePageProps) {
           bookNow={t.bookNow}
           shopNow={t.shopNow}
           shopHref={productsPath}
-          displayClassName={displayName}
-          sansClassName={sansName}
         />
 
         <section id="story" className="border-b border-zinc-200/80 bg-white">
           <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
-            <h2 className={`${displayName} text-3xl font-semibold text-zinc-900 md:text-4xl`}>
-              {t.storyTitle}
-            </h2>
-            <p
-              className={`${sansName} mt-6 max-w-2xl whitespace-pre-line text-base leading-relaxed text-zinc-600`}
-            >
-              {t.storyBody}
-            </p>
+            <h2 className="heading-section text-zinc-900">{t.storyTitle}</h2>
+            <div className="mt-6 max-w-measure space-y-5 text-base leading-cjk text-zinc-600">
+              {t.storyBody.split("\n\n").map((paragraph) => (
+                <p key={paragraph.slice(0, 12)}>{paragraph}</p>
+              ))}
+            </div>
           </div>
         </section>
 
         <section id="services" className="border-b border-zinc-200/80">
           <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
-            <h2 className={`${displayName} text-3xl font-semibold text-zinc-900 md:text-4xl`}>
-              {t.servicesSectionTitle}
-            </h2>
+            <h2 className="heading-section text-zinc-900">{t.servicesSectionTitle}</h2>
             <div className="mt-12 grid gap-6 md:grid-cols-3">
               {[
                 { title: t.serviceCutTitle, body: t.serviceCutBody },
@@ -206,10 +198,8 @@ export default async function LocaleHomePage({ params }: HomePageProps) {
                   key={item.title}
                   className="group border border-zinc-200/90 bg-white p-8 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-amber-200/80 hover:shadow-md"
                 >
-                  <h3 className={`${displayName} text-xl font-semibold text-zinc-900`}>{item.title}</h3>
-                  <p className={`${sansName} mt-4 text-sm leading-relaxed text-zinc-600`}>
-                    {item.body}
-                  </p>
+                  <h3 className="heading-card text-zinc-900">{item.title}</h3>
+                  <p className="mt-4 text-sm leading-cjk text-zinc-600">{item.body}</p>
                 </div>
               ))}
             </div>
@@ -221,15 +211,12 @@ export default async function LocaleHomePage({ params }: HomePageProps) {
           body={t.shopBannerBody}
           cta={t.shopBannerCta}
           ctaHref={productsPath}
-          sansClassName={sansName}
         />
 
         <section id="booking" className="border-b border-zinc-800/60 bg-zinc-950 text-zinc-100">
           <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
-            <h2 className={`${displayName} text-3xl font-semibold text-white md:text-4xl`}>
-              {t.bookingTitle}
-            </h2>
-            <p className={`${sansName} mt-3 max-w-2xl text-zinc-400`}>{t.bookingFlow}</p>
+            <h2 className="heading-section text-white">{t.bookingTitle}</h2>
+            <p className="mt-4 max-w-measure text-base leading-cjk text-zinc-400">{t.bookingFlow}</p>
             <BookingForm
               locale={locale}
               initialSlots={initialSlots}
@@ -241,8 +228,6 @@ export default async function LocaleHomePage({ params }: HomePageProps) {
 
         <PriceListSection
           locale={locale}
-          displayClassName={displayName}
-          sansClassName={sansName}
           priceListTitle={t.priceListTitle}
           intro={t.priceListIntro}
           disclaimer={t.priceListDisclaimer}
@@ -253,11 +238,9 @@ export default async function LocaleHomePage({ params }: HomePageProps) {
           href={whatsappUrl}
           title={t.whatsappBubbleTitle}
           body={t.whatsappBubbleBody}
-          sansClassName={sansName}
         />
       ) : null}
       <SiteFooter
-        sansClassName={sansName}
         tagline={t.footerTagline}
         logoPrimary={t.footerLogoPrimary}
         logoSub={t.footerLogoSub}

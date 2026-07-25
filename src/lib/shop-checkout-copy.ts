@@ -44,6 +44,7 @@ export type ShopCheckoutCopy = Pick<
   | "shopPaymentLabel"
   | "shopPaymentHintLocal"
   | "shopPaymentAccountLabel"
+  | "shopPaymentMpayMerchantLabel"
   | "shopPaymentNoteLabel"
   | "shopPaymentQrAlt"
   | "shopPaymentQrCaption"
@@ -114,6 +115,7 @@ export function pickShopCheckoutCopy(t: Messages): ShopCheckoutCopy {
     shopPaymentLabel: t.shopPaymentLabel,
     shopPaymentHintLocal: t.shopPaymentHintLocal,
     shopPaymentAccountLabel: t.shopPaymentAccountLabel,
+    shopPaymentMpayMerchantLabel: t.shopPaymentMpayMerchantLabel,
     shopPaymentNoteLabel: t.shopPaymentNoteLabel,
     shopPaymentQrAlt: t.shopPaymentQrAlt,
     shopPaymentQrCaption: t.shopPaymentQrCaption,
