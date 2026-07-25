@@ -5,11 +5,12 @@ import { ShopCheckout } from "@/components/shop-checkout";
 import { SalonTopBar } from "@/components/salon-top-bar";
 import { SalonHeader } from "@/components/salon-header";
 import { SiteFooter } from "@/components/site-footer";
-import { WhatsAppFloat } from "@/components/whatsapp-float";
+import { WeChatFloat } from "@/components/wechat-float";
 import { getMessages, isSupportedLocale, supportedLocales } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
 import { getHomeProducts } from "@/lib/home-data";
 import { pickShopCheckoutCopy } from "@/lib/shop-checkout-copy";
+import { getWeChatId } from "@/lib/contact-wechat";
 import { phoneToE164 } from "@/lib/tel-href";
 
 export function generateStaticParams() {
@@ -83,20 +84,7 @@ export default async function ProductsPage({ params }: PageProps) {
   const displayEmail = process.env.NEXT_PUBLIC_SALON_EMAIL?.trim() || t.displayEmail;
   const facebookUrl = process.env.NEXT_PUBLIC_FACEBOOK_URL?.trim() || null;
   const instagramUrl = process.env.NEXT_PUBLIC_INSTAGRAM_URL?.trim() || null;
-  const whatsappUrl: string | null = (() => {
-    if (process.env.NEXT_PUBLIC_WHATSAPP_URL) {
-      return process.env.NEXT_PUBLIC_WHATSAPP_URL;
-    }
-    const raw = process.env.NEXT_PUBLIC_WHATSAPP_PHONE?.replace(/\D/g, "");
-    if (!raw) {
-      return null;
-    }
-    const withCc = raw.startsWith("853") ? raw : `853${raw.replace(/^0+/, "")}`;
-    return `https://wa.me/${withCc}`;
-  })();
-
-  const waDisplay =
-    process.env.NEXT_PUBLIC_WHATSAPP_PHONE?.replace(/\s/g, "")?.trim() || `+853 ${t.phone}`;
+  const wechatId = getWeChatId();
 
   const productsPath = `/${locale}/products`;
   const jsonLd = {
@@ -120,7 +108,7 @@ export default async function ProductsPage({ params }: PageProps) {
       id="main-content"
       lang={locale}
       tabIndex={-1}
-      className={`min-h-screen bg-zinc-50 text-zinc-900${whatsappUrl ? " pb-28 [padding-bottom:max(7rem,env(safe-area-inset-bottom,0px))] sm:pb-32" : ""}`}
+      className="min-h-screen bg-zinc-50 text-zinc-900 pb-28 [padding-bottom:max(7rem,env(safe-area-inset-bottom,0px))] sm:pb-32"
     >
       <script
         type="application/ld+json"
@@ -177,19 +165,18 @@ export default async function ProductsPage({ params }: PageProps) {
               locale={locale}
               copy={pickShopCheckoutCopy(t)}
               initialProducts={initialProducts}
-              orderHelpWhatsappUrl={whatsappUrl}
+              orderHelpWeChatId={wechatId}
               orderHelpEmail={displayEmail}
             />
           </div>
         </section>
       </main>
-      {whatsappUrl ? (
-        <WhatsAppFloat
-          href={whatsappUrl}
-          title={t.whatsappBubbleTitle}
-          body={t.whatsappBubbleBody}
-        />
-      ) : null}
+      <WeChatFloat
+        wechatId={wechatId}
+        title={t.wechatBubbleTitle}
+        body={t.wechatBubbleBody.replace("{wechat}", wechatId)}
+        copiedLabel={t.wechatIdCopied}
+      />
       <SiteFooter
         tagline={t.footerTagline}
         logoPrimary={t.footerLogoPrimary}
@@ -197,14 +184,13 @@ export default async function ProductsPage({ params }: PageProps) {
         contactHeading={t.footerContactHeading}
         emailLinePrefix={t.emailLinePrefix}
         telLinePrefix={t.telLinePrefix}
-        whatsappLabel={t.contactWhatsappLabel}
+        wechatLabel={t.contactWechatLabel}
         address={t.address}
         phone={t.phone}
         email={displayEmail}
         hoursTitle={t.hoursFooterTitle}
         hoursDetail={t.hoursDetail}
-        whatsappUrl={whatsappUrl}
-        waDisplay={waDisplay}
+        wechatId={wechatId}
         facebookUrl={facebookUrl}
         instagramUrl={instagramUrl}
       />

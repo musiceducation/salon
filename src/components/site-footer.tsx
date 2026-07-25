@@ -19,21 +19,20 @@ type FooterProps = {
   contactHeading: string;
   emailLinePrefix: string;
   telLinePrefix: string;
-  whatsappLabel: string;
+  wechatLabel: string;
   address: string;
   phone: string;
   email: string;
   hoursTitle: string;
   hoursDetail: string;
-  whatsappUrl: string | null;
-  waDisplay: string;
+  wechatId: string | null;
   facebookUrl: string | null;
   instagramUrl: string | null;
 };
 
 export function SiteFooter(p: FooterProps) {
   const telHref = buildTelHref(p.phone);
-  const hasWhatsapp = Boolean(p.whatsappUrl);
+  const hasWechat = Boolean(p.wechatId);
   const phoneDisplay = `+853 ${p.phone}`;
 
   return (
@@ -104,17 +103,10 @@ export function SiteFooter(p: FooterProps) {
                 {phoneDisplay}
               </a>
             </p>
-            {hasWhatsapp && p.whatsappUrl ? (
+            {hasWechat && p.wechatId ? (
               <p className="mt-2 text-sm leading-cjk text-zinc-300">
-                <span className="text-zinc-500">{p.whatsappLabel}:</span>{" "}
-                <a
-                  className="text-emerald-400 underline decoration-emerald-400/40 underline-offset-2 transition hover:decoration-emerald-300"
-                  href={p.whatsappUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {p.waDisplay}
-                </a>
+                <span className="text-zinc-500">{p.wechatLabel}:</span>{" "}
+                <span className="text-emerald-400">{p.wechatId}</span>
               </p>
             ) : null}
           </div>

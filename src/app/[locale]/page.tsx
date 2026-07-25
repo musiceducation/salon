@@ -7,9 +7,10 @@ import { SalonHeader } from "@/components/salon-header";
 import { ShopPromoBanner } from "@/components/shop-promo-banner";
 import { PriceListSection } from "@/components/price-list-section";
 import { SiteFooter } from "@/components/site-footer";
-import { WhatsAppFloat } from "@/components/whatsapp-float";
+import { WeChatFloat } from "@/components/wechat-float";
 import { getMessages, isSupportedLocale, supportedLocales } from "@/lib/i18n";
 import { getHomeSlotsForService } from "@/lib/home-data";
+import { getWeChatId } from "@/lib/contact-wechat";
 import { phoneToE164 } from "@/lib/tel-href";
 
 /** Prebuild both locales; required for `output: 'export'` (GitHub Pages) and static HTML at deploy. */
@@ -98,20 +99,7 @@ export default async function LocaleHomePage({ params }: HomePageProps) {
   const displayEmail = process.env.NEXT_PUBLIC_SALON_EMAIL?.trim() || t.displayEmail;
   const facebookUrl = process.env.NEXT_PUBLIC_FACEBOOK_URL?.trim() || null;
   const instagramUrl = process.env.NEXT_PUBLIC_INSTAGRAM_URL?.trim() || null;
-  const whatsappUrl: string | null = (() => {
-    if (process.env.NEXT_PUBLIC_WHATSAPP_URL) {
-      return process.env.NEXT_PUBLIC_WHATSAPP_URL;
-    }
-    const raw = process.env.NEXT_PUBLIC_WHATSAPP_PHONE?.replace(/\D/g, "");
-    if (!raw) {
-      return null;
-    }
-    const withCc = raw.startsWith("853") ? raw : `853${raw.replace(/^0+/, "")}`;
-    return `https://wa.me/${withCc}`;
-  })();
-
-  const waDisplay =
-    process.env.NEXT_PUBLIC_WHATSAPP_PHONE?.replace(/\s/g, "")?.trim() || `+853 ${t.phone}`;
+  const wechatId = getWeChatId();
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -129,14 +117,16 @@ export default async function LocaleHomePage({ params }: HomePageProps) {
     areaServed: { "@type": "Place", name: "Macau" },
   };
 
-  const bookingNoSlotsHint = t.bookingNoSlotsLine.replace("{phone}", t.phone);
+  const bookingNoSlotsHint = t.bookingNoSlotsLine
+    .replace("{phone}", t.phone)
+    .replace("{wechat}", wechatId);
 
   return (
     <div
       id="main-content"
       lang={locale}
       tabIndex={-1}
-      className={`min-h-screen bg-zinc-50 text-zinc-900${whatsappUrl ? " pb-28 [padding-bottom:max(7rem,env(safe-area-inset-bottom,0px))] sm:pb-32" : ""}`}
+      className="min-h-screen bg-zinc-50 text-zinc-900 pb-28 [padding-bottom:max(7rem,env(safe-area-inset-bottom,0px))] sm:pb-32"
     >
       <script
         type="application/ld+json"
@@ -222,6 +212,12 @@ export default async function LocaleHomePage({ params }: HomePageProps) {
               initialSlots={initialSlots}
               defaultServiceId={defaultService}
               noSlotsHint={bookingNoSlotsHint}
+              wechatId={wechatId}
+              phoneDisplay={t.phone}
+              phoneTelHref={`tel:${phoneToE164(t.phone)}`}
+              staticNote={t.bookingStaticNote}
+              staticCta={t.bookingStaticCta}
+              staticCopied={t.bookingStaticCopied}
             />
           </div>
         </section>
@@ -233,13 +229,12 @@ export default async function LocaleHomePage({ params }: HomePageProps) {
           disclaimer={t.priceListDisclaimer}
         />
       </main>
-      {whatsappUrl ? (
-        <WhatsAppFloat
-          href={whatsappUrl}
-          title={t.whatsappBubbleTitle}
-          body={t.whatsappBubbleBody}
-        />
-      ) : null}
+      <WeChatFloat
+        wechatId={wechatId}
+        title={t.wechatBubbleTitle}
+        body={t.wechatBubbleBody.replace("{wechat}", wechatId)}
+        copiedLabel={t.wechatIdCopied}
+      />
       <SiteFooter
         tagline={t.footerTagline}
         logoPrimary={t.footerLogoPrimary}
@@ -247,14 +242,13 @@ export default async function LocaleHomePage({ params }: HomePageProps) {
         contactHeading={t.footerContactHeading}
         emailLinePrefix={t.emailLinePrefix}
         telLinePrefix={t.telLinePrefix}
-        whatsappLabel={t.contactWhatsappLabel}
+        wechatLabel={t.contactWechatLabel}
         address={t.address}
         phone={t.phone}
         email={displayEmail}
         hoursTitle={t.hoursFooterTitle}
         hoursDetail={t.hoursDetail}
-        whatsappUrl={whatsappUrl}
-        waDisplay={waDisplay}
+        wechatId={wechatId}
         facebookUrl={facebookUrl}
         instagramUrl={instagramUrl}
       />

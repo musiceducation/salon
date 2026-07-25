@@ -157,13 +157,13 @@ const CATEGORY_FALLBACK: Record<
   },
   uncategorized: {
     zh: {
-      benefits: ["藝能店內同售專業產品", "歡迎 WhatsApp 查詢用法", "到店試用更安心"],
+      benefits: ["藝能店內同售專業產品", "歡迎 WeChat 查詢用法", "到店試用更安心"],
       howToUse: ["請參考包裝說明", "如有疑問可於落單時留言", "造型師樂意提供建議"],
     },
     en: {
       benefits: [
         "Same professional range as in-salon retail",
-        "Message us on WhatsApp for advice",
+        "Message us on WeChat for advice",
         "Try in salon for peace of mind",
       ],
       howToUse: [

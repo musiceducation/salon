@@ -50,7 +50,8 @@ export type ShopCheckoutCopy = Pick<
   | "shopPaymentQrCaption"
   | "shopPayLocalCta"
   | "shopPayCardCta"
-  | "shopWhatsappOrder"
+  | "shopWechatOrder"
+  | "shopWechatOrderCopied"
   | "shopMailOrder"
   | "catShampoo"
   | "catConditioner"
@@ -121,7 +122,8 @@ export function pickShopCheckoutCopy(t: Messages): ShopCheckoutCopy {
     shopPaymentQrCaption: t.shopPaymentQrCaption,
     shopPayLocalCta: t.shopPayLocalCta,
     shopPayCardCta: t.shopPayCardCta,
-    shopWhatsappOrder: t.shopWhatsappOrder,
+    shopWechatOrder: t.shopWechatOrder,
+    shopWechatOrderCopied: t.shopWechatOrderCopied,
     shopMailOrder: t.shopMailOrder,
     catShampoo: t.catShampoo,
     catConditioner: t.catConditioner,

@@ -371,8 +371,8 @@ export function getPriceListData(locale: Locale): PriceListData {
           locale,
         ),
         contactLine: L(
-          "預約：28304175 / 66509780（WhatsApp 或致電）",
-          "Book: 28304175 / 66509780 (WhatsApp or call)",
+          "預約：28304175 / +853 66509780（WeChat 或致電）",
+          "Book: 28304175 / +853 66509780 (WeChat or call)",
           locale,
         ),
       },

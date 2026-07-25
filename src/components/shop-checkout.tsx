@@ -13,6 +13,7 @@ import {
   visibleShopPaymentMethods,
   type ShopPaymentMethod,
 } from "@/lib/shop-payment-methods";
+import { copyTextToClipboard } from "@/lib/contact-wechat";
 import { ShopCartDrawer } from "@/components/shop-cart-drawer";
 import { ShopProductDetailPanel } from "@/components/shop-product-detail-panel";
 import { ShopQuantityStepper } from "@/components/shop-quantity-stepper";
@@ -31,8 +32,8 @@ type ShopCheckoutProps = {
   /** Server-picked copy only — keeps full `messages/*.json` off the client bundle. */
   copy: ShopCheckoutCopy;
   initialProducts: Product[];
-  /** Full `https://wa.me/...` URL — used when `NEXT_PUBLIC_STATIC_EXPORT` (GitHub Pages). */
-  orderHelpWhatsappUrl?: string | null;
+  /** WeChat ID for static / manual orders (GitHub Pages). */
+  orderHelpWeChatId?: string | null;
   orderHelpEmail?: string;
 };
 
@@ -106,17 +107,6 @@ function createIdempotencyKey() {
     return globalThis.crypto.randomUUID();
   }
   return `idemp_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-}
-
-function appendTextToWhatsappUrl(base: string, text: string): string {
-  try {
-    const u = new URL(base);
-    u.searchParams.set("text", text);
-    return u.toString();
-  } catch {
-    const sep = base.includes("?") ? "&" : "?";
-    return `${base}${sep}text=${encodeURIComponent(text)}`;
-  }
 }
 
 async function parseJsonResponse(response: Response): Promise<Record<string, unknown>> {
@@ -503,7 +493,7 @@ export function ShopCheckout({
   locale,
   copy,
   initialProducts,
-  orderHelpWhatsappUrl = null,
+  orderHelpWeChatId = null,
   orderHelpEmail,
 }: ShopCheckoutProps) {
   const t = copy;
@@ -755,8 +745,8 @@ export function ShopCheckout({
   const subtotalCents = selectedProduct ? selectedProduct.priceCents * quantity : 0;
   const selectedPayAccount = localPaymentAccount(checkoutPaymentMethod);
 
-  function openStaticWhatsappOrder() {
-    if (!orderHelpWhatsappUrl || !selectedProduct) {
+  async function openStaticWeChatOrder() {
+    if (!orderHelpWeChatId || !selectedProduct) {
       return;
     }
     const totalLine = priceDisplay(subtotalCents, selectedProduct.currency);
@@ -769,15 +759,18 @@ export function ShopCheckout({
       totalLine,
       checkoutPaymentMethod,
     );
-    window.open(appendTextToWhatsappUrl(orderHelpWhatsappUrl, text), "_blank", "noopener,noreferrer");
+    const copied = await copyTextToClipboard(text);
+    setMessage(
+      copied ? t.shopWechatOrderCopied.replace("{wechat}", orderHelpWeChatId) : text,
+    );
   }
 
   function proceedFromCart() {
     setCartOpen(false);
     if (isStaticSite) {
       scrollToCheckout();
-      if (orderHelpWhatsappUrl && selectedProduct) {
-        openStaticWhatsappOrder();
+      if (orderHelpWeChatId && selectedProduct) {
+        void openStaticWeChatOrder();
       }
       return;
     }
@@ -1067,14 +1060,14 @@ export function ShopCheckout({
 
           {isStaticSite ? (
             <div className="flex flex-col gap-3 md:col-span-2 sm:flex-row sm:flex-wrap">
-              {orderHelpWhatsappUrl ? (
+              {orderHelpWeChatId ? (
                 <button
                   type="button"
                   className="inline-flex w-fit rounded-full bg-zinc-900 px-6 py-3 text-sm font-semibold text-white transition-all duration-200 ease-out hover:bg-zinc-800 active:scale-[0.98] disabled:opacity-50 motion-reduce:active:scale-100"
                   disabled={!selectedProductId}
-                  onClick={openStaticWhatsappOrder}
+                  onClick={() => void openStaticWeChatOrder()}
                 >
-                  {t.shopWhatsappOrder}
+                  {t.shopWechatOrder}
                 </button>
               ) : null}
               {staticMailtoHref ? (
@@ -1085,11 +1078,11 @@ export function ShopCheckout({
                   {t.shopMailOrder}
                 </a>
               ) : null}
-              {!orderHelpWhatsappUrl && !orderHelpEmail ? (
+              {!orderHelpWeChatId && !orderHelpEmail ? (
                 <p className="text-sm text-neutral-600">
                   {locale === "zh-HK"
-                    ? "請在網站設定 WhatsApp 或電郵以便落單。"
-                    : "Set NEXT_PUBLIC_WHATSAPP_URL or salon email for order links."}
+                    ? "請在網站設定 WeChat 或電郵以便落單。"
+                    : "Set NEXT_PUBLIC_WECHAT_ID or salon email for order links."}
                 </p>
               ) : null}
             </div>
@@ -1133,8 +1126,8 @@ export function ShopCheckout({
             <p className="mt-2 text-neutral-500">
               {localPaymentData.proofViaWhatsapp
                 ? locale === "zh-HK"
-                  ? "請完成付款後，以 WhatsApp 或電郵傳送截圖及訂單編號。"
-                  : "After paying, send your screenshot and order ID via WhatsApp or email."
+                  ? "請完成付款後，以 WeChat 或電郵傳送截圖及訂單編號。"
+                  : "After paying, send your screenshot and order ID via WeChat or email."
                 : "請完成轉帳後上傳截圖。 / Complete the transfer, then upload your screenshot."}
             </p>
 
@@ -1144,20 +1137,27 @@ export function ShopCheckout({
               </p>
             ) : localPaymentData.proofViaWhatsapp ? (
               <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                {orderHelpWhatsappUrl ? (
-                  <a
-                    href={appendTextToWhatsappUrl(
-                      orderHelpWhatsappUrl,
-                      locale === "zh-HK"
-                        ? `【付款截圖】訂單 ${localPaymentData.orderId}\n金額 ${(localPaymentData.amountCents / 100).toFixed(2)} ${localPaymentData.currency.toUpperCase()}\n方式 ${paymentMethodLabel(localPaymentData.paymentMethod, locale)}\n（請附上付款截圖）`
-                        : `[Payment proof] Order ${localPaymentData.orderId}\nAmount ${(localPaymentData.amountCents / 100).toFixed(2)} ${localPaymentData.currency.toUpperCase()}\nVia ${paymentMethodLabel(localPaymentData.paymentMethod, locale)}\n(Please attach payment screenshot)`,
-                    )}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                {orderHelpWeChatId ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void (async () => {
+                        const proofText =
+                          locale === "zh-HK"
+                            ? `【付款截圖】訂單 ${localPaymentData.orderId}\n金額 ${(localPaymentData.amountCents / 100).toFixed(2)} ${localPaymentData.currency.toUpperCase()}\n方式 ${paymentMethodLabel(localPaymentData.paymentMethod, locale)}\n（請附上付款截圖）`
+                            : `[Payment proof] Order ${localPaymentData.orderId}\nAmount ${(localPaymentData.amountCents / 100).toFixed(2)} ${localPaymentData.currency.toUpperCase()}\nVia ${paymentMethodLabel(localPaymentData.paymentMethod, locale)}\n(Please attach payment screenshot)`;
+                        const copied = await copyTextToClipboard(proofText);
+                        setMessage(
+                          copied && orderHelpWeChatId
+                            ? t.shopWechatOrderCopied.replace("{wechat}", orderHelpWeChatId)
+                            : proofText,
+                        );
+                      })();
+                    }}
                     className="inline-flex w-fit rounded-full bg-zinc-900 px-6 py-3 text-sm font-semibold text-white transition-all duration-200 ease-out hover:bg-zinc-800"
                   >
-                    {t.shopWhatsappOrder}
-                  </a>
+                    {t.shopWechatOrder}
+                  </button>
                 ) : null}
                 {orderHelpEmail ? (
                   <a

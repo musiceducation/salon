@@ -131,7 +131,7 @@ export function ShopCartDrawer({
             onClick={onCheckout}
             className="flex min-h-12 w-full items-center justify-center rounded-full bg-zinc-900 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:opacity-50"
           >
-            {isStaticSite ? t.shopWhatsappOrder : t.shopCartCheckout}
+            {isStaticSite ? t.shopWechatOrder : t.shopCartCheckout}
           </button>
         </div>
       </aside>

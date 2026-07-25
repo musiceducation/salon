@@ -166,8 +166,8 @@ export async function POST(request: Request) {
                 uploadToken: "",
                 proofViaWhatsapp: true,
                 message: zh
-                  ? "請掃碼或轉帳付款，完成後以 WhatsApp／電郵傳送截圖（訂單編號見下）。"
-                  : "Please pay via QR or transfer, then send your screenshot on WhatsApp/email (order ID below).",
+                  ? "請掃碼或轉帳付款，完成後以 WeChat／電郵傳送截圖（訂單編號見下）。"
+                  : "Please pay via QR or transfer, then send your screenshot on WeChat/email (order ID below).",
               },
             };
           }

@@ -145,8 +145,8 @@ export function paymentMethodNote(method: ShopPaymentMethod, locale: string): st
         : "Bank transfer to the BOC Macau account below, then send a payment screenshot for review.";
     case "stripe_card":
       return zh
-        ? "Visa / Mastercard：有付款系統時會導向安全刷卡頁；靜態網頁請於 WhatsApp／電郵落單後由店方安排。"
-        : "Visa / Mastercard: secure Stripe checkout when the API is available; on the static site, order via WhatsApp/email and we’ll arrange card payment.";
+        ? "Visa / Mastercard：有付款系統時會導向安全刷卡頁；靜態網頁請於 WeChat／電郵落單後由店方安排。"
+        : "Visa / Mastercard: secure Stripe checkout when the API is available; on the static site, order via WeChat/email and we’ll arrange card payment.";
   }
 }
 
