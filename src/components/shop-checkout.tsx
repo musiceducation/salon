@@ -1,9 +1,21 @@
 "use client";
 
 import Image from "next/image";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import type { ShopCheckoutCopy } from "@/lib/shop-checkout-copy";
 import { publicAssetPath } from "@/lib/public-asset-path";
+import {
+  defaultCheckoutPaymentMethod,
+  localPaymentAccount,
+  paymentMethodLabel,
+  paymentMethodNote,
+  paymentMethodQrSrc,
+  visibleShopPaymentMethods,
+  type ShopPaymentMethod,
+} from "@/lib/shop-payment-methods";
+import { ShopCartDrawer } from "@/components/shop-cart-drawer";
+import { ShopProductDetailPanel } from "@/components/shop-product-detail-panel";
+import { ShopQuantityStepper } from "@/components/shop-quantity-stepper";
 
 type Product = {
   id: string;
@@ -24,7 +36,7 @@ type ShopCheckoutProps = {
   orderHelpEmail?: string;
 };
 
-type PaymentMethod = "mpay" | "boc" | "uepay" | "bank_transfer" | "stripe_card";
+type PaymentMethod = ShopPaymentMethod;
 type SortKey = "default" | "price-asc" | "price-desc";
 type CategoryKey = "shampoo" | "conditioner" | "treatment" | "styling" | "uncategorized";
 type ViewMode = "grid-3" | "grid-2" | "list";
@@ -40,15 +52,46 @@ type LocalPaymentResponse = {
   paymentNote: string;
   message: string;
   uploadToken: string;
+  proofViaWhatsapp?: boolean;
 };
 
-const paymentOptions: { value: PaymentMethod; label: string }[] = [
-  { value: "mpay", label: "MPay" },
-  { value: "boc", label: "中銀" },
-  { value: "uepay", label: "UEPAY" },
-  { value: "bank_transfer", label: "銀行轉賬" },
-  { value: "stripe_card", label: "Visa / Mastercard (Stripe)" },
-];
+function buildStaticOrderLines(
+  locale: string,
+  product: Product | undefined,
+  quantity: number,
+  customerName: string,
+  customerEmail: string,
+  totalFormatted: string,
+  paymentMethod: PaymentMethod,
+): string {
+  const pname = product ? (locale === "zh-HK" ? product.nameZh : product.nameEn) : "—";
+  const payLabel = paymentMethodLabel(paymentMethod, locale);
+  const payAccount = localPaymentAccount(paymentMethod);
+  if (locale === "zh-HK") {
+    return [
+      "【藝能網店訂購】",
+      `商品：${pname} × ${quantity}`,
+      `金額：${totalFormatted}`,
+      `付款方式：${payLabel}`,
+      payAccount ? `收款帳號：${payAccount}` : "",
+      customerName.trim() ? `稱呼：${customerName.trim()}` : "",
+      customerEmail.trim() ? `電郵：${customerEmail.trim()}` : "",
+    ]
+      .filter(Boolean)
+      .join("\n");
+  }
+  return [
+    "[n_nsalon web order]",
+    `Item: ${pname} × ${quantity}`,
+    `Total: ${totalFormatted}`,
+    `Payment: ${payLabel}`,
+    payAccount ? `Pay to: ${payAccount}` : "",
+    customerName.trim() ? `Name: ${customerName.trim()}` : "",
+    customerEmail.trim() ? `Email: ${customerEmail.trim()}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
 
 function createIdempotencyKey() {
   if (globalThis.crypto?.randomUUID) {
@@ -66,37 +109,6 @@ function appendTextToWhatsappUrl(base: string, text: string): string {
     const sep = base.includes("?") ? "&" : "?";
     return `${base}${sep}text=${encodeURIComponent(text)}`;
   }
-}
-
-function buildStaticOrderLines(
-  locale: string,
-  product: Product | undefined,
-  quantity: number,
-  customerName: string,
-  customerEmail: string,
-  totalFormatted: string,
-): string {
-  const pname = product ? (locale === "zh-HK" ? product.nameZh : product.nameEn) : "—";
-  if (locale === "zh-HK") {
-    return [
-      "【藝能網店訂購】",
-      `商品：${pname} × ${quantity}`,
-      `金額：${totalFormatted}`,
-      customerName.trim() ? `稱呼：${customerName.trim()}` : "",
-      customerEmail.trim() ? `電郵：${customerEmail.trim()}` : "",
-    ]
-      .filter(Boolean)
-      .join("\n");
-  }
-  return [
-    "[n_nsalon web order]",
-    `Item: ${pname} × ${quantity}`,
-    `Total: ${totalFormatted}`,
-    customerName.trim() ? `Name: ${customerName.trim()}` : "",
-    customerEmail.trim() ? `Email: ${customerEmail.trim()}` : "",
-  ]
-    .filter(Boolean)
-    .join("\n");
 }
 
 async function parseJsonResponse(response: Response): Promise<Record<string, unknown>> {
@@ -214,7 +226,7 @@ function ShopProductCard({
   product,
   layout,
   isSelected,
-  onSelect,
+  onViewDetail,
   onAdd,
   t,
   locale,
@@ -222,7 +234,7 @@ function ShopProductCard({
   product: Product;
   layout: "grid" | "list";
   isSelected: boolean;
-  onSelect: () => void;
+  onViewDetail: () => void;
   onAdd: () => void;
   t: ShopCheckoutCopy;
   locale: string;
@@ -237,7 +249,7 @@ function ShopProductCard({
           isSelected ? "border-zinc-900 ring-2 ring-zinc-900/20" : "border-neutral-200 hover:border-neutral-300"
         }`}
       >
-        <button type="button" onClick={onSelect} className="w-28 shrink-0 sm:w-32">
+        <button type="button" onClick={onViewDetail} className="w-28 shrink-0 sm:w-32">
           <div className="relative flex aspect-square items-center justify-center overflow-hidden rounded-lg bg-neutral-50">
             {product.imageUrl ? (
               <Image
@@ -254,10 +266,13 @@ function ShopProductCard({
           </div>
         </button>
         <div className="flex min-w-0 flex-1 flex-col justify-center">
-          <button type="button" onClick={onSelect} className="text-left">
+          <button type="button" onClick={onViewDetail} className="text-left">
             <h3 className="text-sm font-medium text-neutral-900">{title}</h3>
             <p className="mt-1 text-sm text-neutral-800">{priceDisplay(product.priceCents, product.currency)}</p>
             <StarRow value={stars} align="start" />
+            <span className="mt-2 inline-block text-xs font-medium text-neutral-500 underline underline-offset-2">
+              {t.shopViewDetails}
+            </span>
           </button>
           <button
             type="button"
@@ -298,15 +313,18 @@ function ShopProductCard({
     >
       <button
         type="button"
-        onClick={onSelect}
+        onClick={onViewDetail}
         className="w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2"
         aria-pressed={isSelected}
-        aria-label={title}
+        aria-label={`${title} — ${t.shopViewDetails}`}
       >
         {imgBlockGrid}
         <h3 className="mt-4 line-clamp-2 px-1 text-sm font-medium leading-snug text-neutral-900">{title}</h3>
         <p className="mt-2 text-sm text-neutral-800">{priceDisplay(product.priceCents, product.currency)}</p>
         <StarRow value={stars} />
+        <span className="mt-2 inline-block px-1 text-xs font-medium text-neutral-500 underline underline-offset-2">
+          {t.shopViewDetails}
+        </span>
       </button>
       <button
         type="button"
@@ -462,7 +480,7 @@ export function ShopCheckout({
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [selectedProductId, setSelectedProductId] = useState(initialProducts[0]?.id ?? "");
   const [sort, setSort] = useState<SortKey>("default");
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("mpay");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(() => defaultCheckoutPaymentMethod());
   const [quantity, setQuantity] = useState(1);
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
@@ -473,13 +491,21 @@ export function ShopCheckout({
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState("");
-  const [checkoutIdempotencyKey, setCheckoutIdempotencyKey] = useState(createIdempotencyKey);
+  const checkoutIdempotencyKeyRef = useRef("");
   const [viewMode, setViewMode] = useState<ViewMode>("grid-3");
   const [filterCats, setFilterCats] = useState<CategoryKey[]>([]);
+  const [detailProductId, setDetailProductId] = useState<string | null>(null);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [cartTouched, setCartTouched] = useState(false);
 
   const selectedProduct = useMemo(
     () => products.find((item) => item.id === selectedProductId),
     [products, selectedProductId],
+  );
+
+  const detailProduct = useMemo(
+    () => (detailProductId ? products.find((item) => item.id === detailProductId) : undefined),
+    [products, detailProductId],
   );
 
   const sortedProducts = useMemo(() => {
@@ -514,6 +540,23 @@ export function ShopCheckout({
 
   function clearFilters() {
     setFilterCats([]);
+  }
+
+  useEffect(() => {
+    checkoutIdempotencyKeyRef.current = createIdempotencyKey();
+  }, []);
+
+  useEffect(() => {
+    const visible = visibleShopPaymentMethods();
+    if (!visible.includes(paymentMethod)) {
+      setPaymentMethod(visible[0] ?? defaultCheckoutPaymentMethod());
+    }
+  }, [paymentMethod]);
+
+  function nextIdempotencyKey() {
+    const key = createIdempotencyKey();
+    checkoutIdempotencyKeyRef.current = key;
+    return key;
   }
 
   useEffect(() => {
@@ -556,9 +599,26 @@ export function ShopCheckout({
     document.getElementById("shop-checkout")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
-  function handleAddToCart(product: Product) {
+  function openProductDetail(product: Product) {
     setSelectedProductId(product.id);
     setQuantity(1);
+    setDetailProductId(product.id);
+  }
+
+  function addToCart(product: Product, qty = 1) {
+    setSelectedProductId(product.id);
+    setQuantity(qty);
+    setDetailProductId(null);
+    setCartTouched(true);
+    setCartOpen(true);
+  }
+
+  function handleAddToCart(product: Product) {
+    addToCart(product, 1);
+  }
+
+  function proceedFromCart() {
+    setCartOpen(false);
     scrollToCheckout();
   }
 
@@ -572,7 +632,7 @@ export function ShopCheckout({
     setLocalPaymentData(null);
     setProofUploaded(false);
 
-    const idempotencyKey = checkoutIdempotencyKey;
+    const idempotencyKey = checkoutIdempotencyKeyRef.current || nextIdempotencyKey();
     try {
       const response = await fetch("/api/shop/checkout", {
         method: "POST",
@@ -591,14 +651,33 @@ export function ShopCheckout({
 
       const data = (await parseJsonResponse(response)) as Record<string, unknown>;
 
-      if (response.ok && typeof data.uploadToken === "string" && data.uploadToken) {
-        setLocalPaymentData(data as unknown as LocalPaymentResponse);
+      const isLocalPayOk =
+        response.ok &&
+        typeof data.orderId === "string" &&
+        typeof data.paymentAccount === "string" &&
+        (typeof data.uploadToken === "string" || data.proofViaWhatsapp === true);
+
+      if (isLocalPayOk) {
+        setLocalPaymentData({
+          orderId: String(data.orderId),
+          paymentMethod: (typeof data.paymentMethod === "string"
+            ? data.paymentMethod
+            : paymentMethod) as PaymentMethod,
+          amountCents: Number(data.amountCents) || 0,
+          currency: typeof data.currency === "string" ? data.currency : "mop",
+          paymentAccount: String(data.paymentAccount),
+          paymentNote: typeof data.paymentNote === "string" ? data.paymentNote : "",
+          message: typeof data.message === "string" ? data.message : "",
+          uploadToken: typeof data.uploadToken === "string" ? data.uploadToken : "",
+          proofViaWhatsapp: data.proofViaWhatsapp === true || !data.uploadToken,
+        });
         setMessage(typeof data.message === "string" ? data.message : "");
+        nextIdempotencyKey();
         return;
       }
 
       if (typeof data.checkoutUrl === "string" && data.checkoutUrl) {
-        setCheckoutIdempotencyKey(createIdempotencyKey());
+        nextIdempotencyKey();
         window.location.href = data.checkoutUrl;
         return;
       }
@@ -635,7 +714,7 @@ export function ShopCheckout({
     if (response.ok) {
       setProofUploaded(true);
       setMessage(t.shopProofReceived);
-      setCheckoutIdempotencyKey(createIdempotencyKey());
+      nextIdempotencyKey();
     } else {
       setMessage(data.message ?? "Upload failed.");
     }
@@ -643,13 +722,22 @@ export function ShopCheckout({
   }
 
   const subtotalCents = selectedProduct ? selectedProduct.priceCents * quantity : 0;
+  const selectedPayAccount = localPaymentAccount(paymentMethod);
 
   function openStaticWhatsappOrder() {
     if (!orderHelpWhatsappUrl || !selectedProduct) {
       return;
     }
     const totalLine = priceDisplay(subtotalCents, selectedProduct.currency);
-    const text = buildStaticOrderLines(locale, selectedProduct, quantity, customerName, customerEmail, totalLine);
+    const text = buildStaticOrderLines(
+      locale,
+      selectedProduct,
+      quantity,
+      customerName,
+      customerEmail,
+      totalLine,
+      paymentMethod,
+    );
     window.open(appendTextToWhatsappUrl(orderHelpWhatsappUrl, text), "_blank", "noopener,noreferrer");
   }
 
@@ -663,6 +751,7 @@ export function ShopCheckout({
             customerName,
             customerEmail,
             priceDisplay(subtotalCents, selectedProduct.currency),
+            paymentMethod,
           ),
         )}`
       : null;
@@ -809,7 +898,7 @@ export function ShopCheckout({
                       product={product}
                       layout={viewMode === "list" ? "list" : "grid"}
                       isSelected={product.id === selectedProductId}
-                      onSelect={() => setSelectedProductId(product.id)}
+                      onViewDetail={() => openProductDetail(product)}
                       onAdd={() => handleAddToCart(product)}
                       t={t}
                       locale={locale}
@@ -838,10 +927,7 @@ export function ShopCheckout({
               <p className="mt-1 text-neutral-500">Select a product to see totals.</p>
             )}
             {!isStaticSite && paymentMethod !== "stripe_card" ? (
-              <p className="mt-2 text-sm text-neutral-500">
-                本地支付需人工審核，上傳截圖後一般於辦公時間內處理。 / Local bank transfers are verified manually
-                during business hours.
-              </p>
+              <p className="mt-2 text-sm text-neutral-500">{t.shopPaymentHintLocal}</p>
             ) : null}
           </div>
 
@@ -867,34 +953,64 @@ export function ShopCheckout({
             </select>
           </label>
 
-          {!isStaticSite ? (
-            <label className={labelClass}>
-              <span>Payment</span>
-              <select
-                className={inputClass}
-                value={paymentMethod}
-                onChange={(event) => setPaymentMethod(event.target.value as PaymentMethod)}
-              >
-                {paymentOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ) : null}
+          <fieldset className="md:col-span-2">
+            <legend className="text-sm text-neutral-700">{t.shopPaymentLabel}</legend>
+            <div className="mt-2 flex flex-wrap gap-2" role="radiogroup" aria-label={t.shopPaymentLabel}>
+              {visibleShopPaymentMethods().map((method) => {
+                const selected = paymentMethod === method;
+                return (
+                  <button
+                    key={method}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    onClick={() => setPaymentMethod(method)}
+                    className={`rounded-full border px-3.5 py-2 text-sm font-medium transition ${
+                      selected
+                        ? "border-zinc-900 bg-zinc-900 text-white"
+                        : "border-neutral-300 bg-white text-neutral-800 hover:border-zinc-500"
+                    }`}
+                  >
+                    {paymentMethodLabel(method, locale)}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="mt-3 rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-700">
+              <p>{paymentMethodNote(paymentMethod, locale)}</p>
+              {selectedPayAccount ? (
+                <p className="mt-2 font-medium text-neutral-900">
+                  {t.shopPaymentAccountLabel}：{selectedPayAccount}
+                </p>
+              ) : null}
+              {paymentMethodQrSrc(paymentMethod) ? (
+                <figure className="mt-3">
+                  <Image
+                    src={publicAssetPath(paymentMethodQrSrc(paymentMethod)!)}
+                    alt={t.shopPaymentQrAlt}
+                    width={300}
+                    height={512}
+                    className="mx-auto h-auto w-full max-w-[220px] rounded-lg border border-neutral-100 bg-white"
+                    priority={paymentMethod === "mpay"}
+                  />
+                  <figcaption className="mt-2 text-center text-xs text-neutral-500">
+                    {t.shopPaymentQrCaption}
+                  </figcaption>
+                </figure>
+              ) : null}
+            </div>
+          </fieldset>
 
-          <label className={`${labelClass} ${isStaticSite ? "md:col-span-2" : ""}`}>
-            <span>Quantity</span>
-            <input
-              className={inputClass}
-              type="number"
-              min={1}
-              max={10}
+          <div className={labelClass}>
+            <span>{t.shopQuantityLabel}</span>
+            <ShopQuantityStepper
               value={quantity}
-              onChange={(event) => setQuantity(Number(event.target.value))}
+              onChange={setQuantity}
+              decreaseLabel={t.shopDecreaseQty}
+              increaseLabel={t.shopIncreaseQty}
+              quantityLabel={t.shopQuantityLabel}
             />
-          </label>
+          </div>
 
           <label className={labelClass}>
             <span>Name</span>
@@ -955,8 +1071,8 @@ export function ShopCheckout({
               {isSubmitting
                 ? "Processing..."
                 : paymentMethod === "stripe_card"
-                  ? "Pay with Visa / Mastercard"
-                  : "Create Local Payment Order"}
+                  ? t.shopPayCardCta
+                  : t.shopPayLocalCta}
             </button>
           )}
           {message ? <p className="text-sm text-neutral-600 md:col-span-2">{message}</p> : null}
@@ -974,16 +1090,66 @@ export function ShopCheckout({
               Amount: {(localPaymentData.amountCents / 100).toFixed(2).toUpperCase()}{" "}
               {localPaymentData.currency.toUpperCase()}
             </p>
-            <p>收款帳號: {localPaymentData.paymentAccount}</p>
-            <p>付款說明: {localPaymentData.paymentNote}</p>
+            <p>
+              {t.shopPaymentAccountLabel}：{localPaymentData.paymentAccount}
+            </p>
+            <p>
+              {t.shopPaymentNoteLabel}：{paymentMethodNote(localPaymentData.paymentMethod, locale)}
+            </p>
+            {paymentMethodQrSrc(localPaymentData.paymentMethod) ? (
+              <figure className="mt-4">
+                <Image
+                  src={publicAssetPath(paymentMethodQrSrc(localPaymentData.paymentMethod)!)}
+                  alt={t.shopPaymentQrAlt}
+                  width={300}
+                  height={512}
+                  className="mx-auto h-auto w-full max-w-[240px] rounded-lg border border-neutral-100 bg-white"
+                />
+                <figcaption className="mt-2 text-center text-xs text-neutral-500">
+                  {t.shopPaymentQrCaption}
+                </figcaption>
+              </figure>
+            ) : null}
             <p className="mt-2 text-neutral-500">
-              請完成轉帳後上傳截圖。 / Complete the transfer, then upload your screenshot.
+              {localPaymentData.proofViaWhatsapp
+                ? locale === "zh-HK"
+                  ? "請完成付款後，以 WhatsApp 或電郵傳送截圖及訂單編號。"
+                  : "After paying, send your screenshot and order ID via WhatsApp or email."
+                : "請完成轉帳後上傳截圖。 / Complete the transfer, then upload your screenshot."}
             </p>
 
             {proofUploaded ? (
               <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50/80 px-3 py-2 text-sm text-amber-950">
                 {t.shopProofReviewPending}
               </p>
+            ) : localPaymentData.proofViaWhatsapp ? (
+              <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                {orderHelpWhatsappUrl ? (
+                  <a
+                    href={appendTextToWhatsappUrl(
+                      orderHelpWhatsappUrl,
+                      locale === "zh-HK"
+                        ? `【付款截圖】訂單 ${localPaymentData.orderId}\n金額 ${(localPaymentData.amountCents / 100).toFixed(2)} ${localPaymentData.currency.toUpperCase()}\n方式 ${paymentMethodLabel(localPaymentData.paymentMethod, locale)}\n（請附上付款截圖）`
+                        : `[Payment proof] Order ${localPaymentData.orderId}\nAmount ${(localPaymentData.amountCents / 100).toFixed(2)} ${localPaymentData.currency.toUpperCase()}\nVia ${paymentMethodLabel(localPaymentData.paymentMethod, locale)}\n(Please attach payment screenshot)`,
+                    )}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex w-fit rounded-full bg-zinc-900 px-6 py-3 text-sm font-semibold text-white transition-all duration-200 ease-out hover:bg-zinc-800"
+                  >
+                    {t.shopWhatsappOrder}
+                  </a>
+                ) : null}
+                {orderHelpEmail ? (
+                  <a
+                    href={`mailto:${orderHelpEmail}?subject=${encodeURIComponent(`Payment proof ${localPaymentData.orderId}`)}&body=${encodeURIComponent(
+                      `Order ID: ${localPaymentData.orderId}\nAmount: ${(localPaymentData.amountCents / 100).toFixed(2)} ${localPaymentData.currency.toUpperCase()}\n`,
+                    )}`}
+                    className="inline-flex w-fit items-center justify-center rounded-full border border-zinc-400 bg-white px-6 py-3 text-sm font-semibold text-zinc-900 transition-all duration-200 ease-out hover:bg-zinc-50"
+                  >
+                    {t.shopMailOrder}
+                  </a>
+                ) : null}
+              </div>
             ) : (
               <form className="mt-4 flex flex-col gap-3" onSubmit={onUploadProof}>
                 <label className="flex flex-col gap-2">
@@ -1016,6 +1182,59 @@ export function ShopCheckout({
           </div>
         ) : null}
       </div>
+
+      {detailProduct ? (
+        <ShopProductDetailPanel
+          product={detailProduct}
+          locale={locale}
+          category={inferCategoryKey(detailProduct)}
+          quantity={quantity}
+          stars={productStarRating(detailProduct)}
+          t={t}
+          onClose={() => setDetailProductId(null)}
+          onQuantityChange={setQuantity}
+          onAddToCart={() => addToCart(detailProduct, quantity)}
+          priceLabel={priceDisplay(detailProduct.priceCents, detailProduct.currency)}
+          categoryLabel={categoryLabel(t, inferCategoryKey(detailProduct))}
+        />
+      ) : null}
+
+      <ShopCartDrawer
+        open={cartOpen}
+        product={selectedProduct}
+        quantity={quantity}
+        locale={locale}
+        subtotalLabel={
+          selectedProduct ? priceDisplay(subtotalCents, selectedProduct.currency) : "—"
+        }
+        t={t}
+        isStaticSite={isStaticSite}
+        onClose={() => setCartOpen(false)}
+        onCheckout={proceedFromCart}
+        onQuantityChange={setQuantity}
+      />
+
+      {selectedProduct && cartTouched && !cartOpen && !detailProductId ? (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-neutral-200 bg-white/95 px-4 py-3 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] backdrop-blur-sm sm:hidden [padding-bottom:max(0.75rem,env(safe-area-inset-bottom,0px))]">
+          <div className="flex items-center gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs text-neutral-600">
+                {locale === "zh-HK" ? selectedProduct.nameZh : selectedProduct.nameEn}
+              </p>
+              <p className="text-sm font-semibold text-neutral-900">
+                {priceDisplay(subtotalCents, selectedProduct.currency)}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setCartOpen(true)}
+              className="shrink-0 rounded-full bg-zinc-900 px-5 py-3 text-sm font-semibold text-white"
+            >
+              {t.shopStickyViewCart}
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

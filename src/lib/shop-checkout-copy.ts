@@ -21,8 +21,34 @@ export type ShopCheckoutCopy = Pick<
   | "shopSortPriceAsc"
   | "shopSortPriceDesc"
   | "shopAddToCart"
+  | "shopViewDetails"
+  | "shopClose"
+  | "shopQuantityLabel"
+  | "shopDecreaseQty"
+  | "shopIncreaseQty"
+  | "shopWhyWeLoveIt"
+  | "shopHowToUse"
+  | "shopSalonPick"
+  | "shopHoldMeter"
+  | "shopShineMeter"
+  | "shopInSalonPickup"
+  | "shopTrustManualReview"
+  | "shopCartTitle"
+  | "shopCartEmpty"
+  | "shopCartSubtotal"
+  | "shopCartCheckout"
+  | "shopStickyViewCart"
+  | "shopRetailAvailability"
   | "shopCheckoutTitle"
   | "shopStaticCheckoutNote"
+  | "shopPaymentLabel"
+  | "shopPaymentHintLocal"
+  | "shopPaymentAccountLabel"
+  | "shopPaymentNoteLabel"
+  | "shopPaymentQrAlt"
+  | "shopPaymentQrCaption"
+  | "shopPayLocalCta"
+  | "shopPayCardCta"
   | "shopWhatsappOrder"
   | "shopMailOrder"
   | "catShampoo"
@@ -65,8 +91,34 @@ export function pickShopCheckoutCopy(t: Messages): ShopCheckoutCopy {
     shopSortPriceAsc: t.shopSortPriceAsc,
     shopSortPriceDesc: t.shopSortPriceDesc,
     shopAddToCart: t.shopAddToCart,
+    shopViewDetails: t.shopViewDetails,
+    shopClose: t.shopClose,
+    shopQuantityLabel: t.shopQuantityLabel,
+    shopDecreaseQty: t.shopDecreaseQty,
+    shopIncreaseQty: t.shopIncreaseQty,
+    shopWhyWeLoveIt: t.shopWhyWeLoveIt,
+    shopHowToUse: t.shopHowToUse,
+    shopSalonPick: t.shopSalonPick,
+    shopHoldMeter: t.shopHoldMeter,
+    shopShineMeter: t.shopShineMeter,
+    shopInSalonPickup: t.shopInSalonPickup,
+    shopTrustManualReview: t.shopTrustManualReview,
+    shopCartTitle: t.shopCartTitle,
+    shopCartEmpty: t.shopCartEmpty,
+    shopCartSubtotal: t.shopCartSubtotal,
+    shopCartCheckout: t.shopCartCheckout,
+    shopStickyViewCart: t.shopStickyViewCart,
+    shopRetailAvailability: t.shopRetailAvailability,
     shopCheckoutTitle: t.shopCheckoutTitle,
     shopStaticCheckoutNote: t.shopStaticCheckoutNote,
+    shopPaymentLabel: t.shopPaymentLabel,
+    shopPaymentHintLocal: t.shopPaymentHintLocal,
+    shopPaymentAccountLabel: t.shopPaymentAccountLabel,
+    shopPaymentNoteLabel: t.shopPaymentNoteLabel,
+    shopPaymentQrAlt: t.shopPaymentQrAlt,
+    shopPaymentQrCaption: t.shopPaymentQrCaption,
+    shopPayLocalCta: t.shopPayLocalCta,
+    shopPayCardCta: t.shopPayCardCta,
     shopWhatsappOrder: t.shopWhatsappOrder,
     shopMailOrder: t.shopMailOrder,
     catShampoo: t.catShampoo,

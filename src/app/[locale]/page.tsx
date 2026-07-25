@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
+import dynamic from "next/dynamic";
 import { notFound } from "next/navigation";
-import { Playfair_Display, DM_Sans } from "next/font/google";
-import { BookingForm } from "@/components/booking-form";
 import { HeroSalon } from "@/components/hero-salon";
 import { SalonTopBar } from "@/components/salon-top-bar";
 import { SalonHeader } from "@/components/salon-header";
@@ -18,17 +17,10 @@ export function generateStaticParams() {
   return supportedLocales.map((locale) => ({ locale }));
 }
 
-const display = Playfair_Display({
-  weight: ["600", "700"],
-  subsets: ["latin"],
-  variable: "--font-display",
-});
-
-const sans = DM_Sans({
-  weight: ["400", "500", "600"],
-  subsets: ["latin"],
-  variable: "--font-sans-body",
-});
+/** Below-fold client island — keep off the initial home JS path. */
+const BookingForm = dynamic(() =>
+  import("@/components/booking-form").then((m) => m.BookingForm),
+);
 
 type HomePageProps = {
   params: Promise<{ locale: string }>;
@@ -37,9 +29,9 @@ type HomePageProps = {
 const defaultService = "haircut";
 const businessSite = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
-/** Same asset as hero (`public/ad-stock/03-salon-interior-wide.jpg`). */
+/** Same asset as hero (`public/ad-stock/03-salon-interior-wide.webp`). */
 function ogImageUrl(siteBase: string) {
-  return `${siteBase}/ad-stock/03-salon-interior-wide.jpg`;
+  return `${siteBase}/ad-stock/03-salon-interior-wide.webp`;
 }
 
 export async function generateMetadata({ params }: HomePageProps): Promise<Metadata> {

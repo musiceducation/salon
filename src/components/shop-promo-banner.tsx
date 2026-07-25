@@ -9,7 +9,7 @@ type Props = {
   sansClassName: string;
 };
 
-const PROMO_BG = "/ad-stock/04-hair-tools-blowdry.jpg";
+const PROMO_BG = "/ad-stock/04-hair-tools-blowdry.webp";
 
 export function ShopPromoBanner(p: Props) {
   const bgSrc = publicAssetPath(PROMO_BG);

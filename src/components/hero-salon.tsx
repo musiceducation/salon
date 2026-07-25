@@ -14,15 +14,15 @@ type Props = {
   sansClassName: string;
 };
 
-/** Store interior — same scene family as `public/ad-stock/03-salon-interior-wide.jpg`. */
-const HERO_PATH = "/ad-stock/03-salon-interior-wide.jpg";
+/** Store interior — WebP for LCP (Safari-safe with `unoptimized`). */
+const HERO_PATH = "/ad-stock/03-salon-interior-wide.webp";
 
 export function HeroSalon(p: Props) {
   const heroSrc = publicAssetPath(HERO_PATH);
   return (
     <section className="relative isolate min-h-[min(72vh,720px)] w-full overflow-hidden">
       <div className="pointer-events-none absolute inset-0 -z-10">
-        {/* Bypass `/_next/image`: Safari on localhost often skips painting optimized hero URLs; `/hero/…` from `public/` is direct. */}
+        {/* Bypass `/_next/image`: Safari on localhost often skips painting optimized hero URLs; static `/ad-stock/…` is direct. */}
         <Image
           src={heroSrc}
           alt=""

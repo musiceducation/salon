@@ -32,7 +32,7 @@ const sans = DM_Sans({
 const businessSite = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 function ogImageUrl(siteBase: string) {
-  return `${siteBase}/ad-stock/03-salon-interior-wide.jpg`;
+  return `${siteBase}/ad-stock/03-salon-interior-wide.webp`;
 }
 
 type PageProps = {

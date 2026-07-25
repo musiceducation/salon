@@ -32,7 +32,7 @@ export async function getHomeProducts(): Promise<HomeProduct[]> {
       },
     });
   } catch {
-    return [];
+    return staticShopCatalogForExport;
   }
 }
 
