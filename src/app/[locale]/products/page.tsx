@@ -11,6 +11,7 @@ import type { Locale } from "@/lib/i18n";
 import { getHomeProducts } from "@/lib/home-data";
 import { pickShopCheckoutCopy } from "@/lib/shop-checkout-copy";
 import { getWeChatId } from "@/lib/contact-wechat";
+import { localeAbsoluteUrl, localeHref } from "@/lib/locale-path";
 import { phoneToE164 } from "@/lib/tel-href";
 
 export function generateStaticParams() {
@@ -33,7 +34,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return {};
   }
   const t = getMessages(locale);
-  const path = `/${locale}/products`;
+  const pageUrl = localeAbsoluteUrl(businessSite, locale, "products");
   const shareImage = ogImageUrl(businessSite);
   const title = `${t.shopSectionTitle} · ${t.brandName}`;
   return {
@@ -42,7 +43,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     openGraph: {
       title,
       description: t.shopSectionNote,
-      url: `${businessSite}${path}`,
+      url: pageUrl,
       siteName: "n_nsalon",
       images: [{ url: shareImage, width: 1600, height: 1200, alt: t.brandTitle }],
     },
@@ -53,11 +54,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       images: [shareImage],
     },
     alternates: {
-      canonical: `${businessSite}${path}`,
+      canonical: pageUrl,
       languages: {
-        "zh-HK": `${businessSite}/zh-HK/products`,
-        en: `${businessSite}/en/products`,
-        "x-default": `${businessSite}/zh-HK/products`,
+        "zh-HK": localeAbsoluteUrl(businessSite, "zh-HK", "products"),
+        en: localeAbsoluteUrl(businessSite, "en", "products"),
+        "x-default": localeAbsoluteUrl(businessSite, "zh-HK", "products"),
       },
     },
   };
@@ -86,7 +87,8 @@ export default async function ProductsPage({ params }: PageProps) {
   const instagramUrl = process.env.NEXT_PUBLIC_INSTAGRAM_URL?.trim() || null;
   const wechatId = getWeChatId();
 
-  const productsPath = `/${locale}/products`;
+  const productsPath = localeHref(locale, "products");
+  const homePath = localeHref(locale);
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "HairSalon",
@@ -140,7 +142,7 @@ export default async function ProductsPage({ params }: PageProps) {
           aria-label="Breadcrumb"
         >
           <div className="mx-auto max-w-6xl px-4 py-3 text-sm sm:px-6">
-            <Link href={`/${locale}`} className="text-zinc-600 underline-offset-4 hover:text-zinc-900 hover:underline">
+            <Link href={homePath} className="text-zinc-600 underline-offset-4 hover:text-zinc-900 hover:underline">
               {t.navHome}
             </Link>
             <span className="text-zinc-400" aria-hidden>

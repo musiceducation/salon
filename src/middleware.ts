@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { computeAdminSessionValue } from "@/lib/admin-session";
 import { COOKIE_NAME } from "@/lib/auth-admin";
+import { DEFAULT_LOCALE } from "@/lib/locale-path";
 
 const ADMIN_LOGIN_PATH = "/admin/login";
 
@@ -26,12 +27,49 @@ function getCookieValue(cookieHeader: string, name: string) {
   return undefined;
 }
 
+function isEnglishPath(pathname: string) {
+  return pathname === "/en" || pathname.startsWith("/en/");
+}
+
+function isSkippedLocaleRewrite(pathname: string) {
+  return (
+    isEnglishPath(pathname) ||
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/api") ||
+    pathname.startsWith("/_next") ||
+    pathname === "/robots.txt" ||
+    pathname === "/sitemap.xml" ||
+    pathname === "/favicon.ico"
+  );
+}
+
 export async function middleware(request: NextRequest) {
-  if (!request.nextUrl.pathname.startsWith("/admin")) {
+  const { pathname } = request.nextUrl;
+
+  // Old prefixed Chinese URLs → clean public URLs (308 so SEO consolidates on /).
+  if (pathname === `/${DEFAULT_LOCALE}` || pathname === `/${DEFAULT_LOCALE}/`) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/";
+    return NextResponse.redirect(url, 308);
+  }
+  if (pathname.startsWith(`/${DEFAULT_LOCALE}/`)) {
+    const url = request.nextUrl.clone();
+    url.pathname = pathname.slice(`/${DEFAULT_LOCALE}`.length) || "/";
+    return NextResponse.redirect(url, 308);
+  }
+
+  // Serve default locale from unprefixed paths: `/` → `/zh-HK`, `/products` → `/zh-HK/products`.
+  if (!isSkippedLocaleRewrite(pathname)) {
+    const url = request.nextUrl.clone();
+    url.pathname = pathname === "/" ? `/${DEFAULT_LOCALE}` : `/${DEFAULT_LOCALE}${pathname}`;
+    return NextResponse.rewrite(url);
+  }
+
+  if (!pathname.startsWith("/admin")) {
     return NextResponse.next();
   }
 
-  if (request.nextUrl.pathname === ADMIN_LOGIN_PATH) {
+  if (pathname === ADMIN_LOGIN_PATH) {
     return NextResponse.next();
   }
 
@@ -59,10 +97,16 @@ export async function middleware(request: NextRequest) {
 
   const url = request.nextUrl.clone();
   url.pathname = ADMIN_LOGIN_PATH;
-  url.searchParams.set("from", request.nextUrl.pathname);
+  url.searchParams.set("from", pathname);
   return NextResponse.redirect(url);
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: [
+    /*
+     * Locale rewrite/redirect + admin gate.
+     * Skip static assets (paths with a file extension).
+     */
+    "/((?!_next/static|_next/image|.*\\..*).*)",
+  ],
 };

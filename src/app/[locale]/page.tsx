@@ -11,6 +11,7 @@ import { WeChatFloat } from "@/components/wechat-float";
 import { getMessages, isSupportedLocale, supportedLocales } from "@/lib/i18n";
 import { getHomeSlotsForService } from "@/lib/home-data";
 import { getWeChatId } from "@/lib/contact-wechat";
+import { localeAbsoluteUrl, localeHref } from "@/lib/locale-path";
 import { phoneToE164 } from "@/lib/tel-href";
 
 /** Prebuild both locales; required for `output: 'export'` (GitHub Pages) and static HTML at deploy. */
@@ -41,7 +42,7 @@ export async function generateMetadata({ params }: HomePageProps): Promise<Metad
     return {};
   }
   const t = getMessages(locale);
-  const path = `/${locale}`;
+  const pageUrl = localeAbsoluteUrl(businessSite, locale);
   const shareImage = ogImageUrl(businessSite);
   const title =
     locale === "zh-HK"
@@ -57,7 +58,7 @@ export async function generateMetadata({ params }: HomePageProps): Promise<Metad
     openGraph: {
       title,
       description,
-      url: `${businessSite}${path}`,
+      url: pageUrl,
       siteName: "n_nsalon",
       images: [
         {
@@ -75,11 +76,11 @@ export async function generateMetadata({ params }: HomePageProps): Promise<Metad
       images: [shareImage],
     },
     alternates: {
-      canonical: `${businessSite}${path}`,
+      canonical: pageUrl,
       languages: {
-        "zh-HK": `${businessSite}/zh-HK`,
-        en: `${businessSite}/en`,
-        "x-default": `${businessSite}/zh-HK`,
+        "zh-HK": localeAbsoluteUrl(businessSite, "zh-HK"),
+        en: localeAbsoluteUrl(businessSite, "en"),
+        "x-default": localeAbsoluteUrl(businessSite, "zh-HK"),
       },
     },
   };
@@ -94,7 +95,7 @@ export default async function LocaleHomePage({ params }: HomePageProps) {
 
   const t = getMessages(locale);
   const initialSlots = await getHomeSlotsForService(locale, defaultService);
-  const productsPath = `/${locale}/products`;
+  const productsPath = localeHref(locale, "products");
 
   const sameAs: string[] = [];
   if (process.env.NEXT_PUBLIC_INSTAGRAM_URL) {

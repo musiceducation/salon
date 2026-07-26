@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SalonHeaderMobileNav, SalonHeaderPrimaryNav } from "./salon-header-nav.client";
+import { localeHref } from "@/lib/locale-path";
 
 type Nav = {
   brandName: string;
@@ -62,7 +63,7 @@ export function SalonHeader(t: Nav) {
     <header className="sticky top-0 z-40 border-b border-zinc-200/80 bg-white">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:px-6 sm:py-3.5">
         <Link
-          href={`/${t.locale}`}
+          href={localeHref(t.locale)}
           className="shrink-0 font-display text-lg font-semibold leading-tight tracking-tight text-zinc-900 sm:text-xl"
         >
           {t.brandName}
@@ -107,7 +108,7 @@ export function SalonHeader(t: Nav) {
             ) : (
               <Link
                 className="rounded-md px-2 py-1 text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-800"
-                href="/en"
+                href={localeHref("en")}
               >
                 EN
               </Link>
@@ -117,7 +118,7 @@ export function SalonHeader(t: Nav) {
             ) : (
               <Link
                 className="rounded-md px-2 py-1 text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-800"
-                href="/zh-HK"
+                href={localeHref("zh-HK")}
               >
                 繁
               </Link>

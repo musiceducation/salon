@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { localeHref } from "@/lib/locale-path";
 
 function useWindowHash() {
   const [hash, setHash] = useState("");
@@ -89,7 +90,7 @@ type Nav = {
  * W52-style nav: uppercase, underline for section matching current URL hash.
  */
 export function SalonHeaderPrimaryNav(t: Nav) {
-  const homePath = `/${t.locale}`;
+  const homePath = localeHref(t.locale);
 
   return (
     <nav
@@ -130,7 +131,7 @@ export function SalonHeaderPrimaryNav(t: Nav) {
 }
 
 export function SalonHeaderMobileNav(t: Nav & { rowClassName: string }) {
-  const homePath = `/${t.locale}`;
+  const homePath = localeHref(t.locale);
   return (
     <div className={t.rowClassName}>
       <HashOrLocaleLink

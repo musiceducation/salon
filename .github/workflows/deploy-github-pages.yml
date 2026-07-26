@@ -59,27 +59,48 @@ jobs:
       - name: Custom domain for GitHub Pages
         run: echo 'www.nnsalon.com' > out/CNAME
 
-      # Static export root may lack a real HTML refresh; ensure `/` sends visitors to the default locale.
-      - name: Root page redirect for static hosting
+      - name: Promote Chinese locale to site root (no /zh-HK in public URLs)
         run: |
-          cat > out/index.html <<'EOF'
+          test -f out/zh-HK/index.html
+          cp out/zh-HK/index.html out/index.html
+          mkdir -p out/products
+          if [ -d out/zh-HK/products ]; then
+            cp -R out/zh-HK/products/. out/products/
+          fi
+          # Keep old /zh-HK bookmarks working via HTML refresh to clean URLs
+          cat > out/zh-HK/index.html <<'EOF'
           <!DOCTYPE html>
           <html lang="zh-HK">
             <head>
               <meta charset="utf-8" />
-              <meta name="viewport" content="width=device-width, initial-scale=1" />
-              <meta http-equiv="refresh" content="0; url=./zh-HK/" />
+              <meta http-equiv="refresh" content="0; url=/" />
+              <link rel="canonical" href="https://www.nnsalon.com/" />
               <title>藝能美髮培訓中心 | n_nsalon</title>
-              <link rel="icon" href="./favicon.ico" sizes="256x256" type="image/x-icon" />
             </head>
             <body>
-              <p>Redirecting to <a href="./zh-HK/">主頁</a>…</p>
+              <p>Redirecting to <a href="/">www.nnsalon.com</a>…</p>
             </body>
           </html>
           EOF
+          if [ -f out/zh-HK/products/index.html ]; then
+            cat > out/zh-HK/products/index.html <<'EOF'
+            <!DOCTYPE html>
+            <html lang="zh-HK">
+              <head>
+                <meta charset="utf-8" />
+                <meta http-equiv="refresh" content="0; url=/products/" />
+                <link rel="canonical" href="https://www.nnsalon.com/products/" />
+                <title>產品 | n_nsalon</title>
+              </head>
+              <body>
+                <p>Redirecting to <a href="/products/">products</a>…</p>
+              </body>
+            </html>
+            EOF
+          fi
 
       - name: Verify static output
-        run: test -f out/zh-HK/index.html && test -d out/_next && ls -la out | head -20
+        run: test -f out/index.html && test -d out/_next && ! grep -q 'url=./zh-HK' out/index.html && ls -la out | head -20
 
       - uses: actions/upload-pages-artifact@v4
         with:

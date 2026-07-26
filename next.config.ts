@@ -23,7 +23,7 @@ const nextConfig: NextConfig = {
   },
   ...(isStaticExport && {
     output: "export" as const,
-    /** Custom domain (e.g. www.nnsalon.com) is served at host root; omit basePath so `/zh-HK/` and `/_next/` resolve. */
+    /** Custom domain (e.g. www.nnsalon.com) is served at host root; omit basePath so `/` and `/_next/` resolve. */
     trailingSlash: true,
     images: { unoptimized: true },
   }),
