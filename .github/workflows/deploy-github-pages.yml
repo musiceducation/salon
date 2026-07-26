@@ -48,6 +48,8 @@ jobs:
           NEXT_PUBLIC_INSTAGRAM_URL: https://www.instagram.com/n_nsalon/
           NEXT_PUBLIC_MPAY_ACCOUNT: "888537230267756"
           NEXT_PUBLIC_BOC_ACCOUNT: "澳門儲蓄戶 181301100827421"
+          # Optional: repo Settings → Secrets → GOOGLE_SITE_VERIFICATION (Search Console HTML-tag token)
+          GOOGLE_SITE_VERIFICATION: ${{ secrets.GOOGLE_SITE_VERIFICATION }}
           DATABASE_URL: postgresql://build:build@127.0.0.1:1/build
         run: npm run build
 

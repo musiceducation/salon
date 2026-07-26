@@ -43,12 +43,20 @@ export async function generateMetadata({ params }: HomePageProps): Promise<Metad
   const t = getMessages(locale);
   const path = `/${locale}`;
   const shareImage = ogImageUrl(businessSite);
+  const title =
+    locale === "zh-HK"
+      ? `${t.brandName} n_nsalon｜澳門美髮`
+      : `${t.brandName}｜Hair salon in Macau`;
+  const description =
+    locale === "zh-HK"
+      ? `${t.brandSubtitle} 官方網站 www.nnsalon.com。`
+      : `${t.brandSubtitle} Official site: www.nnsalon.com.`;
   return {
-    title: t.brandName,
-    description: t.brandSubtitle,
+    title,
+    description,
     openGraph: {
-      title: t.brandName,
-      description: t.brandSubtitle,
+      title,
+      description,
       url: `${businessSite}${path}`,
       siteName: "n_nsalon",
       images: [
@@ -62,8 +70,8 @@ export async function generateMetadata({ params }: HomePageProps): Promise<Metad
     },
     twitter: {
       card: "summary_large_image",
-      title: t.brandName,
-      description: t.brandSubtitle,
+      title,
+      description,
       images: [shareImage],
     },
     alternates: {
@@ -101,21 +109,32 @@ export default async function LocaleHomePage({ params }: HomePageProps) {
   const instagramUrl = process.env.NEXT_PUBLIC_INSTAGRAM_URL?.trim() || null;
   const wechatId = getWeChatId();
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "HairSalon",
-    name: locale === "zh-HK" ? t.brandName : "n_nsalon (藝能美髮培訓中心)",
-    address: {
-      "@type": "PostalAddress",
-      streetAddress: t.address,
-      addressLocality: "Macau",
-      addressCountry: "MO",
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: "n_nsalon",
+      alternateName: ["藝能美髮培訓中心", "www.nnsalon.com"],
+      url: businessSite,
+      inLanguage: [locale, "zh-HK", "en"],
     },
-    telephone: phoneToE164(t.phone),
-    url: businessSite,
-    sameAs: sameAs.length > 0 ? sameAs : undefined,
-    areaServed: { "@type": "Place", name: "Macau" },
-  };
+    {
+      "@context": "https://schema.org",
+      "@type": "HairSalon",
+      name: locale === "zh-HK" ? t.brandName : "n_nsalon (藝能美髮培訓中心)",
+      alternateName: locale === "zh-HK" ? ["n_nsalon", "www.nnsalon.com"] : ["藝能美髮培訓中心", "www.nnsalon.com"],
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: t.address,
+        addressLocality: "Macau",
+        addressCountry: "MO",
+      },
+      telephone: phoneToE164(t.phone),
+      url: businessSite,
+      sameAs: sameAs.length > 0 ? sameAs : undefined,
+      areaServed: { "@type": "Place", name: "Macau" },
+    },
+  ];
 
   const bookingNoSlotsHint = t.bookingNoSlotsLine
     .replace("{phone}", t.phone)
