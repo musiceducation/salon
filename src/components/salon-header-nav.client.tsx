@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { localeHref } from "@/lib/locale-path";
 
 function useWindowHash() {
+  const pathname = usePathname();
   const [hash, setHash] = useState("");
   useEffect(() => {
     const sync = () => {
@@ -17,7 +18,7 @@ function useWindowHash() {
     sync();
     window.addEventListener("hashchange", sync);
     return () => window.removeEventListener("hashchange", sync);
-  }, []);
+  }, [pathname]);
   return hash;
 }
 

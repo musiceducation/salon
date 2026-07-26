@@ -11,12 +11,9 @@ export type ShopCheckoutCopy = Pick<
   | "shopViewList"
   | "shopFilterProductType"
   | "shopFilterProductTypeEn"
-  | "shopFilterHairType"
-  | "shopFilterHairTypeEn"
-  | "shopFilterStyle"
-  | "shopFilterStyleEn"
-  | "shopFilterPlaceholder"
   | "shopFilterAllTypes"
+  | "shopSearchPlaceholder"
+  | "shopSearchLabel"
   | "shopSortDefault"
   | "shopSortPriceAsc"
   | "shopSortPriceDesc"
@@ -68,6 +65,12 @@ export type ShopCheckoutCopy = Pick<
   | "shopPayStepUpload"
   | "shopPayStepReview"
   | "shopProofPreviewLabel"
+  | "shopProofUploadLabel"
+  | "shopProofUploadHint"
+  | "shopProofChooseFile"
+  | "shopProofNoFile"
+  | "shopProofChangeFile"
+  | "shopProofUploading"
   | "shopProofSubmit"
   | "shopProofReceived"
   | "shopProofReviewPending"
@@ -83,12 +86,9 @@ export function pickShopCheckoutCopy(t: Messages): ShopCheckoutCopy {
     shopViewList: t.shopViewList,
     shopFilterProductType: t.shopFilterProductType,
     shopFilterProductTypeEn: t.shopFilterProductTypeEn,
-    shopFilterHairType: t.shopFilterHairType,
-    shopFilterHairTypeEn: t.shopFilterHairTypeEn,
-    shopFilterStyle: t.shopFilterStyle,
-    shopFilterStyleEn: t.shopFilterStyleEn,
-    shopFilterPlaceholder: t.shopFilterPlaceholder,
     shopFilterAllTypes: t.shopFilterAllTypes,
+    shopSearchPlaceholder: t.shopSearchPlaceholder,
+    shopSearchLabel: t.shopSearchLabel,
     shopSortDefault: t.shopSortDefault,
     shopSortPriceAsc: t.shopSortPriceAsc,
     shopSortPriceDesc: t.shopSortPriceDesc,
@@ -140,6 +140,12 @@ export function pickShopCheckoutCopy(t: Messages): ShopCheckoutCopy {
     shopPayStepUpload: t.shopPayStepUpload,
     shopPayStepReview: t.shopPayStepReview,
     shopProofPreviewLabel: t.shopProofPreviewLabel,
+    shopProofUploadLabel: t.shopProofUploadLabel,
+    shopProofUploadHint: t.shopProofUploadHint,
+    shopProofChooseFile: t.shopProofChooseFile,
+    shopProofNoFile: t.shopProofNoFile,
+    shopProofChangeFile: t.shopProofChangeFile,
+    shopProofUploading: t.shopProofUploading,
     shopProofSubmit: t.shopProofSubmit,
     shopProofReceived: t.shopProofReceived,
     shopProofReviewPending: t.shopProofReviewPending,

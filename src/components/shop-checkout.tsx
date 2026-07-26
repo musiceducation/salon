@@ -14,9 +14,17 @@ import {
   type ShopPaymentMethod,
 } from "@/lib/shop-payment-methods";
 import { copyTextToClipboard } from "@/lib/contact-wechat";
+import {
+  publishShopCart,
+  readShopCart,
+  SHOP_CART_OPEN_EVENT,
+  SHOP_SEARCH_FOCUS_EVENT,
+} from "@/lib/shop-cart-bridge";
 import { ShopCartDrawer } from "@/components/shop-cart-drawer";
 import { ShopProductDetailPanel } from "@/components/shop-product-detail-panel";
 import { ShopQuantityStepper } from "@/components/shop-quantity-stepper";
+
+const CART_QTY_MAX = 10;
 
 type Product = {
   id: string;
@@ -183,27 +191,6 @@ function categoryLabel(t: ShopCheckoutCopy, key: CategoryKey) {
   }
 }
 
-function productStarRating(product: Product): number {
-  let h = 0;
-  for (let i = 0; i < product.id.length; i += 1) {
-    h += product.id.charCodeAt(i);
-  }
-  return Math.round((4.55 + (h % 8) * 0.05) * 10) / 10;
-}
-
-function StarRow({ value, align = "center" }: { value: number; align?: "center" | "start" }) {
-  return (
-    <div
-      className={`mt-2 flex flex-wrap items-center gap-0.5 text-[11px] leading-none text-zinc-900 ${
-        align === "start" ? "justify-start" : "justify-center"
-      }`}
-    >
-      <span aria-hidden>★★★★★</span>
-      <span className="ml-1 tabular-nums text-neutral-500">({value.toFixed(1)})</span>
-    </div>
-  );
-}
-
 function paymentAccountLabel(method: PaymentMethod, t: ShopCheckoutCopy): string {
   return method === "mpay" ? t.shopPaymentMpayMerchantLabel : t.shopPaymentAccountLabel;
 }
@@ -261,7 +248,6 @@ function ShopProductCard({
   locale: string;
 }) {
   const title = formatProductTitle(product, locale);
-  const stars = productStarRating(product);
 
   if (layout === "list") {
     return (
@@ -290,7 +276,6 @@ function ShopProductCard({
           <button type="button" onClick={onViewDetail} className="text-left">
             <h3 className="text-sm font-medium text-neutral-900">{title}</h3>
             <p className="mt-1 text-sm text-neutral-800">{priceDisplay(product.priceCents, product.currency)}</p>
-            <StarRow value={stars} align="start" />
             <span className="mt-2 inline-block text-xs font-medium text-neutral-500 underline underline-offset-2">
               {t.shopViewDetails}
             </span>
@@ -342,7 +327,6 @@ function ShopProductCard({
         {imgBlockGrid}
         <h3 className="mt-4 line-clamp-2 px-1 text-sm font-medium leading-snug text-neutral-900">{title}</h3>
         <p className="mt-2 text-sm text-neutral-800">{priceDisplay(product.priceCents, product.currency)}</p>
-        <StarRow value={stars} />
         <span className="mt-2 inline-block px-1 text-xs font-medium text-neutral-500 underline underline-offset-2">
           {t.shopViewDetails}
         </span>
@@ -414,32 +398,6 @@ function FilterSidebar({
             </label>
           ))}
         </div>
-      </details>
-      <details className={detailsClass}>
-        <summary className={summaryClass}>
-          <span>
-            <span className="text-neutral-500">{t.shopFilterHairTypeEn}</span>
-            <span className="mx-1 text-neutral-300">·</span>
-            <span>{t.shopFilterHairType}</span>
-          </span>
-          <span className="text-neutral-400" aria-hidden>
-            ▾
-          </span>
-        </summary>
-        <p className="pb-3 text-xs leading-relaxed text-neutral-500">{t.shopFilterPlaceholder}</p>
-      </details>
-      <details className={detailsClass}>
-        <summary className={summaryClass}>
-          <span>
-            <span className="text-neutral-500">{t.shopFilterStyleEn}</span>
-            <span className="mx-1 text-neutral-300">·</span>
-            <span>{t.shopFilterStyle}</span>
-          </span>
-          <span className="text-neutral-400" aria-hidden>
-            ▾
-          </span>
-        </summary>
-        <p className="pb-3 text-xs leading-relaxed text-neutral-500">{t.shopFilterPlaceholder}</p>
       </details>
     </div>
   );
@@ -515,9 +473,12 @@ export function ShopCheckout({
   const checkoutIdempotencyKeyRef = useRef("");
   const [viewMode, setViewMode] = useState<ViewMode>("grid-3");
   const [filterCats, setFilterCats] = useState<CategoryKey[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [detailProductId, setDetailProductId] = useState<string | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [cartTouched, setCartTouched] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const didHydrateCartRef = useRef(false);
 
   const selectedProduct = useMemo(
     () => products.find((item) => item.id === selectedProductId),
@@ -546,11 +507,18 @@ export function ShopCheckout({
   }, [products]);
 
   const filteredProducts = useMemo(() => {
-    if (filterCats.length === 0) {
-      return sortedProducts;
+    let list = sortedProducts;
+    if (filterCats.length > 0) {
+      list = list.filter((p) => filterCats.includes(inferCategoryKey(p)));
     }
-    return sortedProducts.filter((p) => filterCats.includes(inferCategoryKey(p)));
-  }, [sortedProducts, filterCats]);
+    const q = searchQuery.trim().toLowerCase();
+    if (q) {
+      list = list.filter(
+        (p) => p.nameZh.toLowerCase().includes(q) || p.nameEn.toLowerCase().includes(q),
+      );
+    }
+    return list;
+  }, [sortedProducts, filterCats, searchQuery]);
 
   const totalCatalog = sortedProducts.length;
   const n = filteredProducts.length;
@@ -561,11 +529,88 @@ export function ShopCheckout({
 
   function clearFilters() {
     setFilterCats([]);
+    setSearchQuery("");
+    syncSearchParam("");
+  }
+
+  function syncSearchParam(q: string) {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const url = new URL(window.location.href);
+    const trimmed = q.trim();
+    if (trimmed) {
+      url.searchParams.set("q", trimmed);
+    } else {
+      url.searchParams.delete("q");
+    }
+    url.searchParams.delete("search");
+    url.searchParams.delete("focus");
+    url.searchParams.delete("cart");
+    const next = `${url.pathname}${url.search}${url.hash}`;
+    window.history.replaceState(null, "", next);
+  }
+
+  function onSearchChange(value: string) {
+    setSearchQuery(value);
+    syncSearchParam(value);
   }
 
   useEffect(() => {
     checkoutIdempotencyKeyRef.current = createIdempotencyKey();
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get("q") ?? "";
+    if (q) {
+      setSearchQuery(q);
+    }
+    if (params.get("focus") === "search" || params.get("search") === "1" || params.has("q")) {
+      window.setTimeout(() => searchInputRef.current?.focus(), 50);
+    }
+    if (params.get("cart") === "1") {
+      setCartOpen(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (didHydrateCartRef.current || products.length === 0) {
+      return;
+    }
+    didHydrateCartRef.current = true;
+    const saved = readShopCart();
+    if (saved && products.some((p) => p.id === saved.productId)) {
+      setSelectedProductId(saved.productId);
+      setQuantity(saved.quantity);
+      setCartTouched(true);
+    }
+  }, [products]);
+
+  useEffect(() => {
+    function onOpenCart() {
+      setCartOpen(true);
+    }
+    function onFocusSearch() {
+      document.getElementById("shop")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      window.setTimeout(() => searchInputRef.current?.focus(), 100);
+    }
+    window.addEventListener(SHOP_CART_OPEN_EVENT, onOpenCart);
+    window.addEventListener(SHOP_SEARCH_FOCUS_EVENT, onFocusSearch);
+    return () => {
+      window.removeEventListener(SHOP_CART_OPEN_EVENT, onOpenCart);
+      window.removeEventListener(SHOP_SEARCH_FOCUS_EVENT, onFocusSearch);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (cartTouched && selectedProductId) {
+      publishShopCart({ productId: selectedProductId, quantity });
+    }
+  }, [cartTouched, selectedProductId, quantity]);
 
   useEffect(() => {
     const resolved = resolveCheckoutPaymentMethod(paymentMethod);
@@ -601,6 +646,16 @@ export function ShopCheckout({
   }, [localPaymentData?.orderId]);
 
   useEffect(() => {
+    if (!localPaymentData?.orderId) {
+      return;
+    }
+    document.getElementById("shop-local-payment")?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }, [localPaymentData?.orderId]);
+
+  useEffect(() => {
     if (initialProducts.length > 0) {
       return;
     }
@@ -626,14 +681,13 @@ export function ShopCheckout({
   }
 
   function openProductDetail(product: Product) {
-    setSelectedProductId(product.id);
-    setQuantity(1);
     setDetailProductId(product.id);
   }
 
   function addToCart(product: Product, qty = 1) {
+    const sameItem = cartTouched && selectedProductId === product.id;
     setSelectedProductId(product.id);
-    setQuantity(qty);
+    setQuantity(sameItem ? Math.min(CART_QTY_MAX, quantity + qty) : qty);
     setDetailProductId(null);
     setCartTouched(true);
     setCartOpen(true);
@@ -838,6 +892,21 @@ export function ShopCheckout({
           </aside>
 
           <div className="min-w-0 flex-1">
+            <div className="mb-4">
+              <label htmlFor="shop-product-search" className="sr-only">
+                {t.shopSearchLabel}
+              </label>
+              <input
+                ref={searchInputRef}
+                id="shop-product-search"
+                type="search"
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+                placeholder={t.shopSearchPlaceholder}
+                className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2.5 text-sm text-neutral-900 shadow-sm transition-[border-color,box-shadow] duration-200 ease-out placeholder:text-neutral-400 focus:border-zinc-700 focus:outline-none focus:ring-1 focus:ring-zinc-700"
+                autoComplete="off"
+              />
+            </div>
             <div className="mb-6 flex flex-col gap-4 border-b border-neutral-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-1">
                 <button
@@ -904,7 +973,10 @@ export function ShopCheckout({
             </div>
 
             <p className="mb-4 text-[10px] font-medium uppercase tracking-[0.2em] text-neutral-400">
-              {t.shopShowing.replace("{from}", n ? "1" : "0").replace("{to}", String(n)).replace("{total}", String(n))}
+              {t.shopShowing
+                .replace("{from}", n ? "1" : "0")
+                .replace("{to}", String(n))
+                .replace("{total}", String(totalCatalog))}
             </p>
 
             {n === 0 ? (
@@ -1013,16 +1085,19 @@ export function ShopCheckout({
               })}
             </div>
             <div className="mt-3 rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-700">
-              <p>{paymentMethodNote(checkoutPaymentMethod, locale)}</p>
+              <p>
+                {checkoutPaymentMethod === "mpay"
+                  ? locale === "zh-HK"
+                    ? "確認訂單後會顯示收款碼；亦可轉帳至下列商戶編號，並保留截圖。"
+                    : "Payment QR appears after you confirm the order. You can also transfer to the merchant ID below and keep a screenshot."
+                  : paymentMethodNote(checkoutPaymentMethod, locale)}
+              </p>
               {selectedPayAccount ? (
                 <p className="mt-2 font-medium text-neutral-900">
                   {paymentAccountLabel(checkoutPaymentMethod, t)}：{selectedPayAccount}
                 </p>
               ) : null}
             </div>
-            {checkoutPaymentMethod === "mpay" ? (
-              <MpayCollectionQr alt={t.shopPaymentQrAlt} caption={t.shopPaymentQrCaption} />
-            ) : null}
           </fieldset>
 
           <div className={labelClass}>
@@ -1087,23 +1162,28 @@ export function ShopCheckout({
               ) : null}
             </div>
           ) : (
-            <button
-              className="inline-flex w-fit rounded-full bg-zinc-900 px-6 py-3 text-sm font-semibold text-white transition-all duration-200 ease-out hover:bg-zinc-800 active:scale-[0.98] disabled:opacity-60 motion-reduce:active:scale-100"
-              type="submit"
-              disabled={isSubmitting || !selectedProductId}
-            >
-              {isSubmitting
-                ? "Processing..."
-                : checkoutPaymentMethod === "stripe_card"
-                  ? t.shopPayCardCta
-                  : t.shopPayLocalCta}
-            </button>
+            <div className="md:col-span-2">
+              <button
+                className="inline-flex w-full items-center justify-center rounded-full bg-zinc-900 px-6 py-3 text-sm font-semibold text-white transition-all duration-200 ease-out hover:bg-zinc-800 active:scale-[0.98] disabled:opacity-60 motion-reduce:active:scale-100 sm:w-fit"
+                type="submit"
+                disabled={isSubmitting || !selectedProductId}
+              >
+                {isSubmitting
+                  ? "Processing..."
+                  : checkoutPaymentMethod === "stripe_card"
+                    ? t.shopPayCardCta
+                    : t.shopPayLocalCta}
+              </button>
+            </div>
           )}
           {message ? <p className="text-sm text-neutral-600 md:col-span-2">{message}</p> : null}
         </form>
 
         {localPaymentData ? (
-          <div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-4 text-sm text-neutral-800 shadow-sm">
+          <div
+            id="shop-local-payment"
+            className="mt-6 scroll-mt-24 rounded-2xl border border-neutral-200 bg-white p-4 text-sm text-neutral-800 shadow-sm"
+          >
             <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
               {t.shopLocalPayFlowTitle}
             </p>
@@ -1172,30 +1252,42 @@ export function ShopCheckout({
               </div>
             ) : (
               <form className="mt-4 flex flex-col gap-3" onSubmit={onUploadProof}>
-                <label className="flex flex-col gap-2">
-                  <span>上傳付款截圖 Upload payment screenshot</span>
-                  <input
-                    className="text-sm"
-                    type="file"
-                    accept="image/png,image/jpeg,image/webp,image/gif"
-                    onChange={(event) => setProofFile(event.target.files?.[0] ?? null)}
-                  />
-                </label>
-                {proofPreviewUrl ? (
-                  <div className="overflow-hidden rounded-lg border border-neutral-200 bg-neutral-50">
-                    <img
-                      src={proofPreviewUrl}
-                      alt={t.shopProofPreviewLabel}
-                      className="max-h-64 w-full object-contain"
-                    />
+                <div className="rounded-xl border border-neutral-200 bg-neutral-50/80 p-4">
+                  <p className="text-sm font-semibold text-neutral-900">{t.shopProofUploadLabel}</p>
+                  <p className="mt-1 text-xs leading-relaxed text-neutral-500">{t.shopProofUploadHint}</p>
+
+                  <div className="mt-3 flex flex-wrap items-center gap-3">
+                    <label className="inline-flex cursor-pointer items-center justify-center rounded-full bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-800">
+                      {proofFile ? t.shopProofChangeFile : t.shopProofChooseFile}
+                      <input
+                        className="sr-only"
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp,image/gif"
+                        onChange={(event) => setProofFile(event.target.files?.[0] ?? null)}
+                      />
+                    </label>
+                    <p className="min-w-0 flex-1 truncate text-sm text-neutral-600">
+                      {proofFile ? proofFile.name : t.shopProofNoFile}
+                    </p>
                   </div>
-                ) : null}
+
+                  {proofPreviewUrl ? (
+                    <div className="mt-3 overflow-hidden rounded-lg border border-neutral-200 bg-white">
+                      <img
+                        src={proofPreviewUrl}
+                        alt={t.shopProofPreviewLabel}
+                        className="max-h-64 w-full object-contain"
+                      />
+                    </div>
+                  ) : null}
+                </div>
+
                 <button
-                  className="inline-flex w-fit rounded-full border border-neutral-400 px-5 py-2 text-sm font-medium text-neutral-800 transition-all duration-200 ease-out hover:bg-neutral-100 active:scale-[0.98] disabled:opacity-50 motion-reduce:active:scale-100"
+                  className="inline-flex w-full items-center justify-center rounded-full bg-zinc-900 px-6 py-3 text-sm font-semibold text-white transition-all duration-200 ease-out hover:bg-zinc-800 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-neutral-300 disabled:text-neutral-500 motion-reduce:active:scale-100 sm:w-fit"
                   type="submit"
                   disabled={isUploading || !proofFile}
                 >
-                  {isUploading ? "Uploading…" : t.shopProofSubmit}
+                  {isUploading ? t.shopProofUploading : t.shopProofSubmit}
                 </button>
               </form>
             )}
@@ -1208,12 +1300,9 @@ export function ShopCheckout({
           product={detailProduct}
           locale={locale}
           category={inferCategoryKey(detailProduct)}
-          quantity={quantity}
-          stars={productStarRating(detailProduct)}
           t={t}
           onClose={() => setDetailProductId(null)}
-          onQuantityChange={setQuantity}
-          onAddToCart={() => addToCart(detailProduct, quantity)}
+          onAddToCart={(qty) => addToCart(detailProduct, qty)}
           priceLabel={priceDisplay(detailProduct.priceCents, detailProduct.currency)}
           categoryLabel={categoryLabel(t, inferCategoryKey(detailProduct))}
         />

@@ -29,6 +29,28 @@ export function localeHref(locale: string, path = ""): string {
   return `${prefix}/${rest}`;
 }
 
+/** Strip locale prefix from a pathname → locale-neutral path segment(s). */
+export function pathWithoutLocale(pathname: string): string {
+  const normalized = pathname.length > 1 && pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
+  if (normalized === "/en") {
+    return "";
+  }
+  if (normalized.startsWith("/en/")) {
+    return normalized.slice(4);
+  }
+  return normalized.replace(/^\//, "");
+}
+
+/**
+ * Same page in another locale, keeping path + hash (e.g. `/products#shop` → `/en/products#shop`).
+ */
+export function swapLocaleHref(pathname: string, targetLocale: Locale, hash = ""): string {
+  const rest = pathWithoutLocale(pathname);
+  const base = localeHref(targetLocale, rest);
+  const frag = hash.startsWith("#") ? hash : hash ? `#${hash}` : "";
+  return `${base}${frag}`;
+}
+
 /** Absolute URL for canonical / hreflang / sitemap (no trailing slash except site root). */
 export function localeAbsoluteUrl(siteBase: string, locale: string, path = ""): string {
   const base = siteBase.replace(/\/+$/, "");

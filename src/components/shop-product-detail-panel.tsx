@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { publicAssetPath } from "@/lib/public-asset-path";
 import { getProductDetailContent } from "@/lib/shop-product-detail";
 import type { ShopCheckoutCopy } from "@/lib/shop-checkout-copy";
@@ -44,11 +44,8 @@ export function ShopProductDetailPanel({
   product,
   locale,
   category,
-  quantity,
-  stars,
   t,
   onClose,
-  onQuantityChange,
   onAddToCart,
   priceLabel,
   categoryLabel,
@@ -56,17 +53,19 @@ export function ShopProductDetailPanel({
   product: Product;
   locale: string;
   category: CategoryKey;
-  quantity: number;
-  stars: number;
   t: ShopCheckoutCopy;
   onClose: () => void;
-  onQuantityChange: (n: number) => void;
-  onAddToCart: () => void;
+  onAddToCart: (quantity: number) => void;
   priceLabel: string;
   categoryLabel: string;
 }) {
   const title = locale === "zh-HK" ? product.nameZh : product.nameEn;
   const detail = getProductDetailContent(product.id, category, locale);
+  const [quantity, setQuantity] = useState(1);
+
+  useEffect(() => {
+    setQuantity(1);
+  }, [product.id]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -136,9 +135,6 @@ export function ShopProductDetailPanel({
                 {title}
               </h2>
               <p className="mt-2 text-lg font-medium text-neutral-900">{priceLabel}</p>
-              <p className="mt-1 text-xs text-neutral-500">
-                <span aria-hidden>★★★★★</span> ({stars.toFixed(1)})
-              </p>
               <p className="mt-2 text-xs text-neutral-500">{t.shopRetailAvailability}</p>
 
               {detail.holdLevel != null ? (
@@ -178,14 +174,14 @@ export function ShopProductDetailPanel({
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <ShopQuantityStepper
               value={quantity}
-              onChange={onQuantityChange}
+              onChange={setQuantity}
               decreaseLabel={t.shopDecreaseQty}
               increaseLabel={t.shopIncreaseQty}
               quantityLabel={t.shopQuantityLabel}
             />
             <button
               type="button"
-              onClick={onAddToCart}
+              onClick={() => onAddToCart(quantity)}
               className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-zinc-900 px-8 text-sm font-semibold text-white transition hover:bg-zinc-800 active:scale-[0.98] sm:w-auto"
             >
               {t.shopAddToCart}

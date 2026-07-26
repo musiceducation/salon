@@ -85,8 +85,13 @@ export function AdminOrdersClient({ initialOrders }: AdminOrdersClientProps) {
             {order.receiptNumber ? <p>E-receipt: {order.receiptNumber}</p> : null}
             {order.lastStatusNote ? <p>Note: {order.lastStatusNote}</p> : null}
             {order.paymentProofUrl ? (
-              <a className="mt-2 inline-block underline" href={order.paymentProofUrl} target="_blank" rel="noreferrer">
-                View Payment Proof
+              <a
+                className="mt-2 inline-block font-medium text-emerald-300 underline underline-offset-2 hover:text-emerald-200"
+                href={order.paymentProofUrl}
+                target="_blank"
+                rel="noreferrer"
+              >
+                View payment screenshot →
               </a>
             ) : (
               <p className="mt-2 text-zinc-400">No proof uploaded yet.</p>

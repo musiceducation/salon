@@ -169,7 +169,6 @@ export default async function LocaleHomePage({ params }: HomePageProps) {
         cartAria={t.cartAria}
         cartEmpty={t.cartEmpty}
         locale={locale}
-        cartCount={0}
         productsPath={productsPath}
       />
       <main>

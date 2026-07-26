@@ -133,7 +133,6 @@ export default async function ProductsPage({ params }: PageProps) {
         cartAria={t.cartAria}
         cartEmpty={t.cartEmpty}
         locale={locale}
-        cartCount={0}
         productsPath={productsPath}
       />
       <main>

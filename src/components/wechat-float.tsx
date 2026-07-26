@@ -28,8 +28,8 @@ export function WeChatFloat({ wechatId, title, body, copiedLabel }: Props) {
   }
 
   return (
-    <div className="group fixed bottom-4 right-4 z-[60] flex max-w-md flex-row items-end justify-end gap-2 sm:bottom-6 sm:right-6">
-      <div className="pointer-events-none order-1 mb-0.5 max-w-xs rounded-2xl border border-zinc-200/80 bg-white p-3.5 pr-2 text-left text-sm text-zinc-800 opacity-0 shadow-2xl transition-opacity duration-150 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100 sm:p-4 [@media(hover:none)]:hidden">
+    <div className="group fixed bottom-[5.75rem] right-4 z-50 flex max-w-[min(100vw-2rem,20rem)] flex-col items-end gap-2 sm:bottom-6 sm:right-6">
+      <div className="pointer-events-none max-w-xs rounded-2xl border border-zinc-200/80 bg-white p-3.5 text-left text-sm text-zinc-800 opacity-0 shadow-2xl transition-opacity duration-150 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100 sm:p-4 [@media(hover:none)]:hidden">
         <p className="font-semibold text-zinc-900">{title}</p>
         <p className="mt-1 leading-cjk text-zinc-600">{body}</p>
         <p className="mt-2 font-medium text-zinc-900">WeChat: {wechatId}</p>
@@ -37,7 +37,7 @@ export function WeChatFloat({ wechatId, title, body, copiedLabel }: Props) {
       <button
         type="button"
         onClick={handleCopy}
-        className="order-2 flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#07C160] text-white shadow-lg transition hover:scale-105 hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-white/95 focus-visible:ring-offset-2"
+        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#07C160] text-white shadow-lg transition hover:scale-105 hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-white/95 focus-visible:ring-offset-2"
         aria-label={copied ? copiedLabel : `WeChat ${wechatId}`}
       >
         {icon}
@@ -45,7 +45,7 @@ export function WeChatFloat({ wechatId, title, body, copiedLabel }: Props) {
       {copied ? (
         <p
           role="status"
-          className="pointer-events-none absolute bottom-14 right-0 rounded-lg bg-zinc-900 px-3 py-1.5 text-xs text-white shadow-lg sm:bottom-16"
+          className="pointer-events-none absolute bottom-14 right-0 rounded-lg bg-zinc-900 px-3 py-1.5 text-xs text-white shadow-lg"
         >
           {copiedLabel}
         </p>
