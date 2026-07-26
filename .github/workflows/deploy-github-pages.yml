@@ -61,43 +61,49 @@ jobs:
 
       - name: Promote Chinese locale to site root (no /zh-HK in public URLs)
         run: |
+          set -euo pipefail
+          ls -la out | head -40
           test -f out/zh-HK/index.html
           cp out/zh-HK/index.html out/index.html
           mkdir -p out/products
           if [ -d out/zh-HK/products ]; then
             cp -R out/zh-HK/products/. out/products/
           fi
-          # Keep old /zh-HK bookmarks working via HTML refresh to clean URLs
-          cat > out/zh-HK/index.html <<'EOF'
-          <!DOCTYPE html>
+          python3 <<'PY'
+          from pathlib import Path
+
+          Path("out/zh-HK/index.html").write_text(
+              """<!DOCTYPE html>
           <html lang="zh-HK">
-            <head>
-              <meta charset="utf-8" />
-              <meta http-equiv="refresh" content="0; url=/" />
-              <link rel="canonical" href="https://www.nnsalon.com/" />
-              <title>藝能美髮培訓中心 | n_nsalon</title>
-            </head>
-            <body>
-              <p>Redirecting to <a href="/">www.nnsalon.com</a>…</p>
-            </body>
+          <head>
+          <meta charset="utf-8" />
+          <meta http-equiv="refresh" content="0; url=/" />
+          <link rel="canonical" href="https://www.nnsalon.com/" />
+          <title>藝能美髮培訓中心 | n_nsalon</title>
+          </head>
+          <body><p>Redirecting to <a href="/">www.nnsalon.com</a>…</p></body>
           </html>
-          EOF
-          if [ -f out/zh-HK/products/index.html ]; then
-            cat > out/zh-HK/products/index.html <<'EOF'
-            <!DOCTYPE html>
-            <html lang="zh-HK">
-              <head>
-                <meta charset="utf-8" />
-                <meta http-equiv="refresh" content="0; url=/products/" />
-                <link rel="canonical" href="https://www.nnsalon.com/products/" />
-                <title>產品 | n_nsalon</title>
-              </head>
-              <body>
-                <p>Redirecting to <a href="/products/">products</a>…</p>
-              </body>
-            </html>
-            EOF
-          fi
+          """,
+              encoding="utf-8",
+          )
+          products = Path("out/zh-HK/products/index.html")
+          if products.is_file():
+              products.write_text(
+                  """<!DOCTYPE html>
+          <html lang="zh-HK">
+          <head>
+          <meta charset="utf-8" />
+          <meta http-equiv="refresh" content="0; url=/products/" />
+          <link rel="canonical" href="https://www.nnsalon.com/products/" />
+          <title>產品 | n_nsalon</title>
+          </head>
+          <body><p>Redirecting to <a href="/products/">products</a>…</p></body>
+          </html>
+          """,
+                  encoding="utf-8",
+              )
+          print("promoted default locale to / and /products/")
+          PY
 
       - name: Verify static output
         run: test -f out/index.html && test -d out/_next && ! grep -q 'url=./zh-HK' out/index.html && ls -la out | head -20
