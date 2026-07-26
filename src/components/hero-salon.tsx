@@ -10,19 +10,17 @@ type Props = {
   bookNow: string;
   shopNow: string;
   shopHref: string;
-  displayClassName: string;
-  sansClassName: string;
 };
 
-/** Store interior — same scene family as `public/ad-stock/03-salon-interior-wide.jpg`. */
-const HERO_PATH = "/ad-stock/03-salon-interior-wide.jpg";
+/** Store interior — WebP for LCP (Safari-safe with `unoptimized`). */
+const HERO_PATH = "/ad-stock/03-salon-interior-wide.webp";
 
 export function HeroSalon(p: Props) {
   const heroSrc = publicAssetPath(HERO_PATH);
   return (
     <section className="relative isolate min-h-[min(72vh,720px)] w-full overflow-hidden">
       <div className="pointer-events-none absolute inset-0 -z-10">
-        {/* Bypass `/_next/image`: Safari on localhost often skips painting optimized hero URLs; `/hero/…` from `public/` is direct. */}
+        {/* Bypass `/_next/image`: Safari on localhost often skips painting optimized hero URLs; static `/ad-stock/…` is direct. */}
         <Image
           src={heroSrc}
           alt=""
@@ -42,19 +40,15 @@ export function HeroSalon(p: Props) {
         />
       </div>
       <div className="mx-auto flex min-h-[min(72vh,720px)] max-w-6xl flex-col justify-center gap-6 px-4 py-20 sm:px-6 sm:py-24">
-        <p
-          className={`${p.displayClassName} text-3xl font-semibold text-white sm:text-4xl md:text-5xl`}
-        >
-          {p.brandTitle}
-        </p>
-        <p className={`${p.sansClassName} max-w-2xl text-sm leading-relaxed text-zinc-200 sm:text-base`}>
+        <h1 className="heading-hero max-w-3xl text-white">{p.brandTitle}</h1>
+        <p className="max-w-measure text-base leading-cjk text-zinc-200 sm:text-lg">
           {p.brandSubtitle}
         </p>
         <div className="flex max-w-3xl flex-wrap gap-2.5 sm:gap-3">
           {[p.kw1, p.kw2, p.kw3].map((k, i) => (
             <span
               key={`${k}-${i}`}
-              className={`${p.sansClassName} rounded-full border border-white/30 bg-gradient-to-r from-black/50 via-black/40 to-black/50 px-3.5 py-1.5 text-xs font-medium text-white shadow-sm backdrop-blur-md sm:px-4 sm:py-2 sm:text-sm ${
+              className={`rounded-full border border-white/30 bg-gradient-to-r from-black/50 via-black/40 to-black/50 px-3.5 py-1.5 text-[0.8125rem] font-medium text-white shadow-sm backdrop-blur-md sm:px-4 sm:py-2 sm:text-sm ${
                 i === 2 ? "border-white/40 bg-gradient-to-r from-white/5 via-white/10 to-white/5" : ""
               }`}
             >

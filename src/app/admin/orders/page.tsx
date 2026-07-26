@@ -24,7 +24,7 @@ export default async function AdminOrdersPage() {
   return (
     <main className="min-h-screen bg-zinc-950 px-6 py-8 text-zinc-100">
       <h1 className="text-2xl font-semibold">Order Review Console</h1>
-      <p className="mt-2 text-zinc-400">Manual review for MPay / 中銀 / UEPAY / 銀行轉賬 payment proof.</p>
+      <p className="mt-2 text-zinc-400">Manual review for MPay / 中銀 payment proof.</p>
       <p className="mt-1 text-sm text-zinc-500">
         E-receipt format: NN-YYYY-000001. Sequence resets every year on Jan 1.
       </p>

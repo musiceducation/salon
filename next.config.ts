@@ -11,6 +11,10 @@ const tailwindPkg = path.join(projectRoot, "node_modules", "tailwindcss");
 const isStaticExport = process.env.STATIC_EXPORT === "1";
 
 const nextConfig: NextConfig = {
+  env: {
+    /** Baked at build: client uses this when `output: export` (GitHub Pages has no /api checkout). */
+    NEXT_PUBLIC_STATIC_EXPORT: isStaticExport ? "1" : "",
+  },
   turbopack: {
     root: projectRoot,
     resolveAlias: {
@@ -19,7 +23,7 @@ const nextConfig: NextConfig = {
   },
   ...(isStaticExport && {
     output: "export" as const,
-    basePath: "/salon",
+    /** Custom domain (e.g. www.nnsalon.com) is served at host root; omit basePath so `/zh-HK/` and `/_next/` resolve. */
     trailingSlash: true,
     images: { unoptimized: true },
   }),

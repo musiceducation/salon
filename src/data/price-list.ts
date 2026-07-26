@@ -4,15 +4,6 @@ function L(zhHK: string, en: string, locale: Locale): string {
   return locale === "zh-HK" ? zhHK : en;
 }
 
-/** Single-column reference (e.g. walk-in list). */
-export type PriceIntroListSection = {
-  kind: "intro-list";
-  id: string;
-  title: string;
-  note?: string;
-  rows: { name: string; price: string; detail?: string }[];
-};
-
 /** Member vs non-member table. */
 export type PriceCompareSection = {
   kind: "compare-table";
@@ -70,7 +61,6 @@ export type PriceEventsSection = {
 };
 
 export type PriceListSection =
-  | PriceIntroListSection
   | PriceCompareSection
   | PriceMembershipSection
   | PriceNanoSection
@@ -85,53 +75,122 @@ export function getPriceListData(locale: Locale): PriceListData {
   return {
     sections: [
       {
-        kind: "intro-list",
-        id: "quick-ref",
-        title: L("單次服務（參考）", "Single visit (reference)", locale),
+        kind: "dye-cut",
+        id: "cut-colour-detail",
+        title: L("剪髮 · 染髮（會員 / 非會員）", "Cuts & colour (member / non-member)", locale),
         note: L(
-          "以下為店內常用項目撮要；會員價及組合優惠見下方。",
-          "Summary items; member rates and bundles below.",
+          "使用本店焗油每次加 $50。",
+          "+$50 per in-salon oil treatment application.",
           locale,
         ),
-        rows: [
-          { name: L("洗頭 SHAMPOO", "Shampoo", locale), price: "$100" },
-          { name: L("洗剪 HAIR CUTTING", "Wash & cut", locale), price: "$170" },
+        blocks: [
           {
-            name: L("染髮 HAIR COLOUR", "Colour", locale),
-            price: L("短 $480 · 長 $580", "Short $480 · Long $580", locale),
+            subtitle: L("基本項目", "Basics", locale),
+            colMember: L("會員", "Member", locale),
+            colGuest: L("非會員", "Non-member", locale),
+            rows: [
+              {
+                label: L("洗頭（單洗）", "Shampoo only", locale),
+                member: "$100",
+                guest: "$100",
+              },
+              {
+                label: L("剪髮（洗剪）", "Cut (wash & cut)", locale),
+                member: "$90",
+                guest: "$170",
+              },
+              {
+                label: L("小童剪髮（不洗）", "Kids cut (no wash)", locale),
+                member: "$100",
+                guest: "$100",
+              },
+              {
+                label: L("扎辮", "Braiding", locale),
+                member: "$200 " + L("起", "up", locale),
+                guest: "$250 " + L("起", "up", locale),
+              },
+              {
+                label: L("焗油", "Oil treatment", locale),
+                member: "$300 " + L("起", "up", locale),
+                guest: "$360 " + L("起", "up", locale),
+              },
+              {
+                label: L("搪瓷卷筒", "Ceramic rollers", locale),
+                member: "$200 " + L("起", "up", locale),
+                guest: "$260 " + L("起", "up", locale),
+              },
+            ],
           },
           {
-            name: L("抽染 HIGH LIGHT", "Highlights", locale),
-            price: L("短 $580 · 長 $680 起", "Short $580 · Long $680 up", locale),
+            subtitle: L("染髮 · 短髮", "Colour · short hair", locale),
+            colMember: L("會員", "Member", locale),
+            colGuest: L("非會員", "Non-member", locale),
+            rows: [
+              {
+                label: L("正染根", "Root colour", locale),
+                member: "$400",
+                guest: "$470",
+              },
+              {
+                label: L("抽染全頭 + 根", "Full highlights + roots", locale),
+                member: "$490",
+                guest: "$570",
+              },
+              {
+                label: L("沐浴染色", "Bath colour", locale),
+                member: "$200 " + L("起", "up", locale),
+                guest: "$280 " + L("起", "up", locale),
+              },
+              {
+                label: L("正抽漂", "Bleach highlights", locale),
+                member: "$290",
+                guest: "$350",
+              },
+              {
+                label: L("染灰色", "Grey colour", locale),
+                member: "$700 " + L("起", "up", locale),
+                guest: "$700 " + L("起", "up", locale),
+              },
+            ],
           },
           {
-            name: L("染灰色 HAIR COLOUR (GREY)", "Grey colour", locale),
-            price: "$700 " + L("起", "up", locale),
-          },
-          { name: L("負離子 STRAIGHT", "Ionic straightening", locale), price: "$980" },
-          {
-            name: L("美國 K 果酸蛋白護理直髮", "USA K-acid protein straightening", locale),
-            price: "$980",
-          },
-          {
-            name: L("日本蛋白修護縮髮矯正直髮", "Japan protein correction straightening", locale),
-            price: "$1,380",
-          },
-          {
-            name: L("KK 絲蛋白重塑護理髮", "KK silk protein reshaping treatment", locale),
-            price: "$1,800",
-          },
-          {
-            name: L("電髮 PERM", "Perm (3 tiers)", locale),
-            price: "$750 / $850 / $950",
-          },
-          {
-            name: L("韓式低溫搪瓷燙髮", "Korean low-temp ceramic perm", locale),
-            price: "$880 " + L("起", "up", locale),
+            subtitle: L("染髮 · 長髮", "Colour · long hair", locale),
+            colMember: L("會員", "Member", locale),
+            colGuest: L("非會員", "Non-member", locale),
+            rows: [
+              {
+                label: L("正染根（按長度）", "Root colour (by length)", locale),
+                member: "$430–$490 " + L("起", "up", locale),
+                guest: "$510–$570 " + L("起", "up", locale),
+              },
+              {
+                label: L("抽染全頭 + 根", "Full highlights + roots", locale),
+                member: "$540–$590 " + L("起", "up", locale),
+                guest: "$610–$670 " + L("起", "up", locale),
+              },
+              {
+                label: L("正抽漂", "Bleach highlights", locale),
+                member: "$330 " + L("起", "up", locale),
+                guest: "$390 " + L("起", "up", locale),
+              },
+            ],
           },
           {
-            name: L("焗油 OIL TREATMENT", "Oil treatment", locale),
-            price: L("$360 · $500 起", "$360 · $500 up", locale),
+            subtitle: L("其他", "Other", locale),
+            colMember: L("會員", "Member", locale),
+            colGuest: L("非會員", "Non-member", locale),
+            rows: [
+              {
+                label: L("全漂／退色", "Full bleach / colour removal", locale),
+                member: L("首次 $200；其後每次 +$150 起", "First $200; then +$150 up per session", locale),
+                guest: L("首次 $200；其後每次 +$150 起", "First $200; then +$150 up per session", locale),
+              },
+              {
+                label: L("染後護理", "Post-colour care", locale),
+                member: "+$30",
+                guest: "+$50",
+              },
+            ],
           },
         ],
       },
@@ -215,15 +274,13 @@ export function getPriceListData(locale: Locale): PriceListData {
             heading: L("焗油卡（須於本店購買焗油）", "Oil-treatment card (oil purchased in-salon)", locale),
             lines: [L("3 個月 $680 / 6 次", "3 mo $680 / 6 visits", locale), L("6 個月 $1,020 / 10 次", "6 mo $1,020 / 10 visits", locale)],
           },
-          {
-            heading: L("納米秀髮修復 + 頭皮護理療養（須於本店購買焗油）", "Nano repair + scalp care (oil in-salon)", locale),
-            lines: [
-              L("6 個月 $1,800 / 6 次", "6 mo $1,800 / 6 visits", locale),
-              L("6 個月 $2,800 / 10 次", "6 mo $2,800 / 10 visits", locale),
-            ],
-          },
         ],
         footnotes: [
+          L(
+            "納米秀髮／頭皮療程套票見下方「韓國納米養髮·頭皮護理」。",
+            "Nano hair & scalp course packages are in the Korean nano hair & scalp care section below.",
+            locale,
+          ),
           L(
             "增值 $2,000 可作現金使用（如洗頭等以會員價扣減）。遺失或過期卡恕不補發。",
             "$2,000 top-up works like cash at member prices. Lost/expired cards are not replaced.",
@@ -314,120 +371,10 @@ export function getPriceListData(locale: Locale): PriceListData {
           locale,
         ),
         contactLine: L(
-          "預約：28304175 / 66509780（WhatsApp 或致電）",
-          "Book: 28304175 / 66509780 (WhatsApp or call)",
+          "預約：28304175 / +853 66509780（WeChat 或致電）",
+          "Book: 28304175 / +853 66509780 (WeChat or call)",
           locale,
         ),
-      },
-      {
-        kind: "dye-cut",
-        id: "cut-colour-detail",
-        title: L("剪髮 · 染髮（會員 / 非會員）", "Cuts & colour (member / non-member)", locale),
-        note: L(
-          "使用本店焗油每次加 $50。",
-          "+$50 per in-salon oil treatment application.",
-          locale,
-        ),
-        blocks: [
-          {
-            subtitle: L("基本項目", "Basics", locale),
-            colMember: L("會員", "Member", locale),
-            colGuest: L("非會員", "Non-member", locale),
-            rows: [
-              {
-                label: L("剪髮（洗剪）", "Cut (wash & cut)", locale),
-                member: "$90",
-                guest: "$170",
-              },
-              {
-                label: L("小童剪髮（不洗）", "Kids cut (no wash)", locale),
-                member: "$100",
-                guest: "$100",
-              },
-              {
-                label: L("扎辮", "Braiding", locale),
-                member: "$200 " + L("起", "up", locale),
-                guest: "$250 " + L("起", "up", locale),
-              },
-              {
-                label: L("焗油", "Oil treatment", locale),
-                member: "$300 " + L("起", "up", locale),
-                guest: "$360 " + L("起", "up", locale),
-              },
-              {
-                label: L("搪瓷卷筒", "Ceramic rollers", locale),
-                member: "$200 " + L("起", "up", locale),
-                guest: "$260 " + L("起", "up", locale),
-              },
-            ],
-          },
-          {
-            subtitle: L("染髮 · 短髮", "Colour · short hair", locale),
-            colMember: L("會員", "Member", locale),
-            colGuest: L("非會員", "Non-member", locale),
-            rows: [
-              {
-                label: L("正染根", "Root colour", locale),
-                member: "$400",
-                guest: "$470",
-              },
-              {
-                label: L("抽染全頭 + 根", "Full highlights + roots", locale),
-                member: "$490",
-                guest: "$570",
-              },
-              {
-                label: L("沐浴染色", "Bath colour", locale),
-                member: "$200 " + L("起", "up", locale),
-                guest: "$280 " + L("起", "up", locale),
-              },
-              {
-                label: L("正抽漂", "Bleach highlights", locale),
-                member: "$290",
-                guest: "$350",
-              },
-            ],
-          },
-          {
-            subtitle: L("染髮 · 長髮", "Colour · long hair", locale),
-            colMember: L("會員", "Member", locale),
-            colGuest: L("非會員", "Non-member", locale),
-            rows: [
-              {
-                label: L("正染根（按長度）", "Root colour (by length)", locale),
-                member: "$430–$490 " + L("起", "up", locale),
-                guest: "$510–$570 " + L("起", "up", locale),
-              },
-              {
-                label: L("抽染全頭 + 根", "Full highlights + roots", locale),
-                member: "$540–$590 " + L("起", "up", locale),
-                guest: "$610–$670 " + L("起", "up", locale),
-              },
-              {
-                label: L("正抽漂", "Bleach highlights", locale),
-                member: "$330 " + L("起", "up", locale),
-                guest: "$390 " + L("起", "up", locale),
-              },
-            ],
-          },
-          {
-            subtitle: L("其他", "Other", locale),
-            colMember: L("會員", "Member", locale),
-            colGuest: L("非會員", "Non-member", locale),
-            rows: [
-              {
-                label: L("全漂／退色", "Full bleach / colour removal", locale),
-                member: L("首次 $200；其後每次 +$150 起", "First $200; then +$150 up per session", locale),
-                guest: L("首次 $200；其後每次 +$150 起", "First $200; then +$150 up per session", locale),
-              },
-              {
-                label: L("染後護理", "Post-colour care", locale),
-                member: "+$30",
-                guest: "+$50",
-              },
-            ],
-          },
-        ],
       },
       {
         kind: "events",

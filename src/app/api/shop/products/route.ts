@@ -1,65 +1,6 @@
 import { NextResponse } from "next/server";
+import { staticShopCatalogForExport } from "@/data/shop-catalog-static";
 import { prisma } from "@/lib/prisma";
-
-/** Fallback when Prisma is unavailable (e.g. local dev without DB). Match `staticShopCatalogForExport` + real image paths. */
-const demoProducts = [
-  {
-    id: "demo-perfect-spray",
-    nameZh: "Perfect Spray 造型噴霧 380ml",
-    nameEn: "Perfect Spray 380ml",
-    priceCents: 18000,
-    currency: "mop",
-    imageUrl: "/shop/perfect-spray-380ml.png",
-  },
-  {
-    id: "demo-puny-shampoo",
-    nameZh: "VIVALTONE PUNY 平衡洗髮露 750ml",
-    nameEn: "VIVALTONE PUNY Balancing Shampoo 750ml",
-    priceCents: 36800,
-    currency: "hkd",
-    imageUrl: "/shop/vivaltone-puny-balancing-shampoo-750ml.png",
-  },
-  {
-    id: "demo-vivltone-clay",
-    nameZh: "VIVLTONE Super Clay 造型髮泥 100ml",
-    nameEn: "VIVLTONE Super Clay 100ml",
-    priceCents: 22800,
-    currency: "hkd",
-    imageUrl: "/shop/vivltone-super-clay-100ml.png",
-  },
-  {
-    id: "demo-ahcmax-growth",
-    nameZh: "ahcMax 育髮噴霧 60ml",
-    nameEn: "ahcMax Hair Growth Spray 60ml",
-    priceCents: 29800,
-    currency: "hkd",
-    imageUrl: "/shop/ahcmax-hair-growth-spray-60ml.png",
-  },
-  {
-    id: "demo-kerasilk-oil",
-    nameZh: "Kerasilk 多功能護髮油 50ml",
-    nameEn: "Kerasilk Multi-Benefit Hair Oil 50ml",
-    priceCents: 26800,
-    currency: "hkd",
-    imageUrl: "/shop/kerasilk-multi-benefit-hair-oil-50ml.png",
-  },
-  {
-    id: "demo-kerasilk-balm",
-    nameZh: "Kerasilk 順服乳霜 75ml",
-    nameEn: "Kerasilk Taming Balm 75ml",
-    priceCents: 26800,
-    currency: "hkd",
-    imageUrl: "/shop/kerasilk-taming-balm-75ml.png",
-  },
-  {
-    id: "demo-vivltone",
-    nameZh: "VIVLTONE Super Spray 380ml",
-    nameEn: "VIVLTONE Super Spray 380ml",
-    priceCents: 18000,
-    currency: "mop",
-    imageUrl: "/shop/vivltone-super-spray-380ml.png",
-  },
-];
 
 export async function GET() {
   const isProd = process.env.NODE_ENV === "production";
@@ -89,6 +30,6 @@ export async function GET() {
         { status: 503 },
       );
     }
-    return NextResponse.json({ products: demoProducts }, { status: 200 });
+    return NextResponse.json({ products: staticShopCatalogForExport }, { status: 200 });
   }
 }

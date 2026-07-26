@@ -15,28 +15,68 @@ type BookingSuccessBody = {
   appointmentId: string;
 };
 
+const ALLOWED_SERVICES = new Set(["haircut", "color", "perm"]);
+
 function isProduction() {
   return process.env.NODE_ENV === "production";
 }
 
+function digitsOnly(phone: string) {
+  return phone.replace(/\D/g, "");
+}
+
 export async function POST(request: Request) {
   const idempotencyKey = request.headers.get("idempotency-key");
-  const body = (await request.json()) as BookingPayload;
+  let body: BookingPayload;
+  try {
+    body = (await request.json()) as BookingPayload;
+  } catch {
+    return NextResponse.json({ message: "Invalid JSON body." }, { status: 400 });
+  }
 
   const result = await withIdempotencyByKey<BookingSuccessBody | { message: string }>(
     idempotencyKey,
     "booking_create",
     async () => {
-      if (!body.serviceId || !body.slotId || !body.customerName || !body.customerPhone) {
+      const serviceId = body.serviceId?.trim();
+      const slotId = body.slotId?.trim();
+      const customerName = body.customerName?.trim();
+      const customerPhone = body.customerPhone ? digitsOnly(body.customerPhone) : "";
+
+      if (!serviceId || !slotId || !customerName || !customerPhone) {
         return { status: 400, body: { message: "Missing required fields." } };
+      }
+
+      if (!ALLOWED_SERVICES.has(serviceId) || customerName.length < 2) {
+        return { status: 400, body: { message: "Invalid booking details." } };
+      }
+
+      if (customerPhone.length < 6 || customerPhone.length > 15) {
+        return {
+          status: 400,
+          body: {
+            message:
+              body.locale === "zh-HK"
+                ? "請輸入有效聯絡電話（6–15 位數字）。"
+                : "Please enter a valid phone number (6–15 digits).",
+          },
+        };
       }
 
       try {
         const appointmentId = await prisma.$transaction(async (tx) => {
+          const service = await tx.service.findFirst({
+            where: { key: serviceId, isActive: true },
+            select: { key: true },
+          });
+          if (!service) {
+            throw new Error("SERVICE_NOT_FOUND");
+          }
+
           const existing = await tx.appointment.findFirst({
             where: {
-              slotId: body.slotId!,
-              customerPhone: body.customerPhone!,
+              slotId,
+              customerPhone,
               status: { in: ["pending", "confirmed"] },
             },
           });
@@ -47,9 +87,11 @@ export async function POST(request: Request) {
 
           const slotUpdate = await tx.availabilitySlot.updateMany({
             where: {
-              id: body.slotId!,
+              id: slotId,
+              serviceKey: serviceId,
               status: "open",
               remaining: { gt: 0 },
+              startsAt: { gte: new Date() },
             },
             data: {
               remaining: { decrement: 1 },
@@ -58,7 +100,7 @@ export async function POST(request: Request) {
 
           if (slotUpdate.count !== 1) {
             const slot = await tx.availabilitySlot.findUnique({
-              where: { id: body.slotId! },
+              where: { id: slotId },
             });
             if (!slot) {
               throw new Error("SLOT_NOT_FOUND");
@@ -66,12 +108,23 @@ export async function POST(request: Request) {
             throw new Error("SLOT_UNAVAILABLE");
           }
 
+          const slotAfter = await tx.availabilitySlot.findUnique({
+            where: { id: slotId },
+            select: { remaining: true },
+          });
+          if (slotAfter && slotAfter.remaining <= 0) {
+            await tx.availabilitySlot.update({
+              where: { id: slotId },
+              data: { status: "full", remaining: 0 },
+            });
+          }
+
           const appointment = await tx.appointment.create({
             data: {
-              serviceId: body.serviceId!,
-              slotId: body.slotId!,
-              customerName: body.customerName!,
-              customerPhone: body.customerPhone!,
+              serviceId,
+              slotId,
+              customerName,
+              customerPhone,
               status: "pending",
             },
           });
@@ -104,7 +157,19 @@ export async function POST(request: Request) {
             status: 404,
             body: {
               message:
-                body.locale === "zh-HK" ? "找不到此時段，請重新整理頁面。" : "Slot not found. Please refresh.",
+                body.locale === "zh-HK"
+                  ? "找不到此時段，請重新整理頁面。"
+                  : "Slot not found. Please refresh.",
+            },
+          };
+        }
+
+        if (error instanceof Error && error.message === "SERVICE_NOT_FOUND") {
+          return {
+            status: 400,
+            body: {
+              message:
+                body.locale === "zh-HK" ? "找不到此服務，請重新選擇。" : "Service not found. Please choose again.",
             },
           };
         }
