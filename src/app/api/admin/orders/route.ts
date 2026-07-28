@@ -97,6 +97,7 @@ export async function PATCH(request: Request) {
           id: true,
           customerName: true,
           customerEmail: true,
+          customerPhone: true,
           totalAmountCents: true,
           currency: true,
           status: true,
@@ -112,9 +113,13 @@ export async function PATCH(request: Request) {
     }
 
     let emailMessage = "Email not sent.";
-    if (["paid", "failed", "cancelled", "proof_submitted"].includes(updatedOrder.status)) {
+    const customerEmail = updatedOrder.customerEmail?.trim() ?? "";
+    if (
+      customerEmail &&
+      ["paid", "failed", "cancelled", "proof_submitted"].includes(updatedOrder.status)
+    ) {
       const emailResult = await sendOrderStatusEmail({
-        to: updatedOrder.customerEmail,
+        to: customerEmail,
         customerName: updatedOrder.customerName,
         orderId: updatedOrder.id,
         status: updatedOrder.status,
@@ -128,6 +133,10 @@ export async function PATCH(request: Request) {
       } else if (emailResult.reason === "smtp_not_configured") {
         emailMessage = "Status updated. SMTP is not configured, email skipped.";
       }
+    } else if (!customerEmail) {
+      emailMessage = updatedOrder.customerPhone
+        ? "No email on order (phone contact only); email skipped."
+        : "No customer email; email skipped.";
     }
 
     return NextResponse.json({

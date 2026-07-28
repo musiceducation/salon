@@ -64,12 +64,22 @@ type LocalPaymentResponse = {
   proofViaWhatsapp?: boolean;
 };
 
+function digitsOnly(phone: string) {
+  return phone.replace(/\D/g, "");
+}
+
+function isValidPhoneDigits(phone: string) {
+  const d = digitsOnly(phone);
+  return d.length >= 6 && d.length <= 15;
+}
+
 function buildStaticOrderLines(
   locale: string,
   product: Product | undefined,
   quantity: number,
   customerName: string,
   customerEmail: string,
+  customerPhone: string,
   totalFormatted: string,
   paymentMethod: PaymentMethod,
 ): string {
@@ -84,6 +94,7 @@ function buildStaticOrderLines(
       : paymentMethod === "mpay"
         ? "Merchant ID"
         : "Pay to";
+  const phoneDigits = digitsOnly(customerPhone);
   if (locale === "zh-HK") {
     return [
       "【藝能網店訂購】",
@@ -93,6 +104,7 @@ function buildStaticOrderLines(
       payAccount ? `${accountLabel}：${payAccount}` : "",
       customerName.trim() ? `稱呼：${customerName.trim()}` : "",
       customerEmail.trim() ? `電郵：${customerEmail.trim()}` : "",
+      phoneDigits ? `電話：${phoneDigits}` : "",
     ]
       .filter(Boolean)
       .join("\n");
@@ -105,6 +117,7 @@ function buildStaticOrderLines(
     payAccount ? `${accountLabel}: ${payAccount}` : "",
     customerName.trim() ? `Name: ${customerName.trim()}` : "",
     customerEmail.trim() ? `Email: ${customerEmail.trim()}` : "",
+    phoneDigits ? `Phone: ${phoneDigits}` : "",
   ]
     .filter(Boolean)
     .join("\n");
@@ -462,7 +475,9 @@ export function ShopCheckout({
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(() => defaultCheckoutPaymentMethod());
   const [quantity, setQuantity] = useState(1);
   const [customerName, setCustomerName] = useState("");
+  const [contactMethod, setContactMethod] = useState<"email" | "phone">("email");
   const [customerEmail, setCustomerEmail] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [proofPreviewUrl, setProofPreviewUrl] = useState<string | null>(null);
   const [localPaymentData, setLocalPaymentData] = useState<LocalPaymentResponse | null>(null);
@@ -702,6 +717,19 @@ export function ShopCheckout({
     if (isStaticSite) {
       return;
     }
+
+    const email = contactMethod === "email" ? customerEmail.trim() : "";
+    const phone = contactMethod === "phone" ? digitsOnly(customerPhone) : "";
+
+    if (!email && !phone) {
+      setMessage(t.shopContactRequired);
+      return;
+    }
+    if (contactMethod === "phone" && !isValidPhoneDigits(phone)) {
+      setMessage(t.shopContactPhoneInvalid);
+      return;
+    }
+
     setIsSubmitting(true);
     setMessage("");
     setLocalPaymentData(null);
@@ -719,7 +747,8 @@ export function ShopCheckout({
           locale,
           paymentMethod: checkoutPaymentMethod,
           customerName,
-          customerEmail,
+          customerEmail: email,
+          customerPhone: phone,
           items: [{ productId: selectedProductId, quantity }],
         }),
       });
@@ -809,7 +838,8 @@ export function ShopCheckout({
       selectedProduct,
       quantity,
       customerName,
-      customerEmail,
+      contactMethod === "email" ? customerEmail : "",
+      contactMethod === "phone" ? customerPhone : "",
       totalLine,
       checkoutPaymentMethod,
     );
@@ -839,7 +869,8 @@ export function ShopCheckout({
             selectedProduct,
             quantity,
             customerName,
-            customerEmail,
+            contactMethod === "email" ? customerEmail : "",
+            contactMethod === "phone" ? customerPhone : "",
             priceDisplay(subtotalCents, selectedProduct.currency),
             checkoutPaymentMethod,
           ),
@@ -1112,26 +1143,76 @@ export function ShopCheckout({
           </div>
 
           <label className={labelClass}>
-            <span>Name</span>
+            <span>{t.shopCustomerNameLabel}</span>
             <input
               className={inputClass}
               required={!isStaticSite}
               value={customerName}
               onChange={(event) => setCustomerName(event.target.value)}
               minLength={isStaticSite ? undefined : 2}
+              autoComplete="name"
             />
           </label>
 
-          <label className={labelClass}>
-            <span>Email</span>
-            <input
-              className={inputClass}
-              type="email"
-              required={!isStaticSite}
-              value={customerEmail}
-              onChange={(event) => setCustomerEmail(event.target.value)}
-            />
-          </label>
+          <fieldset className={labelClass}>
+            <legend className="text-sm text-neutral-700">{t.shopContactMethodLabel}</legend>
+            <div className="mt-1.5 flex flex-wrap gap-2" role="radiogroup" aria-label={t.shopContactMethodLabel}>
+              {(
+                [
+                  { id: "email" as const, label: t.shopContactEmailOption },
+                  { id: "phone" as const, label: t.shopContactPhoneOption },
+                ] as const
+              ).map((option) => {
+                const selected = contactMethod === option.id;
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    onClick={() => setContactMethod(option.id)}
+                    className={`rounded-full border px-3.5 py-2 text-sm font-medium transition ${
+                      selected
+                        ? "border-zinc-900 bg-zinc-900 text-white"
+                        : "border-neutral-300 bg-white text-neutral-800 hover:border-zinc-500"
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+            {contactMethod === "email" ? (
+              <label className="mt-2 flex flex-col gap-1.5">
+                <span className="sr-only">{t.shopContactEmailOption}</span>
+                <input
+                  className={inputClass}
+                  type="email"
+                  required={!isStaticSite}
+                  value={customerEmail}
+                  onChange={(event) => setCustomerEmail(event.target.value)}
+                  placeholder="name@example.com"
+                  autoComplete="email"
+                />
+                <span className="text-xs text-neutral-500">{t.shopContactEmailHint}</span>
+              </label>
+            ) : (
+              <label className="mt-2 flex flex-col gap-1.5">
+                <span className="sr-only">{t.shopContactPhoneOption}</span>
+                <input
+                  className={inputClass}
+                  type="tel"
+                  inputMode="tel"
+                  required={!isStaticSite}
+                  value={customerPhone}
+                  onChange={(event) => setCustomerPhone(event.target.value)}
+                  placeholder={locale === "zh-HK" ? "例如 62345678" : "e.g. 62345678"}
+                  autoComplete="tel"
+                />
+                <span className="text-xs text-neutral-500">{t.shopContactPhoneHint}</span>
+              </label>
+            )}
+          </fieldset>
 
           {isStaticSite ? (
             <div className="flex flex-col gap-3 md:col-span-2 sm:flex-row sm:flex-wrap">

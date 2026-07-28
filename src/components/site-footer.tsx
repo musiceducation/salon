@@ -1,4 +1,8 @@
+import Image from "next/image";
 import { buildTelHref } from "@/lib/tel-href";
+import { publicAssetPath } from "@/lib/public-asset-path";
+
+const LOGO_SRC = "/brand/logo.jpg";
 
 const iconFacebook = (
   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
@@ -43,12 +47,24 @@ export function SiteFooter(p: FooterProps) {
       <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
         <div className="grid gap-12 sm:gap-10 md:grid-cols-3 md:gap-8">
           <div>
-            <p className="font-display text-2xl font-semibold tracking-tight text-white sm:text-3xl">
-              {p.logoPrimary}
-            </p>
-            <p className="mt-1.5 text-[0.8125rem] font-medium tracking-logo text-zinc-400">
-              {p.logoSub}
-            </p>
+            <div className="flex items-center gap-3">
+              <Image
+                src={publicAssetPath(LOGO_SRC)}
+                alt=""
+                width={56}
+                height={56}
+                className="h-12 w-12 rounded-sm object-cover ring-1 ring-white/15 sm:h-14 sm:w-14"
+                unoptimized
+              />
+              <div>
+                <p className="font-display text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+                  {p.logoPrimary}
+                </p>
+                <p className="mt-1.5 text-[0.8125rem] font-medium tracking-logo text-zinc-400">
+                  {p.logoSub}
+                </p>
+              </div>
+            </div>
             {/* Prose, not a label: the tagline is a full sentence, so it keeps sentence case
                 and normal tracking instead of the uppercase treatment used for headings. */}
             <p className="mt-8 max-w-sm text-sm leading-cjk text-zinc-300">{p.tagline}</p>

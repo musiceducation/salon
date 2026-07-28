@@ -79,7 +79,8 @@ model Product {
 model Order {
   id                String       @id @default(cuid())
   customerName      String
-  customerEmail     String
+  customerEmail     String       @default("")
+  customerPhone     String?
   totalAmountCents  Int
   currency          String       @default("hkd")
   status            OrderStatus  @default(pending)

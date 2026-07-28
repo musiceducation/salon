@@ -5,7 +5,6 @@ import { stripe } from "@/lib/stripe";
 import { withIdempotencyByKey } from "@/lib/idempotency";
 import { resolveCheckoutProductsFromCatalog } from "@/lib/shop-catalog";
 import {
-  defaultCheckoutPaymentMethod,
   isCardCheckoutEnabled,
   isLocalShopPaymentMethod,
   localPaymentInstructions,
@@ -22,6 +21,7 @@ type CheckoutPayload = {
   locale?: string;
   customerName?: string;
   customerEmail?: string;
+  customerPhone?: string;
   paymentMethod?: ShopPaymentMethod;
   items?: CheckoutItem[];
 };
@@ -36,6 +36,19 @@ type ResolvedLine = {
   };
   quantity: number;
 };
+
+function digitsOnly(phone: string) {
+  return phone.replace(/\D/g, "");
+}
+
+function isValidEmail(email: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function isValidPhoneDigits(phone: string) {
+  const d = digitsOnly(phone);
+  return d.length >= 6 && d.length <= 15;
+}
 
 async function resolveMappedItems(items: CheckoutItem[]): Promise<ResolvedLine[]> {
   const productIds = items.map((item) => item.productId);
@@ -69,21 +82,59 @@ export async function POST(request: Request) {
       "shop_checkout",
       async () => {
         const paymentMethod = resolveCheckoutPaymentMethod(body.paymentMethod);
+        const zh = body.locale === "zh-HK";
 
         if (paymentMethod === "stripe_card" && !isCardCheckoutEnabled()) {
           return {
             status: 400,
             body: {
-              message:
-                body.locale === "zh-HK"
-                  ? "暫時只接受 MPay 或中銀轉帳（人工核對）。"
-                  : "Only MPay or BOC bank transfer is available right now (manual review).",
+              message: zh
+                ? "暫時只接受 MPay 或中銀轉帳（人工核對）。"
+                : "Only MPay or BOC bank transfer is available right now (manual review).",
             },
           };
         }
 
-        if (!body.customerName || !body.customerEmail || !body.items || body.items.length === 0) {
+        const customerName = body.customerName?.trim() ?? "";
+        const customerEmail = body.customerEmail?.trim() ?? "";
+        const customerPhone = body.customerPhone ? digitsOnly(body.customerPhone) : "";
+
+        if (!customerName || !body.items || body.items.length === 0) {
           return { status: 400, body: { message: "Missing checkout fields." } };
+        }
+
+        const hasEmail = customerEmail.length > 0;
+        const hasPhone = customerPhone.length > 0;
+
+        if (!hasEmail && !hasPhone) {
+          return {
+            status: 400,
+            body: {
+              message: zh
+                ? "請填寫電郵或電話其中一項。"
+                : "Please enter either an email or a phone number.",
+            },
+          };
+        }
+
+        if (hasEmail && !isValidEmail(customerEmail)) {
+          return {
+            status: 400,
+            body: {
+              message: zh ? "請輸入有效電郵地址。" : "Please enter a valid email address.",
+            },
+          };
+        }
+
+        if (hasPhone && !isValidPhoneDigits(customerPhone)) {
+          return {
+            status: 400,
+            body: {
+              message: zh
+                ? "請輸入有效電話號碼（6–15 位數字）。"
+                : "Please enter a valid phone number (6–15 digits).",
+            },
+          };
         }
 
         const mappedItems = await resolveMappedItems(body.items);
@@ -107,17 +158,21 @@ export async function POST(request: Request) {
         }
         const orderCurrency = orderCurrencies[0] ?? "hkd";
 
+        const orderContact = {
+          customerName,
+          customerEmail: hasEmail ? customerEmail : "",
+          customerPhone: hasPhone ? customerPhone : null,
+        };
+
         if (isLocalShopPaymentMethod(paymentMethod)) {
-          const locale = body.locale === "zh-HK" ? "zh-HK" : "en";
+          const locale = zh ? "zh-HK" : "en";
           const instructions = localPaymentInstructions(paymentMethod, locale);
-          const zh = locale === "zh-HK";
 
           try {
             const uploadToken = randomBytes(32).toString("hex");
             const order = await prisma.order.create({
               data: {
-                customerName: body.customerName,
-                customerEmail: body.customerEmail,
+                ...orderContact,
                 totalAmountCents,
                 currency: orderCurrency,
                 status: "pending",
@@ -186,8 +241,7 @@ export async function POST(request: Request) {
         try {
           order = await prisma.order.create({
             data: {
-              customerName: body.customerName,
-              customerEmail: body.customerEmail,
+              ...orderContact,
               totalAmountCents,
               currency: orderCurrency,
               status: "pending",
@@ -206,10 +260,9 @@ export async function POST(request: Request) {
           return {
             status: 503,
             body: {
-              message:
-                body.locale === "zh-HK"
-                  ? "暫時無法使用刷卡，請改選 MPay 等本地付款。"
-                  : "Card checkout unavailable. Please choose MPay or another local method.",
+              message: zh
+                ? "暫時無法使用刷卡，請改選 MPay 等本地付款。"
+                : "Card checkout unavailable. Please choose MPay or another local method.",
             },
           };
         }
@@ -218,7 +271,7 @@ export async function POST(request: Request) {
           const session = await stripe.checkout.sessions.create({
             mode: "payment",
             payment_method_types: ["card"],
-            customer_email: body.customerEmail,
+            ...(hasEmail ? { customer_email: customerEmail } : {}),
             line_items: mappedItems.map((item) => ({
               quantity: item.quantity,
               price_data: {
@@ -233,6 +286,7 @@ export async function POST(request: Request) {
             cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/${body.locale ?? "zh-HK"}?checkout=cancelled`,
             metadata: {
               orderId: order.id,
+              ...(hasPhone ? { customerPhone } : {}),
             },
           });
 

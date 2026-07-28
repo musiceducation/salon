@@ -6,6 +6,7 @@ export type AdminOrder = {
   id: string;
   customerName: string;
   customerEmail: string;
+  customerPhone?: string | null;
   status: "pending" | "proof_submitted" | "paid" | "failed" | "cancelled";
   paymentMethod: string;
   paymentProofUrl: string | null;
@@ -14,6 +15,11 @@ export type AdminOrder = {
   totalAmountCents: number;
   currency: string;
 };
+
+function formatCustomerContact(order: AdminOrder) {
+  const parts = [order.customerEmail?.trim(), order.customerPhone?.trim()].filter(Boolean);
+  return parts.length > 0 ? parts.join(" · ") : "—";
+}
 
 type AdminOrdersClientProps = {
   initialOrders: AdminOrder[];
@@ -75,7 +81,7 @@ export function AdminOrdersClient({ initialOrders }: AdminOrdersClientProps) {
           <section key={order.id} className="rounded-2xl border border-zinc-700 bg-zinc-900 p-4 text-sm">
             <p>Order: {order.id}</p>
             <p>
-              Customer: {order.customerName} ({order.customerEmail})
+              Customer: {order.customerName} ({formatCustomerContact(order)})
             </p>
             <p>
               Amount: HK$ {(order.totalAmountCents / 100).toFixed(2)} ({order.currency.toUpperCase()})

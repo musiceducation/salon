@@ -38,6 +38,14 @@ export type ShopCheckoutCopy = Pick<
   | "shopRetailAvailability"
   | "shopCheckoutTitle"
   | "shopStaticCheckoutNote"
+  | "shopCustomerNameLabel"
+  | "shopContactMethodLabel"
+  | "shopContactEmailOption"
+  | "shopContactPhoneOption"
+  | "shopContactEmailHint"
+  | "shopContactPhoneHint"
+  | "shopContactPhoneInvalid"
+  | "shopContactRequired"
   | "shopPaymentLabel"
   | "shopPaymentHintLocal"
   | "shopPaymentAccountLabel"
@@ -113,6 +121,14 @@ export function pickShopCheckoutCopy(t: Messages): ShopCheckoutCopy {
     shopRetailAvailability: t.shopRetailAvailability,
     shopCheckoutTitle: t.shopCheckoutTitle,
     shopStaticCheckoutNote: t.shopStaticCheckoutNote,
+    shopCustomerNameLabel: t.shopCustomerNameLabel,
+    shopContactMethodLabel: t.shopContactMethodLabel,
+    shopContactEmailOption: t.shopContactEmailOption,
+    shopContactPhoneOption: t.shopContactPhoneOption,
+    shopContactEmailHint: t.shopContactEmailHint,
+    shopContactPhoneHint: t.shopContactPhoneHint,
+    shopContactPhoneInvalid: t.shopContactPhoneInvalid,
+    shopContactRequired: t.shopContactRequired,
     shopPaymentLabel: t.shopPaymentLabel,
     shopPaymentHintLocal: t.shopPaymentHintLocal,
     shopPaymentAccountLabel: t.shopPaymentAccountLabel,

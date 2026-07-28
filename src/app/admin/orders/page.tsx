@@ -11,6 +11,7 @@ export default async function AdminOrdersPage() {
       id: true,
       customerName: true,
       customerEmail: true,
+      customerPhone: true,
       status: true,
       paymentMethod: true,
       paymentProofUrl: true,

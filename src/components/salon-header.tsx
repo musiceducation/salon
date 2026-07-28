@@ -1,8 +1,10 @@
+import Image from "next/image";
 import Link from "next/link";
 import { SalonHeaderMobileNav, SalonHeaderPrimaryNav } from "./salon-header-nav.client";
 import { SalonHeaderActions } from "./salon-header-actions.client";
 import { SalonLocaleSwitch } from "./salon-locale-switch.client";
 import { localeHref } from "@/lib/locale-path";
+import { publicAssetPath } from "@/lib/public-asset-path";
 
 type Nav = {
   brandName: string;
@@ -18,6 +20,8 @@ type Nav = {
   productsPath: string;
 };
 
+const LOGO_SRC = "/brand/logo.jpg";
+
 const navBase =
   "rounded-md px-2.5 py-1.5 text-zinc-800 transition hover:bg-zinc-100/80";
 const navActive = "rounded-md px-2.5 py-1.5 text-zinc-900 underline decoration-zinc-900 underline-offset-4";
@@ -31,9 +35,21 @@ export function SalonHeader(t: Nav) {
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:px-6 sm:py-3.5">
         <Link
           href={localeHref(t.locale)}
-          className="shrink-0 font-display text-lg font-semibold leading-tight tracking-tight text-zinc-900 sm:text-xl"
+          className="flex shrink-0 items-center gap-2.5 sm:gap-3"
+          aria-label={t.brandName}
         >
-          {t.brandName}
+          <Image
+            src={publicAssetPath(LOGO_SRC)}
+            alt=""
+            width={44}
+            height={44}
+            className="h-9 w-9 rounded-sm object-cover sm:h-11 sm:w-11"
+            priority
+            unoptimized
+          />
+          <span className="font-display text-lg font-semibold leading-tight tracking-tight text-zinc-900 sm:text-xl">
+            {t.brandName}
+          </span>
         </Link>
         <SalonHeaderPrimaryNav
           locale={t.locale}
