@@ -19,7 +19,6 @@ export function ShopCartDrawer({
   subtotalLabel,
   t,
   isStaticSite,
-  paymentMethodLabel,
   onClose,
   onCheckout,
   onQuantityChange,
@@ -31,7 +30,6 @@ export function ShopCartDrawer({
   subtotalLabel: string;
   t: ShopCheckoutCopy;
   isStaticSite: boolean;
-  paymentMethodLabel: string;
   onClose: () => void;
   onCheckout: () => void;
   onQuantityChange: (n: number) => void;
@@ -113,11 +111,7 @@ export function ShopCartDrawer({
             <p className="text-sm text-neutral-600">{t.shopCartEmpty}</p>
           )}
 
-          <p className="mt-4 text-xs leading-relaxed text-neutral-500">{t.shopPaymentHintLocal}</p>
-          <p className="mt-2 text-xs text-neutral-500">
-            {t.shopPaymentLabel}：{paymentMethodLabel}
-          </p>
-          <p className="mt-2 text-xs text-neutral-500">{t.shopInSalonPickup}</p>
+          <p className="mt-4 text-xs leading-relaxed text-neutral-500">{t.shopInSalonPickup}</p>
         </div>
 
         <div className="border-t border-neutral-200 p-4">

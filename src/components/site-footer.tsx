@@ -40,10 +40,7 @@ export function SiteFooter(p: FooterProps) {
   const phoneDisplay = `+853 ${p.phone}`;
 
   return (
-    <footer
-      id="contact"
-      className="border-t border-white/10 bg-black text-white"
-    >
+    <footer className="border-t border-white/10 bg-black text-white">
       <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
         <div className="grid gap-12 sm:gap-10 md:grid-cols-3 md:gap-8">
           <div>

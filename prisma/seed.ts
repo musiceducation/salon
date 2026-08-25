@@ -161,7 +161,7 @@ async function main() {
       nameEn: "Repair Treatment Mask",
       description: "Weekly deep-repair treatment for damaged hair.",
       priceCents: 32800,
-      currency: "hkd",
+      currency: "mop",
       isActive: false,
     },
   });
@@ -196,7 +196,7 @@ async function main() {
       description: "Smooth, soft finish · taming balm · 75ml / 2.5 FL.OZ.",
       imageUrl: "/shop/kerasilk-taming-balm-75ml.png",
       priceCents: 26800,
-      currency: "hkd",
+      currency: "mop",
       isActive: true,
     },
     create: {
@@ -206,7 +206,7 @@ async function main() {
       description: "Smooth, soft finish · taming balm · 75ml / 2.5 FL.OZ.",
       imageUrl: "/shop/kerasilk-taming-balm-75ml.png",
       priceCents: 26800,
-      currency: "hkd",
+      currency: "mop",
     },
   });
 
@@ -219,7 +219,7 @@ async function main() {
         "Polished, protected finish · lightweight multi-benefit hair oil · 50ml / 1.6 FL.OZ.",
       imageUrl: "/shop/kerasilk-multi-benefit-hair-oil-50ml.png",
       priceCents: 26800,
-      currency: "hkd",
+      currency: "mop",
       isActive: true,
     },
     create: {
@@ -230,7 +230,7 @@ async function main() {
         "Polished, protected finish · lightweight multi-benefit hair oil · 50ml / 1.6 FL.OZ.",
       imageUrl: "/shop/kerasilk-multi-benefit-hair-oil-50ml.png",
       priceCents: 26800,
-      currency: "hkd",
+      currency: "mop",
     },
   });
 
@@ -243,7 +243,7 @@ async function main() {
         "Intensive energizing for thinning hair · botanical extracts · 60ml / 2.03 FL.OZ. · Formulated in Japan.",
       imageUrl: "/shop/ahcmax-hair-growth-spray-60ml.png",
       priceCents: 29800,
-      currency: "hkd",
+      currency: "mop",
       isActive: true,
     },
     create: {
@@ -254,7 +254,7 @@ async function main() {
         "Intensive energizing for thinning hair · botanical extracts · 60ml / 2.03 FL.OZ. · Formulated in Japan.",
       imageUrl: "/shop/ahcmax-hair-growth-spray-60ml.png",
       priceCents: 29800,
-      currency: "hkd",
+      currency: "mop",
     },
   });
 
@@ -266,7 +266,7 @@ async function main() {
       description: "Firm hold texturising matte paste · all hair types · 100ml.",
       imageUrl: "/shop/vivltone-super-clay-100ml.png",
       priceCents: 22800,
-      currency: "hkd",
+      currency: "mop",
       isActive: true,
     },
     create: {
@@ -276,7 +276,7 @@ async function main() {
       description: "Firm hold texturising matte paste · all hair types · 100ml.",
       imageUrl: "/shop/vivltone-super-clay-100ml.png",
       priceCents: 22800,
-      currency: "hkd",
+      currency: "mop",
     },
   });
 
@@ -288,7 +288,7 @@ async function main() {
       description: "For fine / limp oily hair · pH 4.5–5.5 · 750ml · For professional use only.",
       imageUrl: "/shop/vivaltone-puny-balancing-shampoo-750ml.png",
       priceCents: 36800,
-      currency: "hkd",
+      currency: "mop",
       isActive: true,
     },
     create: {
@@ -298,7 +298,7 @@ async function main() {
       description: "For fine / limp oily hair · pH 4.5–5.5 · 750ml · For professional use only.",
       imageUrl: "/shop/vivaltone-puny-balancing-shampoo-750ml.png",
       priceCents: 36800,
-      currency: "hkd",
+      currency: "mop",
     },
   });
 

@@ -10,6 +10,7 @@ export type PriceCompareSection = {
   id: string;
   title: string;
   note?: string;
+  colService: string;
   colMember: string;
   colGuest: string;
   rows: { service: string; member: string; guest: string }[];
@@ -20,7 +21,8 @@ export type PriceMembershipSection = {
   kind: "membership";
   id: string;
   title: string;
-  groups: { heading: string; lines: string[] }[];
+  note?: string;
+  groups: { heading: string; rows: { label: string; price: string }[] }[];
   footnotes: string[];
 };
 
@@ -43,6 +45,7 @@ export type PriceDyeCutSection = {
   id: string;
   title: string;
   note?: string;
+  colService: string;
   blocks: {
     subtitle?: string;
     colMember: string;
@@ -56,6 +59,8 @@ export type PriceEventsSection = {
   kind: "events";
   id: string;
   title: string;
+  colName: string;
+  colPrice: string;
   rows: { name: string; price: string }[];
   addon?: string;
 };
@@ -83,6 +88,7 @@ export function getPriceListData(locale: Locale): PriceListData {
           "+$50 per in-salon oil treatment application.",
           locale,
         ),
+        colService: L("項目", "Service", locale),
         blocks: [
           {
             subtitle: L("基本項目", "Basics", locale),
@@ -106,18 +112,18 @@ export function getPriceListData(locale: Locale): PriceListData {
               },
               {
                 label: L("扎辮", "Braiding", locale),
-                member: "$200 " + L("起", "up", locale),
-                guest: "$250 " + L("起", "up", locale),
+                member: "$200",
+                guest: "$250",
               },
               {
                 label: L("焗油", "Oil treatment", locale),
-                member: "$300 " + L("起", "up", locale),
-                guest: "$360 " + L("起", "up", locale),
+                member: "$300",
+                guest: "$360",
               },
               {
                 label: L("搪瓷卷筒", "Ceramic rollers", locale),
-                member: "$200 " + L("起", "up", locale),
-                guest: "$260 " + L("起", "up", locale),
+                member: "$200",
+                guest: "$260",
               },
             ],
           },
@@ -138,8 +144,8 @@ export function getPriceListData(locale: Locale): PriceListData {
               },
               {
                 label: L("沐浴染色", "Bath colour", locale),
-                member: "$200 " + L("起", "up", locale),
-                guest: "$280 " + L("起", "up", locale),
+                member: "$200",
+                guest: "$280",
               },
               {
                 label: L("正抽漂", "Bleach highlights", locale),
@@ -148,8 +154,8 @@ export function getPriceListData(locale: Locale): PriceListData {
               },
               {
                 label: L("染灰色", "Grey colour", locale),
-                member: "$700 " + L("起", "up", locale),
-                guest: "$700 " + L("起", "up", locale),
+                member: "$700",
+                guest: "$700",
               },
             ],
           },
@@ -160,18 +166,18 @@ export function getPriceListData(locale: Locale): PriceListData {
             rows: [
               {
                 label: L("正染根（按長度）", "Root colour (by length)", locale),
-                member: "$430–$490 " + L("起", "up", locale),
-                guest: "$510–$570 " + L("起", "up", locale),
+                member: "$430–$490",
+                guest: "$510–$570",
               },
               {
                 label: L("抽染全頭 + 根", "Full highlights + roots", locale),
-                member: "$540–$590 " + L("起", "up", locale),
-                guest: "$610–$670 " + L("起", "up", locale),
+                member: "$540–$590",
+                guest: "$610–$670",
               },
               {
                 label: L("正抽漂", "Bleach highlights", locale),
-                member: "$330 " + L("起", "up", locale),
-                guest: "$390 " + L("起", "up", locale),
+                member: "$330",
+                guest: "$390",
               },
             ],
           },
@@ -182,8 +188,8 @@ export function getPriceListData(locale: Locale): PriceListData {
             rows: [
               {
                 label: L("全漂／退色", "Full bleach / colour removal", locale),
-                member: L("首次 $200；其後每次 +$150 起", "First $200; then +$150 up per session", locale),
-                guest: L("首次 $200；其後每次 +$150 起", "First $200; then +$150 up per session", locale),
+                member: L("首次 $200；其後每次 +$150", "First $200; then +$150 per session", locale),
+                guest: L("首次 $200；其後每次 +$150", "First $200; then +$150 per session", locale),
               },
               {
                 label: L("染後護理", "Post-colour care", locale),
@@ -198,18 +204,44 @@ export function getPriceListData(locale: Locale): PriceListData {
         kind: "compare-table",
         id: "perm-tech-compare",
         title: L("電髮及護理直髮（會員 / 非會員）", "Perm & straightening (member / non-member)", locale),
+        note: L(
+          "電髮三級按髮質由店內確認；下表由低至高列出一級、二級、三級價錢。",
+          "The salon confirms the perm tier on site. Prices below are tier 1, 2, then 3.",
+          locale,
+        ),
+        colService: L("項目", "Service", locale),
         colMember: L("會員", "Member", locale),
         colGuest: L("非會員", "Non-member", locale),
         rows: [
           {
-            service: L("電髮（三級）", "Perm (3 tiers)", locale),
-            member: "$690 / $790 / $890",
-            guest: "$780 / $880 / $980",
+            service: L("電髮 · 一級", "Perm · tier 1", locale),
+            member: "$690",
+            guest: "$780",
           },
           {
-            service: L("電髮加藥（加強／水療等）", "Perm add-ons (plus / treatment / water)", locale),
-            member: "+$250 / +$300 / +$350",
-            guest: "+$250 / +$300 / +$350",
+            service: L("電髮 · 二級", "Perm · tier 2", locale),
+            member: "$790",
+            guest: "$880",
+          },
+          {
+            service: L("電髮 · 三級", "Perm · tier 3", locale),
+            member: "$890",
+            guest: "$980",
+          },
+          {
+            service: L("電髮加藥 · 加強", "Perm add-on · plus", locale),
+            member: "+$250",
+            guest: "+$250",
+          },
+          {
+            service: L("電髮加藥 · 水療", "Perm add-on · treatment", locale),
+            member: "+$300",
+            guest: "+$300",
+          },
+          {
+            service: L("電髮加藥 · 其他", "Perm add-on · other", locale),
+            member: "+$350",
+            guest: "+$350",
           },
           {
             service: L("半個頭或電根", "Partial / root perm", locale),
@@ -249,7 +281,7 @@ export function getPriceListData(locale: Locale): PriceListData {
           {
             service: L("韓式低溫搪瓷電髮 + 直髮", "Korean ceramic perm + straight", locale),
             member: "$1,600",
-            guest: "$1,800 " + L("起", "up", locale),
+            guest: "$1,800",
           },
         ],
       },
@@ -257,22 +289,37 @@ export function getPriceListData(locale: Locale): PriceListData {
         kind: "membership",
         id: "membership-cards",
         title: L("開會員卡 / 套票", "Membership & prepaid cards", locale),
+        note: L(
+          "1–3 個月為洗頭次數卡，須於有效期內用完相應次數。",
+          "1–3 month packs are shampoo visit cards; use the visits before expiry.",
+          locale,
+        ),
         groups: [
           {
-            heading: L("1 個月", "1 month", locale),
-            lines: ["$630 / 10 次", "$380 / 5 次", "$925 / 15 次"],
+            heading: L("1 個月 · 洗頭", "1 month · shampoo", locale),
+            rows: [
+              { label: L("5 次", "5 visits", locale), price: "$380" },
+              { label: L("10 次", "10 visits", locale), price: "$630" },
+              { label: L("15 次", "15 visits", locale), price: "$925" },
+            ],
           },
           {
-            heading: L("2 個月", "2 months", locale),
-            lines: ["$660 / 10 次", "$975 / 15 次"],
+            heading: L("2 個月 · 洗頭", "2 months · shampoo", locale),
+            rows: [
+              { label: L("10 次", "10 visits", locale), price: "$660" },
+              { label: L("15 次", "15 visits", locale), price: "$975" },
+            ],
           },
           {
-            heading: L("3 個月", "3 months", locale),
-            lines: ["$690 / 10 次"],
+            heading: L("3 個月 · 洗頭", "3 months · shampoo", locale),
+            rows: [{ label: L("10 次", "10 visits", locale), price: "$690" }],
           },
           {
             heading: L("焗油卡（須於本店購買焗油）", "Oil-treatment card (oil purchased in-salon)", locale),
-            lines: [L("3 個月 $680 / 6 次", "3 mo $680 / 6 visits", locale), L("6 個月 $1,020 / 10 次", "6 mo $1,020 / 10 visits", locale)],
+            rows: [
+              { label: L("3 個月 · 6 次", "3 months · 6 visits", locale), price: "$680" },
+              { label: L("6 個月 · 10 次", "6 months · 10 visits", locale), price: "$1,020" },
+            ],
           },
         ],
         footnotes: [
@@ -351,11 +398,11 @@ export function getPriceListData(locale: Locale): PriceListData {
                 value: "$300",
               },
               {
-                label: L("短髮", "Short", locale),
+                label: L("納米秀髮修復 + 頭皮療養 · 短髮", "Nano repair + scalp · short", locale),
                 value: "$360",
               },
               {
-                label: L("長髮", "Long", locale),
+                label: L("納米秀髮修復 + 頭皮療養 · 長髮", "Nano repair + scalp · long", locale),
                 value: "$420",
               },
             ],
@@ -371,8 +418,8 @@ export function getPriceListData(locale: Locale): PriceListData {
           locale,
         ),
         contactLine: L(
-          "預約：28304175 / +853 66509780（WeChat 或致電）",
-          "Book: 28304175 / +853 66509780 (WeChat or call)",
+          "聯絡：28304175 / WeChat +853 66509780 · Instagram",
+          "Contact: 28304175 / WeChat +853 66509780 · Instagram",
           locale,
         ),
       },
@@ -380,22 +427,24 @@ export function getPriceListData(locale: Locale): PriceListData {
         kind: "events",
         id: "makeup-events",
         title: L("粵曲 · 宴會 · 新娘化妝造型", "Opera, events & bridal styling", locale),
+        colName: L("項目", "Service", locale),
+        colPrice: L("價錢", "Price", locale),
         rows: [
           {
             name: L("粵曲表演及宴會 — 化妝 + 頭", "Cantonese opera & banquet — makeup + hair", locale),
-            price: "$600 " + L("起", "up", locale),
+            price: "$600",
           },
           {
             name: L("粵曲表演及宴會 — 化妝或頭（單項）", "Opera & banquet — makeup or hair", locale),
-            price: "$350 " + L("起", "up", locale),
+            price: "$350",
           },
           {
             name: L("外出粵曲表演及宴會 — 化妝 + 頭", "On-location opera & banquet — makeup + hair", locale),
-            price: "$650 " + L("起", "up", locale),
+            price: "$650",
           },
           {
             name: L("外出粵曲表演及宴會 — 化妝或頭", "On-location — makeup or hair", locale),
-            price: "$350 " + L("起", "up", locale),
+            price: "$350",
           },
           {
             name: L("奶奶及外母宴會 — 化妝 + 頭", "Mother / MIL banquet — makeup + hair", locale),
@@ -403,7 +452,7 @@ export function getPriceListData(locale: Locale): PriceListData {
           },
           {
             name: L("奶奶及外母宴會 — 化妝或頭", "Mother / MIL — makeup or hair", locale),
-            price: "$500 " + L("起", "up", locale),
+            price: "$500",
           },
           {
             name: L("新娘 — 化妝 + 頭", "Bride — makeup + hair", locale),
@@ -411,15 +460,15 @@ export function getPriceListData(locale: Locale): PriceListData {
           },
           {
             name: L("新娘 — 早 + 晚兩造", "Bride — morning & evening", locale),
-            price: "$3,000 " + L("起", "up", locale),
+            price: "$3,000",
           },
           {
             name: L("新娘 — 全日服務", "Bride — full day", locale),
-            price: "$6,200 " + L("起", "up", locale),
+            price: "$6,200",
           },
           {
             name: L("伴娘及其他 — 化妝 + 頭", "Bridesmaids & others — makeup + hair", locale),
-            price: "$650 " + L("起", "up", locale),
+            price: "$650",
           },
         ],
         addon: L("假眼睫毛 +$30", "False lashes +$30", locale),

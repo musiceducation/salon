@@ -3,6 +3,11 @@
 import { FormEvent, useEffect, useState } from "react";
 import { copyTextToClipboard } from "@/lib/contact-wechat";
 import { phoneToE164 } from "@/lib/tel-href";
+import {
+  BOOKING_SERVICE_SHEET,
+  fallbackSheetOrderId,
+  queueSpreadsheetSync,
+} from "@/lib/spreadsheet-sync";
 
 type Slot = {
   id: string;
@@ -155,6 +160,18 @@ export function BookingForm({
 
     const text = lines.join("\n");
     const copied = await copyTextToClipboard(text);
+    const sheetService = BOOKING_SERVICE_SHEET[selectedService];
+    queueSpreadsheetSync({
+      orderId: fallbackSheetOrderId("BK"),
+      bookingDate: preferredTime.trim(),
+      customerName: name.trim(),
+      phone: digitsOnly(phone),
+      service: sheetService?.nameZh ?? serviceLabel(selectedService, "zh-HK"),
+      amount: sheetService?.amount ?? 0,
+      paymentMethod: "現金",
+      paymentStatus: "待付款",
+      remark: "網站預約（靜態頁）",
+    });
     setMessage(copied ? staticCopied.replace("{wechat}", wechatId) : text);
   }
 

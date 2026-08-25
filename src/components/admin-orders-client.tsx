@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { formatMoney } from "@/lib/format-money";
 
 export type AdminOrder = {
   id: string;
@@ -84,7 +85,7 @@ export function AdminOrdersClient({ initialOrders }: AdminOrdersClientProps) {
               Customer: {order.customerName} ({formatCustomerContact(order)})
             </p>
             <p>
-              Amount: HK$ {(order.totalAmountCents / 100).toFixed(2)} ({order.currency.toUpperCase()})
+              Amount: {formatMoney(order.totalAmountCents, order.currency)}
             </p>
             <p>Payment: {order.paymentMethod}</p>
             <p>Status: {order.status}</p>

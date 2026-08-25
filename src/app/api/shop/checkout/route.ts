@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { withIdempotencyByKey } from "@/lib/idempotency";
@@ -8,9 +8,11 @@ import {
   isCardCheckoutEnabled,
   isLocalShopPaymentMethod,
   localPaymentInstructions,
+  paymentMethodLabel,
   resolveCheckoutPaymentMethod,
   type ShopPaymentMethod,
 } from "@/lib/shop-payment-methods";
+import { submitOrderToSpreadsheet } from "@/lib/spreadsheet-sync";
 
 type CheckoutItem = {
   productId: string;
@@ -156,13 +158,32 @@ export async function POST(request: Request) {
             body: { message: "Mixed currencies in one order are not supported." },
           };
         }
-        const orderCurrency = orderCurrencies[0] ?? "hkd";
+        const orderCurrency = orderCurrencies[0] ?? "mop";
 
         const orderContact = {
           customerName,
           customerEmail: hasEmail ? customerEmail : "",
           customerPhone: hasPhone ? customerPhone : null,
         };
+
+        function syncShopOrderToSpreadsheet(orderId: string, method: ShopPaymentMethod) {
+          after(() => {
+            void submitOrderToSpreadsheet({
+              orderId,
+              customerName,
+              phone: hasPhone ? customerPhone : "",
+              service: mappedItems
+                .map((item) => `${item.product.nameZh} × ${item.quantity}`)
+                .join("、"),
+              notes: hasEmail ? customerEmail : "",
+              amount: totalAmountCents / 100,
+              paidAmount: 0,
+              paymentMethod: paymentMethodLabel(method, "zh-HK"),
+              paymentStatus: "待付款",
+              remark: "網店訂單",
+            });
+          });
+        }
 
         if (isLocalShopPaymentMethod(paymentMethod)) {
           const locale = zh ? "zh-HK" : "en";
@@ -190,6 +211,8 @@ export async function POST(request: Request) {
               },
             });
 
+            syncShopOrderToSpreadsheet(order.id, paymentMethod);
+
             return {
               status: 201,
               body: {
@@ -209,6 +232,7 @@ export async function POST(request: Request) {
           } catch {
             /* No DB / catalog-only IDs — still return pay-to details for manual flow */
             const orderId = `manual-${Date.now().toString(36)}`;
+            syncShopOrderToSpreadsheet(orderId, paymentMethod);
             return {
               status: 201,
               body: {
@@ -298,6 +322,8 @@ export async function POST(request: Request) {
             where: { id: order.id },
             data: { stripeSessionId: session.id },
           });
+
+          syncShopOrderToSpreadsheet(order.id, "stripe_card");
 
           return {
             status: 201,

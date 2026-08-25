@@ -1,34 +1,27 @@
 import type { Metadata } from "next";
-import dynamic from "next/dynamic";
 import { notFound } from "next/navigation";
 import { HeroSalon } from "@/components/hero-salon";
 import { SalonTopBar } from "@/components/salon-top-bar";
 import { SalonHeader } from "@/components/salon-header";
 import { ShopPromoBanner } from "@/components/shop-promo-banner";
 import { PriceListSection } from "@/components/price-list-section";
+import { ContactCta } from "@/components/contact-cta";
 import { SiteFooter } from "@/components/site-footer";
 import { WeChatFloat } from "@/components/wechat-float";
 import { getMessages, isSupportedLocale, supportedLocales } from "@/lib/i18n";
-import { getHomeSlotsForService } from "@/lib/home-data";
 import { getWeChatId } from "@/lib/contact-wechat";
 import { localeAbsoluteUrl, localeHref } from "@/lib/locale-path";
-import { phoneToE164 } from "@/lib/tel-href";
+import { buildTelHref, phoneToE164 } from "@/lib/tel-href";
 
 /** Prebuild both locales; required for `output: 'export'` (GitHub Pages) and static HTML at deploy. */
 export function generateStaticParams() {
   return supportedLocales.map((locale) => ({ locale }));
 }
 
-/** Below-fold client island — keep off the initial home JS path. */
-const BookingForm = dynamic(() =>
-  import("@/components/booking-form").then((m) => m.BookingForm),
-);
-
 type HomePageProps = {
   params: Promise<{ locale: string }>;
 };
 
-const defaultService = "haircut";
 const businessSite = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 /** Same asset as hero (`public/ad-stock/03-salon-interior-wide.webp`). */
@@ -94,7 +87,6 @@ export default async function LocaleHomePage({ params }: HomePageProps) {
   }
 
   const t = getMessages(locale);
-  const initialSlots = await getHomeSlotsForService(locale, defaultService);
   const productsPath = localeHref(locale, "products");
 
   const sameAs: string[] = [];
@@ -137,10 +129,6 @@ export default async function LocaleHomePage({ params }: HomePageProps) {
     },
   ];
 
-  const bookingNoSlotsHint = t.bookingNoSlotsLine
-    .replace("{phone}", t.phone)
-    .replace("{wechat}", wechatId);
-
   return (
     <div
       id="main-content"
@@ -178,7 +166,7 @@ export default async function LocaleHomePage({ params }: HomePageProps) {
           kw1={t.heroKwHairCare}
           kw2={t.heroKwSkillful}
           kw3={t.heroKwSince}
-          bookNow={t.bookNow}
+          contactCta={t.contactCta}
           shopNow={t.shopNow}
           shopHref={productsPath}
         />
@@ -222,21 +210,25 @@ export default async function LocaleHomePage({ params }: HomePageProps) {
           ctaHref={productsPath}
         />
 
-        <section id="booking" className="border-b border-zinc-800/60 bg-zinc-950 text-zinc-100">
+        <section
+          id="contact"
+          className="scroll-mt-20 border-b border-zinc-800/60 bg-zinc-950 text-zinc-100 sm:scroll-mt-24"
+        >
           <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
-            <h2 className="heading-section text-white">{t.bookingTitle}</h2>
-            <p className="mt-4 max-w-measure text-base leading-cjk text-zinc-400">{t.bookingFlow}</p>
-            <BookingForm
-              locale={locale}
-              initialSlots={initialSlots}
-              defaultServiceId={defaultService}
-              noSlotsHint={bookingNoSlotsHint}
+            <h2 className="heading-section text-white">{t.contactCtaTitle}</h2>
+            <p className="mt-4 max-w-measure text-base leading-cjk text-zinc-400">{t.contactCtaBody}</p>
+            <ContactCta
+              hoursLabel={t.contactCtaHoursLabel}
+              hoursDetail={t.hoursDetail}
+              wechatLabel={t.contactWechatLabel}
               wechatId={wechatId}
+              wechatHint={t.contactCtaWechatHint}
+              wechatCopied={t.wechatIdCopied}
+              instagramLabel={t.contactInstagramLabel}
+              instagramUrl={instagramUrl}
+              phoneLabel={t.contactPhoneLabel}
               phoneDisplay={t.phone}
-              phoneTelHref={`tel:${phoneToE164(t.phone)}`}
-              staticNote={t.bookingStaticNote}
-              staticCta={t.bookingStaticCta}
-              staticCopied={t.bookingStaticCopied}
+              phoneTelHref={buildTelHref(t.phone)}
             />
           </div>
         </section>

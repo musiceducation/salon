@@ -37,20 +37,22 @@ export type ShopCheckoutCopy = Pick<
   | "shopStickyViewCart"
   | "shopRetailAvailability"
   | "shopCheckoutTitle"
+  | "shopCheckoutEmptyCart"
+  | "shopOrderSummaryLabel"
+  | "shopChangeQty"
   | "shopStaticCheckoutNote"
   | "shopCustomerNameLabel"
-  | "shopContactMethodLabel"
-  | "shopContactEmailOption"
+  | "shopContactEmailOptional"
   | "shopContactPhoneOption"
   | "shopContactEmailHint"
   | "shopContactPhoneHint"
   | "shopContactPhoneInvalid"
+  | "shopContactEmailInvalid"
   | "shopContactRequired"
   | "shopPaymentLabel"
-  | "shopPaymentHintLocal"
+  | "shopPaymentHintAfterOrder"
   | "shopPaymentAccountLabel"
   | "shopPaymentMpayMerchantLabel"
-  | "shopPaymentNoteLabel"
   | "shopPaymentQrAlt"
   | "shopPaymentQrCaption"
   | "shopPayLocalCta"
@@ -68,10 +70,10 @@ export type ShopCheckoutCopy = Pick<
   | "shopNoProducts"
   | "shopEmptyCta"
   | "shopLocalPayFlowTitle"
-  | "shopPayStepOrder"
-  | "shopPayStepTransfer"
-  | "shopPayStepUpload"
-  | "shopPayStepReview"
+  | "shopPayNextSteps"
+  | "shopOrderIdLabel"
+  | "shopAmountLabel"
+  | "shopPlaceAnotherOrder"
   | "shopProofPreviewLabel"
   | "shopProofUploadLabel"
   | "shopProofUploadHint"
@@ -120,20 +122,22 @@ export function pickShopCheckoutCopy(t: Messages): ShopCheckoutCopy {
     shopStickyViewCart: t.shopStickyViewCart,
     shopRetailAvailability: t.shopRetailAvailability,
     shopCheckoutTitle: t.shopCheckoutTitle,
+    shopCheckoutEmptyCart: t.shopCheckoutEmptyCart,
+    shopOrderSummaryLabel: t.shopOrderSummaryLabel,
+    shopChangeQty: t.shopChangeQty,
     shopStaticCheckoutNote: t.shopStaticCheckoutNote,
     shopCustomerNameLabel: t.shopCustomerNameLabel,
-    shopContactMethodLabel: t.shopContactMethodLabel,
-    shopContactEmailOption: t.shopContactEmailOption,
+    shopContactEmailOptional: t.shopContactEmailOptional,
     shopContactPhoneOption: t.shopContactPhoneOption,
     shopContactEmailHint: t.shopContactEmailHint,
     shopContactPhoneHint: t.shopContactPhoneHint,
     shopContactPhoneInvalid: t.shopContactPhoneInvalid,
+    shopContactEmailInvalid: t.shopContactEmailInvalid,
     shopContactRequired: t.shopContactRequired,
     shopPaymentLabel: t.shopPaymentLabel,
-    shopPaymentHintLocal: t.shopPaymentHintLocal,
+    shopPaymentHintAfterOrder: t.shopPaymentHintAfterOrder,
     shopPaymentAccountLabel: t.shopPaymentAccountLabel,
     shopPaymentMpayMerchantLabel: t.shopPaymentMpayMerchantLabel,
-    shopPaymentNoteLabel: t.shopPaymentNoteLabel,
     shopPaymentQrAlt: t.shopPaymentQrAlt,
     shopPaymentQrCaption: t.shopPaymentQrCaption,
     shopPayLocalCta: t.shopPayLocalCta,
@@ -151,10 +155,10 @@ export function pickShopCheckoutCopy(t: Messages): ShopCheckoutCopy {
     shopNoProducts: t.shopNoProducts,
     shopEmptyCta: t.shopEmptyCta,
     shopLocalPayFlowTitle: t.shopLocalPayFlowTitle,
-    shopPayStepOrder: t.shopPayStepOrder,
-    shopPayStepTransfer: t.shopPayStepTransfer,
-    shopPayStepUpload: t.shopPayStepUpload,
-    shopPayStepReview: t.shopPayStepReview,
+    shopPayNextSteps: t.shopPayNextSteps,
+    shopOrderIdLabel: t.shopOrderIdLabel,
+    shopAmountLabel: t.shopAmountLabel,
+    shopPlaceAnotherOrder: t.shopPlaceAnotherOrder,
     shopProofPreviewLabel: t.shopProofPreviewLabel,
     shopProofUploadLabel: t.shopProofUploadLabel,
     shopProofUploadHint: t.shopProofUploadHint,

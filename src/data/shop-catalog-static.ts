@@ -18,7 +18,7 @@ export const staticShopCatalogForExport: HomeProduct[] = [
     nameZh: "VIVALTONE PUNY 平衡洗髮露 750ml",
     nameEn: "VIVALTONE PUNY Balancing Shampoo 750ml",
     priceCents: 36800,
-    currency: "hkd",
+    currency: "mop",
     imageUrl: "/shop/vivaltone-puny-balancing-shampoo-750ml.png",
   },
   {
@@ -26,7 +26,7 @@ export const staticShopCatalogForExport: HomeProduct[] = [
     nameZh: "VIVLTONE Super Clay 造型髮泥 100ml",
     nameEn: "VIVLTONE Super Clay 100ml",
     priceCents: 22800,
-    currency: "hkd",
+    currency: "mop",
     imageUrl: "/shop/vivltone-super-clay-100ml.png",
   },
   {
@@ -34,7 +34,7 @@ export const staticShopCatalogForExport: HomeProduct[] = [
     nameZh: "ahcMax 育髮噴霧 60ml",
     nameEn: "ahcMax Hair Growth Spray 60ml",
     priceCents: 29800,
-    currency: "hkd",
+    currency: "mop",
     imageUrl: "/shop/ahcmax-hair-growth-spray-60ml.png",
   },
   {
@@ -42,7 +42,7 @@ export const staticShopCatalogForExport: HomeProduct[] = [
     nameZh: "Kerasilk 多功能護髮油 50ml",
     nameEn: "Kerasilk Multi-Benefit Hair Oil 50ml",
     priceCents: 26800,
-    currency: "hkd",
+    currency: "mop",
     imageUrl: "/shop/kerasilk-multi-benefit-hair-oil-50ml.png",
   },
   {
@@ -50,7 +50,7 @@ export const staticShopCatalogForExport: HomeProduct[] = [
     nameZh: "Kerasilk 順服乳霜 75ml",
     nameEn: "Kerasilk Taming Balm 75ml",
     priceCents: 26800,
-    currency: "hkd",
+    currency: "mop",
     imageUrl: "/shop/kerasilk-taming-balm-75ml.png",
   },
   {

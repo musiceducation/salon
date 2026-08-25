@@ -9,6 +9,7 @@ import {
   localPaymentAccount,
   paymentMethodLabel,
   paymentMethodNote,
+  paymentMethodQrSrc,
   resolveCheckoutPaymentMethod,
   visibleShopPaymentMethods,
   type ShopPaymentMethod,
@@ -22,7 +23,8 @@ import {
 } from "@/lib/shop-cart-bridge";
 import { ShopCartDrawer } from "@/components/shop-cart-drawer";
 import { ShopProductDetailPanel } from "@/components/shop-product-detail-panel";
-import { ShopQuantityStepper } from "@/components/shop-quantity-stepper";
+import { formatMoney } from "@/lib/format-money";
+import { fallbackSheetOrderId, queueSpreadsheetSync } from "@/lib/spreadsheet-sync";
 
 const CART_QTY_MAX = 10;
 
@@ -71,6 +73,10 @@ function digitsOnly(phone: string) {
 function isValidPhoneDigits(phone: string) {
   const d = digitsOnly(phone);
   return d.length >= 6 && d.length <= 15;
+}
+
+function isValidEmail(email: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 function buildStaticOrderLines(
@@ -149,12 +155,8 @@ function formatProductTitle(p: Product, locale: string) {
   return p.nameEn.toUpperCase();
 }
 
-function priceDisplay(cents: number, currency = "hkd") {
-  const amount = (cents / 100).toFixed(2);
-  if (currency.toLowerCase() === "mop") {
-    return `MOP ${amount}`;
-  }
-  return `HK$ ${amount}`;
+function priceDisplay(cents: number, currency = "mop") {
+  return formatMoney(cents, currency);
 }
 
 function inferCategoryKey(p: { nameZh: string; nameEn: string }): CategoryKey {
@@ -209,11 +211,19 @@ function paymentAccountLabel(method: PaymentMethod, t: ShopCheckoutCopy): string
 }
 
 /** MPay 聚易用收款海報 — portrait 714×960, sized for mobile scan. */
-function MpayCollectionQr({ alt, caption }: { alt: string; caption: string }) {
+function PaymentCollectionQr({
+  src,
+  alt,
+  caption,
+}: {
+  src: string;
+  alt: string;
+  caption: string;
+}) {
   return (
     <figure className="mt-4 flex flex-col items-center rounded-xl border border-neutral-200 bg-neutral-50/90 px-3 py-4 sm:px-5 sm:py-5">
       <Image
-        src={publicAssetPath("/shop/mpay-collection-qr.jpg")}
+        src={publicAssetPath(src)}
         alt={alt}
         width={714}
         height={960}
@@ -416,50 +426,6 @@ function FilterSidebar({
   );
 }
 
-function LocalPaymentStepper({
-  t,
-  proofUploaded,
-}: {
-  t: ShopCheckoutCopy;
-  proofUploaded: boolean;
-}) {
-  const labels = [t.shopPayStepOrder, t.shopPayStepTransfer, t.shopPayStepUpload, t.shopPayStepReview];
-  return (
-    <ol className="mt-4 grid gap-3 sm:grid-cols-4" aria-label={t.shopLocalPayFlowTitle}>
-      {labels.map((label, i) => {
-        const done = i < 2 || (i === 2 && proofUploaded);
-        const current = (!proofUploaded && i === 2) || (proofUploaded && i === 3);
-        return (
-          <li
-            key={label}
-            className={`flex gap-2 rounded-lg border px-2.5 py-2 text-xs leading-snug transition-colors duration-300 ease-out ${
-              current
-                ? "border-zinc-900 bg-zinc-50 ring-1 ring-zinc-900/20"
-                : done
-                  ? "border-emerald-200/80 bg-emerald-50/50 text-neutral-800"
-                  : "border-neutral-200 bg-white text-neutral-500"
-            }`}
-          >
-            <span
-              className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold transition-colors duration-300 ease-out ${
-                done
-                  ? "bg-emerald-600 text-white"
-                  : current
-                    ? "bg-zinc-900 text-white"
-                    : "bg-neutral-200 text-neutral-600"
-              }`}
-              aria-hidden
-            >
-              {done ? "✓" : i + 1}
-            </span>
-            <span className="font-medium">{label}</span>
-          </li>
-        );
-      })}
-    </ol>
-  );
-}
-
 export function ShopCheckout({
   locale,
   copy,
@@ -475,7 +441,6 @@ export function ShopCheckout({
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(() => defaultCheckoutPaymentMethod());
   const [quantity, setQuantity] = useState(1);
   const [customerName, setCustomerName] = useState("");
-  const [contactMethod, setContactMethod] = useState<"email" | "phone">("email");
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [proofFile, setProofFile] = useState<File | null>(null);
@@ -486,6 +451,7 @@ export function ShopCheckout({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState("");
   const checkoutIdempotencyKeyRef = useRef("");
+  const lastStaticSheetKeyRef = useRef("");
   const [viewMode, setViewMode] = useState<ViewMode>("grid-3");
   const [filterCats, setFilterCats] = useState<CategoryKey[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -717,16 +683,24 @@ export function ShopCheckout({
     if (isStaticSite) {
       return;
     }
+    if (!cartTouched || !selectedProductId) {
+      setMessage(t.shopCheckoutEmptyCart);
+      return;
+    }
 
-    const email = contactMethod === "email" ? customerEmail.trim() : "";
-    const phone = contactMethod === "phone" ? digitsOnly(customerPhone) : "";
+    const email = customerEmail.trim();
+    const phone = digitsOnly(customerPhone);
 
     if (!email && !phone) {
       setMessage(t.shopContactRequired);
       return;
     }
-    if (contactMethod === "phone" && !isValidPhoneDigits(phone)) {
+    if (phone && !isValidPhoneDigits(phone)) {
       setMessage(t.shopContactPhoneInvalid);
+      return;
+    }
+    if (email && !isValidEmail(email)) {
+      setMessage(t.shopContactEmailInvalid);
       return;
     }
 
@@ -827,6 +801,15 @@ export function ShopCheckout({
 
   const subtotalCents = selectedProduct ? selectedProduct.priceCents * quantity : 0;
   const selectedPayAccount = localPaymentAccount(checkoutPaymentMethod);
+  const selectedPayQrSrc = paymentMethodQrSrc(checkoutPaymentMethod);
+  const hasCartItem = Boolean(cartTouched && selectedProduct);
+
+  function resetLocalPayment() {
+    setLocalPaymentData(null);
+    setProofUploaded(false);
+    setProofFile(null);
+    setMessage("");
+  }
 
   async function openStaticWeChatOrder() {
     if (!orderHelpWeChatId || !selectedProduct) {
@@ -838,12 +821,34 @@ export function ShopCheckout({
       selectedProduct,
       quantity,
       customerName,
-      contactMethod === "email" ? customerEmail : "",
-      contactMethod === "phone" ? customerPhone : "",
+      customerEmail,
+      customerPhone,
       totalLine,
       checkoutPaymentMethod,
     );
     const copied = await copyTextToClipboard(text);
+    const sheetKey = [
+      customerName.trim(),
+      digitsOnly(customerPhone),
+      selectedProduct.id,
+      String(quantity),
+      checkoutPaymentMethod,
+    ].join("|");
+    if (sheetKey !== lastStaticSheetKeyRef.current) {
+      lastStaticSheetKeyRef.current = sheetKey;
+      queueSpreadsheetSync({
+        orderId: fallbackSheetOrderId("ORD"),
+        customerName: customerName.trim(),
+        phone: digitsOnly(customerPhone),
+        service: `${selectedProduct.nameZh} × ${quantity}`,
+        notes: customerEmail.trim(),
+        amount: subtotalCents / 100,
+        paidAmount: 0,
+        paymentMethod: paymentMethodLabel(checkoutPaymentMethod, "zh-HK"),
+        paymentStatus: "待付款",
+        remark: "網店訂單（靜態頁）",
+      });
+    }
     setMessage(
       copied ? t.shopWechatOrderCopied.replace("{wechat}", orderHelpWeChatId) : text,
     );
@@ -862,15 +867,15 @@ export function ShopCheckout({
   }
 
   const staticMailtoHref =
-    orderHelpEmail && selectedProduct
+    orderHelpEmail && selectedProduct && hasCartItem
       ? `mailto:${orderHelpEmail}?subject=${encodeURIComponent(locale === "zh-HK" ? "藝能網店訂購" : "n_nsalon order")}&body=${encodeURIComponent(
           buildStaticOrderLines(
             locale,
             selectedProduct,
             quantity,
             customerName,
-            contactMethod === "email" ? customerEmail : "",
-            contactMethod === "phone" ? customerPhone : "",
+            customerEmail,
+            customerPhone,
             priceDisplay(subtotalCents, selectedProduct.currency),
             checkoutPaymentMethod,
           ),
@@ -1051,246 +1056,34 @@ export function ShopCheckout({
       )}
 
       <div id="shop-checkout" className="scroll-mt-24 border-t border-neutral-200/90 bg-neutral-50/90 px-0 py-10 sm:py-12">
-        <h3 className={`text-sm font-semibold uppercase tracking-[0.2em] text-neutral-500`}>
-          {t.shopCheckoutTitle}
+        <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-neutral-500">
+          {localPaymentData ? t.shopLocalPayFlowTitle : t.shopCheckoutTitle}
         </h3>
-        <form className="mt-6 grid gap-4 md:grid-cols-2" onSubmit={onCheckout}>
-          <div className="md:col-span-2 rounded-2xl border border-neutral-200 bg-white p-4 text-sm text-neutral-800 shadow-sm">
-            <p className="font-medium text-neutral-900">Order summary 訂單摘要</p>
-            {selectedProduct ? (
-              <p className="mt-1">
-                {locale === "zh-HK" ? selectedProduct.nameZh : selectedProduct.nameEn} × {quantity} →{" "}
-                {priceDisplay(subtotalCents, selectedProduct.currency)}
-              </p>
-            ) : (
-              <p className="mt-1 text-neutral-500">Select a product to see totals.</p>
-            )}
-            {!isStaticSite && checkoutPaymentMethod !== "stripe_card" ? (
-              <p className="mt-2 text-sm text-neutral-500">{t.shopPaymentHintLocal}</p>
-            ) : null}
-          </div>
-
-          {isStaticSite ? (
-            <div className="md:col-span-2 rounded-lg border border-amber-200 bg-amber-50/90 px-4 py-3 text-sm text-amber-950">
-              {t.shopStaticCheckoutNote}
-            </div>
-          ) : null}
-
-          <label className={`${labelClass} md:col-span-2`}>
-            <span>Product</span>
-            <select
-              className={inputClass}
-              value={selectedProductId}
-              onChange={(event) => setSelectedProductId(event.target.value)}
-            >
-              {products.map((product) => (
-                <option key={product.id} value={product.id}>
-                  {locale === "zh-HK" ? product.nameZh : product.nameEn} —{" "}
-                  {priceDisplay(product.priceCents, product.currency)}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <fieldset className="md:col-span-2">
-            <legend className="text-sm text-neutral-700">{t.shopPaymentLabel}</legend>
-            <div className="mt-2 flex flex-wrap gap-2" role="radiogroup" aria-label={t.shopPaymentLabel}>
-              {visibleShopPaymentMethods().map((method) => {
-                const selected = paymentMethod === method;
-                return (
-                  <button
-                    key={method}
-                    type="button"
-                    role="radio"
-                    aria-checked={selected}
-                    onClick={() => setPaymentMethod(method)}
-                    className={`rounded-full border px-3.5 py-2 text-sm font-medium transition ${
-                      selected
-                        ? "border-zinc-900 bg-zinc-900 text-white"
-                        : "border-neutral-300 bg-white text-neutral-800 hover:border-zinc-500"
-                    }`}
-                  >
-                    {paymentMethodLabel(method, locale)}
-                  </button>
-                );
-              })}
-            </div>
-            <div className="mt-3 rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-700">
-              <p>
-                {checkoutPaymentMethod === "mpay"
-                  ? locale === "zh-HK"
-                    ? "確認訂單後會顯示收款碼；亦可轉帳至下列商戶編號，並保留截圖。"
-                    : "Payment QR appears after you confirm the order. You can also transfer to the merchant ID below and keep a screenshot."
-                  : paymentMethodNote(checkoutPaymentMethod, locale)}
-              </p>
-              {selectedPayAccount ? (
-                <p className="mt-2 font-medium text-neutral-900">
-                  {paymentAccountLabel(checkoutPaymentMethod, t)}：{selectedPayAccount}
-                </p>
-              ) : null}
-            </div>
-          </fieldset>
-
-          <div className={labelClass}>
-            <span>{t.shopQuantityLabel}</span>
-            <ShopQuantityStepper
-              value={quantity}
-              onChange={setQuantity}
-              decreaseLabel={t.shopDecreaseQty}
-              increaseLabel={t.shopIncreaseQty}
-              quantityLabel={t.shopQuantityLabel}
-            />
-          </div>
-
-          <label className={labelClass}>
-            <span>{t.shopCustomerNameLabel}</span>
-            <input
-              className={inputClass}
-              required={!isStaticSite}
-              value={customerName}
-              onChange={(event) => setCustomerName(event.target.value)}
-              minLength={isStaticSite ? undefined : 2}
-              autoComplete="name"
-            />
-          </label>
-
-          <fieldset className={labelClass}>
-            <legend className="text-sm text-neutral-700">{t.shopContactMethodLabel}</legend>
-            <div className="mt-1.5 flex flex-wrap gap-2" role="radiogroup" aria-label={t.shopContactMethodLabel}>
-              {(
-                [
-                  { id: "email" as const, label: t.shopContactEmailOption },
-                  { id: "phone" as const, label: t.shopContactPhoneOption },
-                ] as const
-              ).map((option) => {
-                const selected = contactMethod === option.id;
-                return (
-                  <button
-                    key={option.id}
-                    type="button"
-                    role="radio"
-                    aria-checked={selected}
-                    onClick={() => setContactMethod(option.id)}
-                    className={`rounded-full border px-3.5 py-2 text-sm font-medium transition ${
-                      selected
-                        ? "border-zinc-900 bg-zinc-900 text-white"
-                        : "border-neutral-300 bg-white text-neutral-800 hover:border-zinc-500"
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                );
-              })}
-            </div>
-            {contactMethod === "email" ? (
-              <label className="mt-2 flex flex-col gap-1.5">
-                <span className="sr-only">{t.shopContactEmailOption}</span>
-                <input
-                  className={inputClass}
-                  type="email"
-                  required={!isStaticSite}
-                  value={customerEmail}
-                  onChange={(event) => setCustomerEmail(event.target.value)}
-                  placeholder="name@example.com"
-                  autoComplete="email"
-                />
-                <span className="text-xs text-neutral-500">{t.shopContactEmailHint}</span>
-              </label>
-            ) : (
-              <label className="mt-2 flex flex-col gap-1.5">
-                <span className="sr-only">{t.shopContactPhoneOption}</span>
-                <input
-                  className={inputClass}
-                  type="tel"
-                  inputMode="tel"
-                  required={!isStaticSite}
-                  value={customerPhone}
-                  onChange={(event) => setCustomerPhone(event.target.value)}
-                  placeholder={locale === "zh-HK" ? "例如 62345678" : "e.g. 62345678"}
-                  autoComplete="tel"
-                />
-                <span className="text-xs text-neutral-500">{t.shopContactPhoneHint}</span>
-              </label>
-            )}
-          </fieldset>
-
-          {isStaticSite ? (
-            <div className="flex flex-col gap-3 md:col-span-2 sm:flex-row sm:flex-wrap">
-              {orderHelpWeChatId ? (
-                <button
-                  type="button"
-                  className="inline-flex w-fit rounded-full bg-zinc-900 px-6 py-3 text-sm font-semibold text-white transition-all duration-200 ease-out hover:bg-zinc-800 active:scale-[0.98] disabled:opacity-50 motion-reduce:active:scale-100"
-                  disabled={!selectedProductId}
-                  onClick={() => void openStaticWeChatOrder()}
-                >
-                  {t.shopWechatOrder}
-                </button>
-              ) : null}
-              {staticMailtoHref ? (
-                <a
-                  href={staticMailtoHref}
-                  className="inline-flex w-fit items-center justify-center rounded-full border border-zinc-400 bg-white px-6 py-3 text-sm font-semibold text-zinc-900 transition-all duration-200 ease-out hover:bg-zinc-50"
-                >
-                  {t.shopMailOrder}
-                </a>
-              ) : null}
-              {!orderHelpWeChatId && !orderHelpEmail ? (
-                <p className="text-sm text-neutral-600">
-                  {locale === "zh-HK"
-                    ? "請在網站設定 WeChat 或電郵以便落單。"
-                    : "Set NEXT_PUBLIC_WECHAT_ID or salon email for order links."}
-                </p>
-              ) : null}
-            </div>
-          ) : (
-            <div className="md:col-span-2">
-              <button
-                className="inline-flex w-full items-center justify-center rounded-full bg-zinc-900 px-6 py-3 text-sm font-semibold text-white transition-all duration-200 ease-out hover:bg-zinc-800 active:scale-[0.98] disabled:opacity-60 motion-reduce:active:scale-100 sm:w-fit"
-                type="submit"
-                disabled={isSubmitting || !selectedProductId}
-              >
-                {isSubmitting
-                  ? "Processing..."
-                  : checkoutPaymentMethod === "stripe_card"
-                    ? t.shopPayCardCta
-                    : t.shopPayLocalCta}
-              </button>
-            </div>
-          )}
-          {message ? <p className="text-sm text-neutral-600 md:col-span-2">{message}</p> : null}
-        </form>
 
         {localPaymentData ? (
           <div
             id="shop-local-payment"
             className="mt-6 scroll-mt-24 rounded-2xl border border-neutral-200 bg-white p-4 text-sm text-neutral-800 shadow-sm"
           >
-            <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
-              {t.shopLocalPayFlowTitle}
+            <p className="text-base font-medium text-neutral-900">{t.shopPayNextSteps}</p>
+            <p className="mt-4 font-medium text-neutral-900">
+              {t.shopOrderIdLabel}：{localPaymentData.orderId}
             </p>
-            <LocalPaymentStepper t={t} proofUploaded={proofUploaded} />
-
-            <p className="mt-4 font-medium text-neutral-900">Order ID: {localPaymentData.orderId}</p>
             <p>
-              Amount: {(localPaymentData.amountCents / 100).toFixed(2).toUpperCase()}{" "}
-              {localPaymentData.currency.toUpperCase()}
+              {t.shopAmountLabel}：
+              {priceDisplay(localPaymentData.amountCents, localPaymentData.currency)}
             </p>
             <p>
               {paymentAccountLabel(localPaymentData.paymentMethod, t)}：{localPaymentData.paymentAccount}
             </p>
-            <p>
-              {t.shopPaymentNoteLabel}：{paymentMethodNote(localPaymentData.paymentMethod, locale)}
-            </p>
-            {localPaymentData.paymentMethod === "mpay" ? (
-              <MpayCollectionQr alt={t.shopPaymentQrAlt} caption={t.shopPaymentQrCaption} />
+            <p className="mt-2 text-neutral-600">{paymentMethodNote(localPaymentData.paymentMethod, locale)}</p>
+            {paymentMethodQrSrc(localPaymentData.paymentMethod) ? (
+              <PaymentCollectionQr
+                src={paymentMethodQrSrc(localPaymentData.paymentMethod)!}
+                alt={t.shopPaymentQrAlt}
+                caption={t.shopPaymentQrCaption}
+              />
             ) : null}
-            <p className="mt-2 text-neutral-500">
-              {localPaymentData.proofViaWhatsapp
-                ? locale === "zh-HK"
-                  ? "請完成付款後，以 WeChat 或電郵傳送截圖及訂單編號。"
-                  : "After paying, send your screenshot and order ID via WeChat or email."
-                : "請完成轉帳後上傳截圖。 / Complete the transfer, then upload your screenshot."}
-            </p>
 
             {proofUploaded ? (
               <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50/80 px-3 py-2 text-sm text-amber-950">
@@ -1372,8 +1165,177 @@ export function ShopCheckout({
                 </button>
               </form>
             )}
+
+            {message ? <p className="mt-4 text-sm text-neutral-600">{message}</p> : null}
+
+            <button
+              type="button"
+              onClick={resetLocalPayment}
+              className="mt-4 text-sm font-medium text-neutral-600 underline underline-offset-2 hover:text-neutral-900"
+            >
+              {t.shopPlaceAnotherOrder}
+            </button>
           </div>
-        ) : null}
+        ) : (
+          <form className="mt-6 grid gap-4 md:grid-cols-2" onSubmit={onCheckout}>
+            <div className="md:col-span-2 rounded-2xl border border-neutral-200 bg-white p-4 text-sm text-neutral-800 shadow-sm">
+              <p className="font-medium text-neutral-900">{t.shopOrderSummaryLabel}</p>
+              {hasCartItem && selectedProduct ? (
+                <div className="mt-1 flex flex-wrap items-baseline justify-between gap-2">
+                  <p>
+                    {locale === "zh-HK" ? selectedProduct.nameZh : selectedProduct.nameEn} × {quantity} →{" "}
+                    {priceDisplay(subtotalCents, selectedProduct.currency)}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setCartOpen(true)}
+                    className="text-xs font-medium text-neutral-600 underline underline-offset-2 hover:text-neutral-900"
+                  >
+                    {t.shopChangeQty}
+                  </button>
+                </div>
+              ) : (
+                <p className="mt-1 text-neutral-500">{t.shopCheckoutEmptyCart}</p>
+              )}
+            </div>
+
+            {isStaticSite ? (
+              <div className="md:col-span-2 rounded-lg border border-amber-200 bg-amber-50/90 px-4 py-3 text-sm text-amber-950">
+                {t.shopStaticCheckoutNote}
+              </div>
+            ) : null}
+
+            <fieldset className="md:col-span-2">
+              <legend className="text-sm text-neutral-700">{t.shopPaymentLabel}</legend>
+              <div className="mt-2 flex flex-wrap gap-2" role="radiogroup" aria-label={t.shopPaymentLabel}>
+                {visibleShopPaymentMethods().map((method) => {
+                  const selected = paymentMethod === method;
+                  return (
+                    <button
+                      key={method}
+                      type="button"
+                      role="radio"
+                      aria-checked={selected}
+                      onClick={() => setPaymentMethod(method)}
+                      className={`rounded-full border px-3.5 py-2 text-sm font-medium transition ${
+                        selected
+                          ? "border-zinc-900 bg-zinc-900 text-white"
+                          : "border-neutral-300 bg-white text-neutral-800 hover:border-zinc-500"
+                      }`}
+                    >
+                      {paymentMethodLabel(method, locale)}
+                    </button>
+                  );
+                })}
+              </div>
+              {isStaticSite ? (
+                <div className="mt-3 rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-700">
+                  <p>{paymentMethodNote(checkoutPaymentMethod, locale)}</p>
+                  {selectedPayAccount ? (
+                    <p className="mt-2 font-medium text-neutral-900">
+                      {paymentAccountLabel(checkoutPaymentMethod, t)}：{selectedPayAccount}
+                    </p>
+                  ) : null}
+                  {selectedPayQrSrc ? (
+                    <PaymentCollectionQr
+                      src={selectedPayQrSrc}
+                      alt={t.shopPaymentQrAlt}
+                      caption={t.shopPaymentQrCaption}
+                    />
+                  ) : null}
+                </div>
+              ) : checkoutPaymentMethod !== "stripe_card" ? (
+                <p className="mt-3 text-sm text-neutral-500">{t.shopPaymentHintAfterOrder}</p>
+              ) : null}
+            </fieldset>
+
+            <label className={labelClass}>
+              <span>{t.shopCustomerNameLabel}</span>
+              <input
+                className={inputClass}
+                required={!isStaticSite}
+                value={customerName}
+                onChange={(event) => setCustomerName(event.target.value)}
+                minLength={isStaticSite ? undefined : 2}
+                autoComplete="name"
+              />
+            </label>
+
+            <label className={labelClass}>
+              <span>{t.shopContactPhoneOption}</span>
+              <input
+                className={inputClass}
+                type="tel"
+                inputMode="tel"
+                value={customerPhone}
+                onChange={(event) => setCustomerPhone(event.target.value)}
+                placeholder={locale === "zh-HK" ? "例如 62345678" : "e.g. 62345678"}
+                autoComplete="tel"
+              />
+              <span className="text-xs text-neutral-500">{t.shopContactPhoneHint}</span>
+            </label>
+
+            <label className={`${labelClass} md:col-span-2`}>
+              <span>{t.shopContactEmailOptional}</span>
+              <input
+                className={inputClass}
+                type="email"
+                value={customerEmail}
+                onChange={(event) => setCustomerEmail(event.target.value)}
+                placeholder="name@example.com"
+                autoComplete="email"
+              />
+              <span className="text-xs text-neutral-500">{t.shopContactEmailHint}</span>
+            </label>
+
+            {isStaticSite ? (
+              <div className="flex flex-col gap-3 md:col-span-2 sm:flex-row sm:flex-wrap">
+                {orderHelpWeChatId ? (
+                  <button
+                    type="button"
+                    className="inline-flex w-fit rounded-full bg-zinc-900 px-6 py-3 text-sm font-semibold text-white transition-all duration-200 ease-out hover:bg-zinc-800 active:scale-[0.98] disabled:opacity-50 motion-reduce:active:scale-100"
+                    disabled={!hasCartItem}
+                    onClick={() => void openStaticWeChatOrder()}
+                  >
+                    {t.shopWechatOrder}
+                  </button>
+                ) : null}
+                {staticMailtoHref ? (
+                  <a
+                    href={staticMailtoHref}
+                    className="inline-flex w-fit items-center justify-center rounded-full border border-zinc-400 bg-white px-6 py-3 text-sm font-semibold text-zinc-900 transition-all duration-200 ease-out hover:bg-zinc-50"
+                  >
+                    {t.shopMailOrder}
+                  </a>
+                ) : null}
+                {!orderHelpWeChatId && !orderHelpEmail ? (
+                  <p className="text-sm text-neutral-600">
+                    {locale === "zh-HK"
+                      ? "請在網站設定 WeChat 或電郵以便落單。"
+                      : "Set NEXT_PUBLIC_WECHAT_ID or salon email for order links."}
+                  </p>
+                ) : null}
+              </div>
+            ) : (
+              <div className="md:col-span-2">
+                <button
+                  className="inline-flex w-full items-center justify-center rounded-full bg-zinc-900 px-6 py-3 text-sm font-semibold text-white transition-all duration-200 ease-out hover:bg-zinc-800 active:scale-[0.98] disabled:opacity-60 motion-reduce:active:scale-100 sm:w-fit"
+                  type="submit"
+                  disabled={isSubmitting || !hasCartItem}
+                >
+                  {isSubmitting
+                    ? locale === "zh-HK"
+                      ? "處理中…"
+                      : "Processing..."
+                    : checkoutPaymentMethod === "stripe_card"
+                      ? t.shopPayCardCta
+                      : t.shopPayLocalCta}
+                </button>
+              </div>
+            )}
+            {message ? <p className="text-sm text-neutral-600 md:col-span-2">{message}</p> : null}
+          </form>
+        )}
       </div>
 
       {detailProduct ? (
@@ -1399,13 +1361,12 @@ export function ShopCheckout({
         }
         t={t}
         isStaticSite={isStaticSite}
-        paymentMethodLabel={paymentMethodLabel(checkoutPaymentMethod, locale)}
         onClose={() => setCartOpen(false)}
         onCheckout={proceedFromCart}
         onQuantityChange={setQuantity}
       />
 
-      {selectedProduct && cartTouched && !cartOpen && !detailProductId ? (
+      {selectedProduct && cartTouched && !cartOpen && !detailProductId && !localPaymentData ? (
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-neutral-200 bg-white/95 px-4 py-3 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] backdrop-blur-sm sm:hidden [padding-bottom:max(0.75rem,env(safe-area-inset-bottom,0px))]">
           <div className="flex items-center gap-3">
             <div className="min-w-0 flex-1">

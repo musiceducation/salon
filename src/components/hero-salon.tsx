@@ -7,7 +7,7 @@ type Props = {
   kw1: string;
   kw2: string;
   kw3: string;
-  bookNow: string;
+  contactCta: string;
   shopNow: string;
   shopHref: string;
 };
@@ -58,10 +58,10 @@ export function HeroSalon(p: Props) {
         </div>
         <div className="mt-2 flex flex-wrap gap-3">
           <a
-            href="#booking"
+            href="#contact"
             className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white px-5 py-2.5 text-sm font-medium text-zinc-900 transition hover:bg-zinc-100"
           >
-            {p.bookNow}
+            {p.contactCta}
           </a>
           <a
             href={p.shopHref}

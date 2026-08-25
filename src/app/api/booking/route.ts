@@ -1,6 +1,11 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withIdempotencyByKey } from "@/lib/idempotency";
+import {
+  BOOKING_SERVICE_SHEET,
+  formatMacauDateTime,
+  submitOrderToSpreadsheet,
+} from "@/lib/spreadsheet-sync";
 
 type BookingPayload = {
   locale?: string;
@@ -64,7 +69,7 @@ export async function POST(request: Request) {
       }
 
       try {
-        const appointmentId = await prisma.$transaction(async (tx) => {
+        const created = await prisma.$transaction(async (tx) => {
           const service = await tx.service.findFirst({
             where: { key: serviceId, isActive: true },
             select: { key: true },
@@ -129,7 +134,35 @@ export async function POST(request: Request) {
             },
           });
 
-          return appointment.id;
+          const bookedSlot = await tx.availabilitySlot.findUnique({
+            where: { id: slotId },
+            select: { startsAt: true },
+          });
+          const bookedService = await tx.service.findFirst({
+            where: { key: serviceId },
+            select: { nameZh: true, basePrice: true },
+          });
+
+          return {
+            appointmentId: appointment.id,
+            bookingDate: bookedSlot?.startsAt ?? null,
+            serviceNameZh: bookedService?.nameZh ?? BOOKING_SERVICE_SHEET[serviceId]?.nameZh ?? serviceId,
+            amount: bookedService?.basePrice ?? BOOKING_SERVICE_SHEET[serviceId]?.amount ?? 0,
+          };
+        });
+
+        after(() => {
+          void submitOrderToSpreadsheet({
+            orderId: created.appointmentId,
+            bookingDate: formatMacauDateTime(created.bookingDate),
+            customerName,
+            phone: customerPhone,
+            service: created.serviceNameZh,
+            amount: created.amount,
+            paymentMethod: "現金",
+            paymentStatus: "待付款",
+            remark: "網站預約",
+          });
         });
 
         const message =
@@ -139,7 +172,7 @@ export async function POST(request: Request) {
 
         return {
           status: 201,
-          body: { message, appointmentId },
+          body: { message, appointmentId: created.appointmentId },
         };
       } catch (error) {
         if (error instanceof Error && error.message === "SLOT_UNAVAILABLE") {

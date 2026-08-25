@@ -8,7 +8,7 @@ const googleSiteVerification = process.env.GOOGLE_SITE_VERIFICATION?.trim();
 export const metadata: Metadata = {
   title: "藝能美髮培訓中心 | n_nsalon",
   description:
-    "澳門美髮沙龍：染燙、剪護、沙龍產品；線上預約、到店體驗。藝能美髮培訓中心 n_nsalon，自 1995 扎根澳門。",
+    "澳門美髮沙龍：染燙、剪護、沙龍產品；WeChat、Instagram 或致電聯絡，到店體驗。藝能美髮培訓中心 n_nsalon，自 1995 扎根澳門。",
   metadataBase: process.env.NEXT_PUBLIC_SITE_URL
     ? new URL(process.env.NEXT_PUBLIC_SITE_URL)
     : undefined,
