@@ -9,9 +9,10 @@ import { DM_Sans, Noto_Serif_TC, Playfair_Display } from "next/font/google";
  * face for glyphs Latin cannot render.
  */
 
-/** Latin display face — headings, brand wordmark. */
+/** Latin display face — headings, brand wordmark. Headings are semibold only. */
 export const fontDisplayLatin = Playfair_Display({
   subsets: ["latin"],
+  weight: "600",
   display: "swap",
   variable: "--font-display-latin",
 });

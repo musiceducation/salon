@@ -1,5 +1,10 @@
 import { PrismaClient } from "@prisma/client";
 
+/** False during Vercel/Pages builds that never set a real Postgres URL. */
+export function hasDatabaseUrl(): boolean {
+  return Boolean(process.env.DATABASE_URL?.trim());
+}
+
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };

@@ -1,17 +1,24 @@
 import type { Metadata } from "next";
+import dynamic from "next/dynamic";
 import { notFound } from "next/navigation";
 import { HeroSalon } from "@/components/hero-salon";
-import { SalonTopBar } from "@/components/salon-top-bar";
-import { SalonHeader } from "@/components/salon-header";
+import { SalonPageShell } from "@/components/salon-page-shell";
 import { ShopPromoBanner } from "@/components/shop-promo-banner";
 import { PriceListSection } from "@/components/price-list-section";
-import { ContactCta } from "@/components/contact-cta";
-import { SiteFooter } from "@/components/site-footer";
-import { WeChatFloat } from "@/components/wechat-float";
 import { getMessages, isSupportedLocale, supportedLocales } from "@/lib/i18n";
-import { getWeChatId } from "@/lib/contact-wechat";
 import { localeAbsoluteUrl, localeHref } from "@/lib/locale-path";
-import { buildTelHref, phoneToE164 } from "@/lib/tel-href";
+import { buildTelHref } from "@/lib/tel-href";
+import {
+  buildSalonJsonLd,
+  getSalonChrome,
+  ogImageUrl,
+  siteOrigin,
+} from "@/lib/salon-site";
+
+/** Below-fold client island — keep off the initial home JS path. */
+const ContactCta = dynamic(() =>
+  import("@/components/contact-cta").then((m) => m.ContactCta),
+);
 
 /** Prebuild both locales; required for `output: 'export'` (GitHub Pages) and static HTML at deploy. */
 export function generateStaticParams() {
@@ -22,12 +29,7 @@ type HomePageProps = {
   params: Promise<{ locale: string }>;
 };
 
-const businessSite = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-
-/** Same asset as hero (`public/ad-stock/03-salon-interior-wide.webp`). */
-function ogImageUrl(siteBase: string) {
-  return `${siteBase}/ad-stock/03-salon-interior-wide.webp`;
-}
+const businessSite = siteOrigin();
 
 export async function generateMetadata({ params }: HomePageProps): Promise<Metadata> {
   const { locale } = await params;
@@ -88,19 +90,7 @@ export default async function LocaleHomePage({ params }: HomePageProps) {
 
   const t = getMessages(locale);
   const productsPath = localeHref(locale, "products");
-
-  const sameAs: string[] = [];
-  if (process.env.NEXT_PUBLIC_INSTAGRAM_URL) {
-    sameAs.push(process.env.NEXT_PUBLIC_INSTAGRAM_URL);
-  }
-  if (process.env.NEXT_PUBLIC_FACEBOOK_URL) {
-    sameAs.push(process.env.NEXT_PUBLIC_FACEBOOK_URL);
-  }
-
-  const displayEmail = process.env.NEXT_PUBLIC_SALON_EMAIL?.trim() || t.displayEmail;
-  const facebookUrl = process.env.NEXT_PUBLIC_FACEBOOK_URL?.trim() || null;
-  const instagramUrl = process.env.NEXT_PUBLIC_INSTAGRAM_URL?.trim() || null;
-  const wechatId = getWeChatId();
+  const { displayEmail, facebookUrl, instagramUrl, sameAs, wechatId } = getSalonChrome(t);
 
   const jsonLd = [
     {
@@ -111,54 +101,19 @@ export default async function LocaleHomePage({ params }: HomePageProps) {
       url: businessSite,
       inLanguage: [locale, "zh-HK", "en"],
     },
-    {
-      "@context": "https://schema.org",
-      "@type": "HairSalon",
-      name: locale === "zh-HK" ? t.brandName : "n_nsalon (藝能美髮培訓中心)",
-      alternateName: locale === "zh-HK" ? ["n_nsalon", "www.nnsalon.com"] : ["藝能美髮培訓中心", "www.nnsalon.com"],
-      address: {
-        "@type": "PostalAddress",
-        streetAddress: t.address,
-        addressLocality: "Macau",
-        addressCountry: "MO",
-      },
-      telephone: phoneToE164(t.phone),
-      url: businessSite,
-      sameAs: sameAs.length > 0 ? sameAs : undefined,
-      areaServed: { "@type": "Place", name: "Macau" },
-    },
+    buildSalonJsonLd(locale, t, sameAs),
   ];
 
   return (
-    <div
-      id="main-content"
-      lang={locale}
-      tabIndex={-1}
-      className="min-h-screen bg-zinc-50 text-zinc-900 pb-28 [padding-bottom:max(7rem,env(safe-area-inset-bottom,0px))] sm:pb-32"
+    <SalonPageShell
+      locale={locale}
+      t={t}
+      displayEmail={displayEmail}
+      wechatId={wechatId}
+      facebookUrl={facebookUrl}
+      instagramUrl={instagramUrl}
+      jsonLd={jsonLd}
     >
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <SalonTopBar
-        address={t.address}
-        email={displayEmail}
-        phone={t.phone}
-        hoursLine={t.topBarHoursLine}
-      />
-      <SalonHeader
-        brandName={t.brandName}
-        home={t.navHome}
-        priceList={t.navPriceList}
-        contact={t.navContact}
-        shop={t.navShop}
-        searchLabel={t.navSearchLabel}
-        searchAria={t.searchAria}
-        cartAria={t.cartAria}
-        cartEmpty={t.cartEmpty}
-        locale={locale}
-        productsPath={productsPath}
-      />
       <main>
         <HeroSalon
           brandTitle={t.brandTitle}
@@ -240,29 +195,6 @@ export default async function LocaleHomePage({ params }: HomePageProps) {
           disclaimer={t.priceListDisclaimer}
         />
       </main>
-      <WeChatFloat
-        wechatId={wechatId}
-        title={t.wechatBubbleTitle}
-        body={t.wechatBubbleBody.replace("{wechat}", wechatId)}
-        copiedLabel={t.wechatIdCopied}
-      />
-      <SiteFooter
-        tagline={t.footerTagline}
-        logoPrimary={t.footerLogoPrimary}
-        logoSub={t.footerLogoSub}
-        contactHeading={t.footerContactHeading}
-        emailLinePrefix={t.emailLinePrefix}
-        telLinePrefix={t.telLinePrefix}
-        wechatLabel={t.contactWechatLabel}
-        address={t.address}
-        phone={t.phone}
-        email={displayEmail}
-        hoursTitle={t.hoursFooterTitle}
-        hoursDetail={t.hoursDetail}
-        wechatId={wechatId}
-        facebookUrl={facebookUrl}
-        instagramUrl={instagramUrl}
-      />
-    </div>
+    </SalonPageShell>
   );
 }

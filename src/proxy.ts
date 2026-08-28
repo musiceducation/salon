@@ -43,7 +43,7 @@ function isSkippedLocaleRewrite(pathname: string) {
   );
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Old prefixed Chinese URLs → clean public URLs (308 so SEO consolidates on /).

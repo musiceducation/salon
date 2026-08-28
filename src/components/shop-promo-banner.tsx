@@ -20,7 +20,7 @@ export function ShopPromoBanner(p: Props) {
           alt=""
           fill
           sizes="100vw"
-          unoptimized
+          loading="lazy"
           className="object-cover object-center"
         />
         <div

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import type { ShopCheckoutCopy } from "@/lib/shop-checkout-copy";
 import { publicAssetPath } from "@/lib/public-asset-path";
@@ -21,10 +22,15 @@ import {
   SHOP_CART_OPEN_EVENT,
   SHOP_SEARCH_FOCUS_EVENT,
 } from "@/lib/shop-cart-bridge";
-import { ShopCartDrawer } from "@/components/shop-cart-drawer";
-import { ShopProductDetailPanel } from "@/components/shop-product-detail-panel";
 import { formatMoney } from "@/lib/format-money";
 import { fallbackSheetOrderId, queueSpreadsheetSync } from "@/lib/spreadsheet-sync";
+
+const ShopCartDrawer = dynamic(() =>
+  import("@/components/shop-cart-drawer").then((m) => m.ShopCartDrawer),
+);
+const ShopProductDetailPanel = dynamic(() =>
+  import("@/components/shop-product-detail-panel").then((m) => m.ShopProductDetailPanel),
+);
 
 const CART_QTY_MAX = 10;
 
@@ -287,8 +293,8 @@ function ShopProductCard({
                 alt=""
                 width={200}
                 height={200}
+                sizes="128px"
                 className="h-full w-full object-contain p-2 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-safe:group-hover:scale-[1.04]"
-                unoptimized
               />
             ) : (
               <ProductBottlePlaceholder />
@@ -323,8 +329,8 @@ function ShopProductCard({
           alt=""
           width={360}
           height={360}
+          sizes="(max-width: 640px) 50vw, 240px"
           className="h-full w-full object-contain p-4 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-safe:group-hover:scale-[1.03]"
-          unoptimized
         />
       ) : (
         <ProductBottlePlaceholder />
@@ -1351,20 +1357,22 @@ export function ShopCheckout({
         />
       ) : null}
 
-      <ShopCartDrawer
-        open={cartOpen}
-        product={selectedProduct}
-        quantity={quantity}
-        locale={locale}
-        subtotalLabel={
-          selectedProduct ? priceDisplay(subtotalCents, selectedProduct.currency) : "—"
-        }
-        t={t}
-        isStaticSite={isStaticSite}
-        onClose={() => setCartOpen(false)}
-        onCheckout={proceedFromCart}
-        onQuantityChange={setQuantity}
-      />
+      {cartOpen || cartTouched ? (
+        <ShopCartDrawer
+          open={cartOpen}
+          product={selectedProduct}
+          quantity={quantity}
+          locale={locale}
+          subtotalLabel={
+            selectedProduct ? priceDisplay(subtotalCents, selectedProduct.currency) : "—"
+          }
+          t={t}
+          isStaticSite={isStaticSite}
+          onClose={() => setCartOpen(false)}
+          onCheckout={proceedFromCart}
+          onQuantityChange={setQuantity}
+        />
+      ) : null}
 
       {selectedProduct && cartTouched && !cartOpen && !detailProductId && !localPaymentData ? (
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-neutral-200 bg-white/95 px-4 py-3 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] backdrop-blur-sm sm:hidden [padding-bottom:max(0.75rem,env(safe-area-inset-bottom,0px))]">
