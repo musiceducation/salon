@@ -1,4 +1,4 @@
-# Static marketing site only: /api, /admin, and middleware are omitted (Next.js static export cannot host them).
+# Static marketing site only: /api, /admin, and proxy are omitted (Next.js static export cannot host them).
 # Full app with booking, checkout, and DB: deploy to Vercel or another Node host instead.
 name: Deploy to GitHub Pages
 
@@ -34,9 +34,9 @@ jobs:
       - name: Install
         run: npm ci
 
-      - name: Prepare static export (GitHub Pages cannot run API routes or middleware)
+      - name: Prepare static export (GitHub Pages cannot run API routes or proxy)
         run: |
-          rm -f src/middleware.ts
+          rm -f src/middleware.ts src/proxy.ts
           rm -rf src/app/api
           rm -rf src/app/admin
 

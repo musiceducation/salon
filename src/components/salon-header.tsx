@@ -5,6 +5,7 @@ import { SalonHeaderActions } from "./salon-header-actions.client";
 import { SalonLocaleSwitch } from "./salon-locale-switch.client";
 import { localeHref } from "@/lib/locale-path";
 import { publicAssetPath } from "@/lib/public-asset-path";
+import { SALON_LOGO_SRC } from "@/lib/salon-site";
 
 type Nav = {
   brandName: string;
@@ -20,7 +21,7 @@ type Nav = {
   productsPath: string;
 };
 
-const LOGO_SRC = "/brand/logo.jpg";
+const LOGO_SRC = SALON_LOGO_SRC;
 
 const navBase =
   "rounded-md px-2.5 py-1.5 text-zinc-800 transition hover:bg-zinc-100/80";
@@ -44,8 +45,8 @@ export function SalonHeader(t: Nav) {
             width={44}
             height={44}
             className="h-9 w-9 rounded-sm object-cover sm:h-11 sm:w-11"
+            sizes="44px"
             priority
-            unoptimized
           />
           <span className="font-display text-lg font-semibold leading-tight tracking-tight text-zinc-900 sm:text-xl">
             {t.brandName}

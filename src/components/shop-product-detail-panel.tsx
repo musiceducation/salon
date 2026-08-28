@@ -118,8 +118,8 @@ export function ShopProductDetailPanel({
                   alt={title}
                   width={480}
                   height={480}
+                  sizes="(max-width: 640px) 90vw, 240px"
                   className="h-full w-full object-contain p-6"
-                  unoptimized
                   priority
                 />
               ) : null}

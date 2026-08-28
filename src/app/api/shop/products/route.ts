@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
 import { staticShopCatalogForExport } from "@/data/shop-catalog-static";
-import { prisma } from "@/lib/prisma";
+import { hasDatabaseUrl, prisma } from "@/lib/prisma";
+
+const catalogHeaders = {
+  "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120",
+};
 
 export async function GET() {
-  const isProd = process.env.NODE_ENV === "production";
+  if (!hasDatabaseUrl()) {
+    return NextResponse.json({ products: staticShopCatalogForExport }, { headers: catalogHeaders });
+  }
 
   try {
     const products = await prisma.product.findMany({
@@ -18,18 +24,9 @@ export async function GET() {
         imageUrl: true,
       },
     });
-    return NextResponse.json(
-      { products },
-      { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120" } },
-    );
+    return NextResponse.json({ products }, { headers: catalogHeaders });
   } catch (error) {
     console.error("[shop/products]", error);
-    if (isProd) {
-      return NextResponse.json(
-        { message: "Product catalog is temporarily unavailable." },
-        { status: 503 },
-      );
-    }
-    return NextResponse.json({ products: staticShopCatalogForExport }, { status: 200 });
+    return NextResponse.json({ products: staticShopCatalogForExport }, { headers: catalogHeaders });
   }
 }

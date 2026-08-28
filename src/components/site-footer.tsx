@@ -1,8 +1,9 @@
 import Image from "next/image";
 import { buildTelHref } from "@/lib/tel-href";
 import { publicAssetPath } from "@/lib/public-asset-path";
+import { SALON_LOGO_SRC } from "@/lib/salon-site";
 
-const LOGO_SRC = "/brand/logo.jpg";
+const LOGO_SRC = SALON_LOGO_SRC;
 
 const iconFacebook = (
   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
@@ -51,7 +52,7 @@ export function SiteFooter(p: FooterProps) {
                 width={56}
                 height={56}
                 className="h-12 w-12 rounded-sm object-cover ring-1 ring-white/15 sm:h-14 sm:w-14"
-                unoptimized
+                sizes="56px"
               />
               <div>
                 <p className="font-display text-2xl font-semibold tracking-tight text-white sm:text-3xl">
