@@ -8,12 +8,12 @@ export type { HomeProduct } from "@/lib/shop-product";
 
 export type HomeSlot = BookingSlotOption;
 
-function useStaticCatalog() {
+function shouldUseStaticCatalog() {
   return process.env.STATIC_EXPORT === "1" || !hasDatabaseUrl();
 }
 
 export async function getHomeProducts(): Promise<HomeProduct[]> {
-  if (useStaticCatalog()) {
+  if (shouldUseStaticCatalog()) {
     return staticShopCatalogForExport;
   }
   try {
@@ -38,7 +38,7 @@ export async function getHomeSlotsForService(
   locale: Locale,
   serviceKey: string,
 ): Promise<HomeSlot[]> {
-  if (useStaticCatalog()) {
+  if (shouldUseStaticCatalog()) {
     return [];
   }
   try {
