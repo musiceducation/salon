@@ -324,6 +324,54 @@ async function main() {
     },
   });
 
+  await prisma.product.upsert({
+    where: { slug: "vivltone-keraplex-360-hair-treatment-mask-500ml" },
+    update: {
+      nameZh: "VILLYTONE KX 360 結構重組護理 500ml",
+      nameEn: "VILLYTONE KX 360 Hair Treatment Mask 500ml",
+      description:
+        "結構重組護理 · Keraplex 360+ · pH4 · 八種氨基酸 + 水解角蛋白 · 500ml / 17.6 OZ.",
+      imageUrl: "/shop/vivltone-keraplex-360-hair-treatment-mask-500ml.png",
+      priceCents: 50000,
+      currency: "mop",
+      isActive: true,
+    },
+    create: {
+      slug: "vivltone-keraplex-360-hair-treatment-mask-500ml",
+      nameZh: "VILLYTONE KX 360 結構重組護理 500ml",
+      nameEn: "VILLYTONE KX 360 Hair Treatment Mask 500ml",
+      description:
+        "結構重組護理 · Keraplex 360+ · pH4 · 八種氨基酸 + 水解角蛋白 · 500ml / 17.6 OZ.",
+      imageUrl: "/shop/vivltone-keraplex-360-hair-treatment-mask-500ml.png",
+      priceCents: 50000,
+      currency: "mop",
+    },
+  });
+
+  await prisma.product.upsert({
+    where: { slug: "villytone-kx360-hair-treatment-lotion-500ml" },
+    update: {
+      nameZh: "VILLYTONE 強韌重組水 500ml",
+      nameEn: "VILLYTONE Hair Treatment Lotion 500ml",
+      description:
+        "強韌重組水 · Keraplex 360+ · pH4 · 強化韌度、降鹼去異味 · 500ml / 17.6 OZ.",
+      imageUrl: "/shop/villytone-kx360-hair-treatment-lotion-500ml.png",
+      priceCents: 48000,
+      currency: "mop",
+      isActive: true,
+    },
+    create: {
+      slug: "villytone-kx360-hair-treatment-lotion-500ml",
+      nameZh: "VILLYTONE 強韌重組水 500ml",
+      nameEn: "VILLYTONE Hair Treatment Lotion 500ml",
+      description:
+        "強韌重組水 · Keraplex 360+ · pH4 · 強化韌度、降鹼去異味 · 500ml / 17.6 OZ.",
+      imageUrl: "/shop/villytone-kx360-hair-treatment-lotion-500ml.png",
+      priceCents: 48000,
+      currency: "mop",
+    },
+  });
+
   await seedAvailabilitySlots();
 }
 

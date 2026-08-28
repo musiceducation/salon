@@ -6,6 +6,22 @@ import type { HomeProduct } from "@/lib/shop-product";
  */
 export const staticShopCatalogForExport: HomeProduct[] = [
   {
+    id: "static-villytone-kx360-hair-treatment-lotion-500ml",
+    nameZh: "VILLYTONE 強韌重組水 500ml",
+    nameEn: "VILLYTONE Hair Treatment Lotion 500ml",
+    priceCents: 48000,
+    currency: "mop",
+    imageUrl: "/shop/villytone-kx360-hair-treatment-lotion-500ml.png",
+  },
+  {
+    id: "static-vivltone-keraplex-360-hair-treatment-mask-500ml",
+    nameZh: "VILLYTONE KX 360 結構重組護理 500ml",
+    nameEn: "VILLYTONE KX 360 Hair Treatment Mask 500ml",
+    priceCents: 50000,
+    currency: "mop",
+    imageUrl: "/shop/vivltone-keraplex-360-hair-treatment-mask-500ml.png",
+  },
+  {
     id: "static-perfect-spray-voc55-380ml",
     nameZh: "Perfect Spray 造型噴霧 380ml",
     nameEn: "Perfect Spray 380ml",

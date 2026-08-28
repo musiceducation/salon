@@ -176,7 +176,7 @@ function inferCategoryKey(p: { nameZh: string; nameEn: string }): CategoryKey {
   if (/\bbalm\b|balsam|taming|順服乳霜/.test(s)) {
     return "treatment";
   }
-  if (/treatment|mask|髮膜|发膜|髮朮|修護|修护|ampoule|serum|精華|精华|膜/.test(s)) {
+  if (/treatment|mask|髮膜|发膜|髮朮|修護|修护|ampoule|serum|精華|精华|膜|重組水|lotion/.test(s)) {
     return "treatment";
   }
   if (/conditioner|護髮素|护发素/.test(s)) {

@@ -1,5 +1,7 @@
 /** PDP copy — Curly Shyll–style “decision zone” content keyed by product or category. */
 
+import { staticShopCatalogForExport } from "@/data/shop-catalog-static";
+
 type CategoryKey = "shampoo" | "conditioner" | "treatment" | "styling" | "uncategorized";
 
 export type ProductDetailContent = {
@@ -13,6 +15,66 @@ export type ProductDetailContent = {
 };
 
 const PRODUCT_DETAILS: Record<string, { zh: ProductDetailContent; en: ProductDetailContent }> = {
+  "static-villytone-kx360-hair-treatment-lotion-500ml": {
+    zh: {
+      salonPick: true,
+      benefits: [
+        "強化髮質韌度，增加質感彈性",
+        "降鹼去異味，緩衝膨脹過急",
+        "Keraplex 360+ · pH4 · 專業燙髮系統",
+      ],
+      howToUse: [
+        "漂染後：直接噴於頭髮，停留 5–10 分鐘後沖水造型，增加光澤與柔韌",
+        "焗油前：直接噴於頭髮，停留 5–10 分鐘，不用沖水即可上焗油加熱",
+        "受損頭髮燙髮：適量加入一劑藥水，加強保護，提升韌度與彈性",
+        "漂髮時：直接噴於頭髮，增強抵抗力，減少溶爛斷髮",
+      ],
+    },
+    en: {
+      salonPick: true,
+      benefits: [
+        "Strengthens hair toughness and elasticity",
+        "Lowers alkalinity, reduces odour, and buffers rapid swelling",
+        "Keraplex 360+ · pH4 · professional perm system",
+      ],
+      howToUse: [
+        "After bleach/colour: spray on, wait 5–10 minutes, rinse, then style",
+        "Before steam/oil treatment: spray on, wait 5–10 minutes; no rinse — apply treatment and heat",
+        "Perming damaged hair: add a little to perm solution No. 1 for protection and elasticity",
+        "During bleaching: spray on to strengthen resistance and reduce mushiness or breakage",
+      ],
+    },
+  },
+  "static-vivltone-keraplex-360-hair-treatment-mask-500ml": {
+    zh: {
+      salonPick: true,
+      benefits: [
+        "迅速填補髮質表皮空洞",
+        "有效滲透皮質層，補充所需成份",
+        "提升髮質彈性；輕盈柔順、不油膩，持久豐盈質感",
+        "八種氨基酸 + 水解角蛋白（Keraplex 360+ · pH4）",
+      ],
+      howToUse: [
+        "可按一般焗油流程使用；亦可居家代替護髮素",
+        "塗抹後停留 5–10 分鐘，讓成份滲透，全面護理髮質",
+        "尤其適合燙髮後使用，增加彈性與質感",
+      ],
+    },
+    en: {
+      salonPick: true,
+      benefits: [
+        "Quickly fills gaps in the hair cuticle",
+        "Penetrates the cortex to replenish essential ingredients",
+        "Boosts elasticity; lightweight, non-greasy, lasting body",
+        "Eight amino acids + hydrolyzed keratin (Keraplex 360+ · pH4)",
+      ],
+      howToUse: [
+        "Use after a standard oil/steam treatment, or at home in place of conditioner",
+        "Leave 5–10 minutes for full penetration and texture care",
+        "Especially after perming, to restore elasticity and body",
+      ],
+    },
+  },
   "static-perfect-spray-voc55-380ml": {
     zh: {
       salonPick: true,
@@ -179,7 +241,18 @@ export function getProductDetailContent(
   productId: string,
   category: CategoryKey,
   locale: string,
+  names?: { nameZh?: string; nameEn?: string },
 ): ProductDetailContent {
   const lang = locale === "zh-HK" ? "zh" : "en";
-  return PRODUCT_DETAILS[productId]?.[lang] ?? CATEGORY_FALLBACK[category][lang];
+  const byId = PRODUCT_DETAILS[productId];
+  if (byId) {
+    return byId[lang];
+  }
+  const match = staticShopCatalogForExport.find(
+    (p) => p.nameZh === names?.nameZh || p.nameEn === names?.nameEn,
+  );
+  if (match && PRODUCT_DETAILS[match.id]) {
+    return PRODUCT_DETAILS[match.id][lang];
+  }
+  return CATEGORY_FALLBACK[category][lang];
 }

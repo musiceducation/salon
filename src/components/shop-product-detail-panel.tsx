@@ -60,7 +60,10 @@ export function ShopProductDetailPanel({
   categoryLabel: string;
 }) {
   const title = locale === "zh-HK" ? product.nameZh : product.nameEn;
-  const detail = getProductDetailContent(product.id, category, locale);
+  const detail = getProductDetailContent(product.id, category, locale, {
+    nameZh: product.nameZh,
+    nameEn: product.nameEn,
+  });
   const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {

@@ -6,6 +6,8 @@ import type { HomeProduct } from "@/lib/shop-product";
  * (local checkout without Postgres).
  */
 const DEMO_TO_STATIC_ID: Record<string, string> = {
+  "demo-keraplex-lotion": "static-villytone-kx360-hair-treatment-lotion-500ml",
+  "demo-keraplex-mask": "static-vivltone-keraplex-360-hair-treatment-mask-500ml",
   "demo-perfect-spray": "static-perfect-spray-voc55-380ml",
   "demo-puny-shampoo": "static-vivaltone-puny-balancing-shampoo-750ml",
   "demo-vivltone-clay": "static-vivltone-super-clay-100ml",
