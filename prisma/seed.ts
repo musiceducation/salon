@@ -1,4 +1,5 @@
 import { PrismaClient, SlotStatus } from "@prisma/client";
+import { shopCatalogSkus } from "../src/data/shop-catalog-static";
 
 const prisma = new PrismaClient();
 
@@ -147,230 +148,33 @@ async function main() {
     },
   });
 
+  const listedAtAnchor = Date.now();
+  const listedAt = (n: number) => new Date(listedAtAnchor - (n - 1) * 1000);
+
+  for (const sku of shopCatalogSkus) {
+    const payload = {
+      nameZh: sku.nameZh,
+      nameEn: sku.nameEn,
+      description: sku.description,
+      imageUrl: sku.imageUrl || null,
+      priceCents: sku.priceCents,
+      currency: sku.currency,
+      isActive: sku.isActive,
+      createdAt: listedAt(sku.listOrder),
+    };
+    await prisma.product.upsert({
+      where: { slug: sku.slug },
+      update: payload,
+      create: { slug: sku.slug, ...payload },
+    });
+  }
+
   await prisma.product.updateMany({
     where: { slug: "moisture-shampoo-500ml" },
     data: { isActive: false },
   });
 
-  await prisma.product.upsert({
-    where: { slug: "repair-treatment-mask" },
-    update: { isActive: false },
-    create: {
-      slug: "repair-treatment-mask",
-      nameZh: "深層修護髮膜",
-      nameEn: "Repair Treatment Mask",
-      description: "Weekly deep-repair treatment for damaged hair.",
-      priceCents: 32800,
-      currency: "mop",
-      isActive: false,
-    },
-  });
-
-  await prisma.product.upsert({
-    where: { slug: "vivltone-super-spray-380ml" },
-    update: {
-      nameZh: "VIVLTONE Super Spray 380ml",
-      nameEn: "VIVLTONE Super Spray 380ml",
-      description: "Professional finishing spray · VOC 55 · 380ml / Net 300g · Environment-friendly formula.",
-      imageUrl: "/shop/vivltone-super-spray-380ml.png",
-      priceCents: 18000,
-      currency: "mop",
-      isActive: true,
-    },
-    create: {
-      slug: "vivltone-super-spray-380ml",
-      nameZh: "VIVLTONE Super Spray 380ml",
-      nameEn: "VIVLTONE Super Spray 380ml",
-      description: "Professional finishing spray · VOC 55 · 380ml / Net 300g · Environment-friendly formula.",
-      imageUrl: "/shop/vivltone-super-spray-380ml.png",
-      priceCents: 18000,
-      currency: "mop",
-    },
-  });
-
-  await prisma.product.upsert({
-    where: { slug: "kerasilk-taming-balm-75ml" },
-    update: {
-      nameZh: "Kerasilk 順服乳霜 75ml",
-      nameEn: "Kerasilk Taming Balm 75ml",
-      description: "Smooth, soft finish · taming balm · 75ml / 2.5 FL.OZ.",
-      imageUrl: "/shop/kerasilk-taming-balm-75ml.png",
-      priceCents: 26800,
-      currency: "mop",
-      isActive: true,
-    },
-    create: {
-      slug: "kerasilk-taming-balm-75ml",
-      nameZh: "Kerasilk 順服乳霜 75ml",
-      nameEn: "Kerasilk Taming Balm 75ml",
-      description: "Smooth, soft finish · taming balm · 75ml / 2.5 FL.OZ.",
-      imageUrl: "/shop/kerasilk-taming-balm-75ml.png",
-      priceCents: 26800,
-      currency: "mop",
-    },
-  });
-
-  await prisma.product.upsert({
-    where: { slug: "kerasilk-multi-benefit-hair-oil-50ml" },
-    update: {
-      nameZh: "Kerasilk 多功能護髮油 50ml",
-      nameEn: "Kerasilk Multi-Benefit Hair Oil 50ml",
-      description:
-        "Polished, protected finish · lightweight multi-benefit hair oil · 50ml / 1.6 FL.OZ.",
-      imageUrl: "/shop/kerasilk-multi-benefit-hair-oil-50ml.png",
-      priceCents: 26800,
-      currency: "mop",
-      isActive: true,
-    },
-    create: {
-      slug: "kerasilk-multi-benefit-hair-oil-50ml",
-      nameZh: "Kerasilk 多功能護髮油 50ml",
-      nameEn: "Kerasilk Multi-Benefit Hair Oil 50ml",
-      description:
-        "Polished, protected finish · lightweight multi-benefit hair oil · 50ml / 1.6 FL.OZ.",
-      imageUrl: "/shop/kerasilk-multi-benefit-hair-oil-50ml.png",
-      priceCents: 26800,
-      currency: "mop",
-    },
-  });
-
-  await prisma.product.upsert({
-    where: { slug: "ahcmax-hair-growth-spray-60ml" },
-    update: {
-      nameZh: "ahcMax 育髮噴霧 60ml",
-      nameEn: "ahcMax Hair Growth Spray 60ml",
-      description:
-        "Intensive energizing for thinning hair · botanical extracts · 60ml / 2.03 FL.OZ. · Formulated in Japan.",
-      imageUrl: "/shop/ahcmax-hair-growth-spray-60ml.png",
-      priceCents: 29800,
-      currency: "mop",
-      isActive: true,
-    },
-    create: {
-      slug: "ahcmax-hair-growth-spray-60ml",
-      nameZh: "ahcMax 育髮噴霧 60ml",
-      nameEn: "ahcMax Hair Growth Spray 60ml",
-      description:
-        "Intensive energizing for thinning hair · botanical extracts · 60ml / 2.03 FL.OZ. · Formulated in Japan.",
-      imageUrl: "/shop/ahcmax-hair-growth-spray-60ml.png",
-      priceCents: 29800,
-      currency: "mop",
-    },
-  });
-
-  await prisma.product.upsert({
-    where: { slug: "vivltone-super-clay-100ml" },
-    update: {
-      nameZh: "VIVLTONE Super Clay 造型髮泥 100ml",
-      nameEn: "VIVLTONE Super Clay 100ml",
-      description: "Firm hold texturising matte paste · all hair types · 100ml.",
-      imageUrl: "/shop/vivltone-super-clay-100ml.png",
-      priceCents: 22800,
-      currency: "mop",
-      isActive: true,
-    },
-    create: {
-      slug: "vivltone-super-clay-100ml",
-      nameZh: "VIVLTONE Super Clay 造型髮泥 100ml",
-      nameEn: "VIVLTONE Super Clay 100ml",
-      description: "Firm hold texturising matte paste · all hair types · 100ml.",
-      imageUrl: "/shop/vivltone-super-clay-100ml.png",
-      priceCents: 22800,
-      currency: "mop",
-    },
-  });
-
-  await prisma.product.upsert({
-    where: { slug: "vivaltone-puny-balancing-shampoo-750ml" },
-    update: {
-      nameZh: "VIVALTONE PUNY 平衡洗髮露 750ml",
-      nameEn: "VIVALTONE PUNY Balancing Shampoo 750ml",
-      description: "For fine / limp oily hair · pH 4.5–5.5 · 750ml · For professional use only.",
-      imageUrl: "/shop/vivaltone-puny-balancing-shampoo-750ml.png",
-      priceCents: 36800,
-      currency: "mop",
-      isActive: true,
-    },
-    create: {
-      slug: "vivaltone-puny-balancing-shampoo-750ml",
-      nameZh: "VIVALTONE PUNY 平衡洗髮露 750ml",
-      nameEn: "VIVALTONE PUNY Balancing Shampoo 750ml",
-      description: "For fine / limp oily hair · pH 4.5–5.5 · 750ml · For professional use only.",
-      imageUrl: "/shop/vivaltone-puny-balancing-shampoo-750ml.png",
-      priceCents: 36800,
-      currency: "mop",
-    },
-  });
-
-  await prisma.product.upsert({
-    where: { slug: "perfect-spray-voc55-380ml" },
-    update: {
-      nameZh: "Perfect Spray 造型噴霧 380ml",
-      nameEn: "Perfect Spray 380ml",
-      description: "VOC 55 · environment-friendly formula · 380ml professional finishing spray.",
-      imageUrl: "/shop/perfect-spray-380ml.png",
-      priceCents: 18000,
-      currency: "mop",
-      isActive: true,
-    },
-    create: {
-      slug: "perfect-spray-voc55-380ml",
-      nameZh: "Perfect Spray 造型噴霧 380ml",
-      nameEn: "Perfect Spray 380ml",
-      description: "VOC 55 · environment-friendly formula · 380ml professional finishing spray.",
-      imageUrl: "/shop/perfect-spray-380ml.png",
-      priceCents: 18000,
-      currency: "mop",
-    },
-  });
-
-  await prisma.product.upsert({
-    where: { slug: "vivltone-keraplex-360-hair-treatment-mask-500ml" },
-    update: {
-      nameZh: "VILLYTONE KX 360 結構重組護理 500ml",
-      nameEn: "VILLYTONE KX 360 Hair Treatment Mask 500ml",
-      description:
-        "結構重組護理 · Keraplex 360+ · pH4 · 八種氨基酸 + 水解角蛋白 · 500ml / 17.6 OZ.",
-      imageUrl: "/shop/vivltone-keraplex-360-hair-treatment-mask-500ml.png",
-      priceCents: 50000,
-      currency: "mop",
-      isActive: true,
-    },
-    create: {
-      slug: "vivltone-keraplex-360-hair-treatment-mask-500ml",
-      nameZh: "VILLYTONE KX 360 結構重組護理 500ml",
-      nameEn: "VILLYTONE KX 360 Hair Treatment Mask 500ml",
-      description:
-        "結構重組護理 · Keraplex 360+ · pH4 · 八種氨基酸 + 水解角蛋白 · 500ml / 17.6 OZ.",
-      imageUrl: "/shop/vivltone-keraplex-360-hair-treatment-mask-500ml.png",
-      priceCents: 50000,
-      currency: "mop",
-    },
-  });
-
-  await prisma.product.upsert({
-    where: { slug: "villytone-kx360-hair-treatment-lotion-500ml" },
-    update: {
-      nameZh: "VILLYTONE 強韌重組水 500ml",
-      nameEn: "VILLYTONE Hair Treatment Lotion 500ml",
-      description:
-        "強韌重組水 · Keraplex 360+ · pH4 · 強化韌度、降鹼去異味 · 500ml / 17.6 OZ.",
-      imageUrl: "/shop/villytone-kx360-hair-treatment-lotion-500ml.png",
-      priceCents: 48000,
-      currency: "mop",
-      isActive: true,
-    },
-    create: {
-      slug: "villytone-kx360-hair-treatment-lotion-500ml",
-      nameZh: "VILLYTONE 強韌重組水 500ml",
-      nameEn: "VILLYTONE Hair Treatment Lotion 500ml",
-      description:
-        "強韌重組水 · Keraplex 360+ · pH4 · 強化韌度、降鹼去異味 · 500ml / 17.6 OZ.",
-      imageUrl: "/shop/villytone-kx360-hair-treatment-lotion-500ml.png",
-      priceCents: 48000,
-      currency: "mop",
-    },
-  });
+  await prisma.product.updateMany({ data: { currency: "mop" } });
 
   await seedAvailabilitySlots();
 }

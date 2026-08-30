@@ -1,6 +1,6 @@
 /** PDP copy — Curly Shyll–style “decision zone” content keyed by product or category. */
 
-import { staticShopCatalogForExport } from "@/data/shop-catalog-static";
+import { shopCatalogSkus, staticCatalogId } from "@/data/shop-catalog-static";
 
 type CategoryKey = "shampoo" | "conditioner" | "treatment" | "styling" | "uncategorized";
 
@@ -135,20 +135,102 @@ const PRODUCT_DETAILS: Record<string, { zh: ProductDetailContent; en: ProductDet
   },
   "static-vivaltone-puny-balancing-shampoo-750ml": {
     zh: {
-      benefits: ["平衡頭皮與髮絲水分", "溫和清潔，適合日常使用", "大容量，家庭或長期護理更划算"],
+      benefits: ["專為細軟、扁塌油頭設計", "平衡頭皮與髮絲水分", "pH 4.5–5.5 · 750ml 專業容量"],
       howToUse: ["濕髮後取適量搓起泡", "按摩頭皮與髮幹，然後徹底沖淨", "可配合同系列護髮素使用"],
     },
     en: {
       benefits: [
+        "For fine / limp oily hair",
         "Balances scalp and hair moisture",
-        "Gentle daily cleanse",
-        "Generous 750 ml size for long-term care",
+        "pH 4.5–5.5 · 750ml professional size",
       ],
       howToUse: [
         "Apply to wet hair and lather",
         "Massage scalp and lengths, then rinse thoroughly",
         "Follow with conditioner from the same range if desired",
       ],
+    },
+  },
+  "static-vialtone-aquae-moisturizing-shampoo-750ml": {
+    zh: {
+      benefits: ["適合中性至乾性髮質", "保濕清潔，減少乾澀", "pH 4.5–5.5 · 750ml 專業容量"],
+      howToUse: ["濕髮後取適量搓起泡", "按摩頭皮與髮幹，然後徹底沖淨", "建議配合護髮素"],
+    },
+    en: {
+      benefits: ["For normal to dry hair", "Moisturising cleanse", "pH 4.5–5.5 · 750ml professional size"],
+      howToUse: ["Apply to wet hair and lather", "Massage and rinse thoroughly", "Follow with conditioner"],
+    },
+  },
+  "static-vialtone-stop-anti-hair-loss-shampoo-500ml": {
+    zh: {
+      benefits: ["防掉髮配方，適合正常及脆弱髮質", "溫和清潔頭皮", "pH 4.5–5.5 · 500ml"],
+      howToUse: ["濕髮後取適量按摩頭皮", "停留片刻後徹底沖淨", "建議持續使用"],
+    },
+    en: {
+      benefits: ["Anti-hair loss care for normal and weak hair", "Gentle scalp cleanse", "pH 4.5–5.5 · 500ml"],
+      howToUse: ["Massage into wet scalp", "Rinse thoroughly", "Use regularly for best results"],
+    },
+  },
+  "static-fg-gewei-keratin-shampoo": {
+    zh: {
+      benefits: ["角蛋白修護乾燥受損髮", "添加絲蛋白", "無硫酸鹽 · 1L 大容量"],
+      howToUse: ["濕髮起泡清潔", "按摩頭皮與髮幹後徹底沖淨", "建議配合護髮素"],
+    },
+    en: {
+      benefits: ["Keratin care for dry, damaged hair", "With silk protein", "Sulfate free · 1L"],
+      howToUse: ["Lather on wet hair", "Massage scalp and lengths, then rinse thoroughly", "Follow with conditioner"],
+    },
+  },
+  "static-fg-gewei-collagen-keratin-shampoo-500ml": {
+    zh: {
+      benefits: ["膠原蛋白 + 角蛋白，修護乾燥受損髮", "保持光澤柔順", "無硫酸鹽 · 500ml"],
+      howToUse: ["濕髮起泡清潔", "按摩頭皮與髮幹後沖淨", "建議配合同系列護髮素"],
+    },
+    en: {
+      benefits: [
+        "Collagen + keratin for dry or stressed hair",
+        "Helps keep hair shiny and silky",
+        "Sulfate free · 500ml",
+      ],
+      howToUse: ["Lather on wet hair", "Massage and rinse", "Follow with matching conditioner"],
+    },
+  },
+  "static-fg-gewei-collagen-keratin-conditioner-500ml": {
+    zh: {
+      benefits: ["染燙／電夾護理配方", "補充營養，提升光澤與絲滑感", "膠原蛋白 + 角蛋白 · 500ml"],
+      howToUse: ["洗髮後塗於髮中至髮尾", "停留 1–3 分鐘", "以清水沖淨"],
+    },
+    en: {
+      benefits: ["Dye and heat-styling care", "Adds nutrition, shine and silky feel", "Collagen + keratin · 500ml"],
+      howToUse: ["Apply mid-lengths to ends after shampoo", "Leave 1–3 minutes", "Rinse well"],
+    },
+  },
+  "static-vialtone-perfect-seaspy-170ml": {
+    zh: {
+      holdLevel: 2,
+      shineLevel: 3,
+      benefits: ["輕盈噴霧水，營造自然紋理", "適合日常造型與蓬鬆感", "170ml 便攜容量"],
+      howToUse: ["搖勻後距離 20–30 cm 噴於乾髮或微濕髮", "以手指抓出紋理", "可分層補噴"],
+    },
+    en: {
+      holdLevel: 2,
+      shineLevel: 3,
+      benefits: ["Light mist for natural texture", "Everyday shape and lift", "170ml"],
+      howToUse: ["Shake; mist 20–30 cm from dry or damp hair", "Tousle with fingers", "Layer if needed"],
+    },
+  },
+  "static-back-gel-120ml": {
+    zh: {
+      holdLevel: 4,
+      shineLevel: 3,
+      benefits: ["強力定型啫喱，線條清楚", "適合後梳及濕髮造型", "120ml"],
+      howToUse: ["取適量於掌心推開", "塗於濕髮或乾髮梳理定型", "避免過量以免結塊"],
+    },
+    en: {
+      holdLevel: 4,
+      shineLevel: 3,
+      benefits: ["Firm-hold gel with clean lines", "For slicked and wet-look styles", "120ml"],
+      howToUse: ["Warm a small amount in palms", "Work through damp or dry hair and comb", "Use sparingly to avoid crunch"],
     },
   },
 };
@@ -248,11 +330,12 @@ export function getProductDetailContent(
   if (byId) {
     return byId[lang];
   }
-  const match = staticShopCatalogForExport.find(
-    (p) => p.nameZh === names?.nameZh || p.nameEn === names?.nameEn,
+  const match = shopCatalogSkus.find(
+    (sku) => sku.nameZh === names?.nameZh || sku.nameEn === names?.nameEn,
   );
-  if (match && PRODUCT_DETAILS[match.id]) {
-    return PRODUCT_DETAILS[match.id][lang];
+  const bySlug = match ? PRODUCT_DETAILS[staticCatalogId(match.slug)] : undefined;
+  if (bySlug) {
+    return bySlug[lang];
   }
   return CATEGORY_FALLBACK[category][lang];
 }
