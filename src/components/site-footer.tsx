@@ -33,6 +33,7 @@ type FooterProps = {
   wechatId: string | null;
   facebookUrl: string | null;
   instagramUrl: string | null;
+  copyright: string;
 };
 
 export function SiteFooter(p: FooterProps) {
@@ -133,6 +134,9 @@ export function SiteFooter(p: FooterProps) {
             </ul>
           </div>
         </div>
+        <p className="mt-12 border-t border-white/10 pt-6 text-xs text-zinc-500 sm:mt-16">
+          {p.copyright}
+        </p>
       </div>
     </footer>
   );

@@ -88,6 +88,7 @@ export function SalonPageShell({
         wechatId={wechatId}
         facebookUrl={facebookUrl}
         instagramUrl={instagramUrl}
+        copyright={t.footerCopyright.replace("{year}", String(new Date().getFullYear()))}
       />
     </div>
   );

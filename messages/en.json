@@ -153,5 +153,6 @@
   "wechatBubbleTitle": "Need help?",
   "wechatBubbleBody": "WeChat us at {wechat}. The team typically replies in a few minutes.",
   "wechatIdCopied": "WeChat ID copied",
-  "hoursFooterTitle": "Business hours"
+  "hoursFooterTitle": "Business hours",
+  "footerCopyright": "© 1995–{year} n_nsalon. All rights reserved."
 }

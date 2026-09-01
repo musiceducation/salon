@@ -153,5 +153,6 @@
   "wechatBubbleTitle": "需要協助？",
   "wechatBubbleBody": "WeChat 聯絡 {wechat}，同事通常幾分鐘內回覆。",
   "wechatIdCopied": "已複製 WeChat ID",
-  "hoursFooterTitle": "營業時間"
+  "hoursFooterTitle": "營業時間",
+  "footerCopyright": "© 1995–{year} 藝能美髮培訓中心。版權所有。"
 }
