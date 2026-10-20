@@ -286,19 +286,22 @@ function ShopProductCard({
         }`}
       >
         <button type="button" onClick={onViewDetail} className="w-28 shrink-0 sm:w-32">
-          <div className="relative flex aspect-square items-center justify-center overflow-hidden rounded-lg bg-neutral-50">
-            {product.imageUrl ? (
-              <Image
-                src={publicAssetPath(product.imageUrl)}
-                alt=""
-                width={200}
-                height={200}
-                sizes="128px"
-                className="h-full w-full object-contain p-2 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-safe:group-hover:scale-[1.04]"
-              />
-            ) : (
-              <ProductBottlePlaceholder />
-            )}
+          <div className="product-stage relative flex aspect-square items-center justify-center overflow-hidden rounded-lg bg-neutral-50">
+            <div className="product-stage-inner flex items-center justify-center">
+              {product.imageUrl ? (
+                <Image
+                  src={publicAssetPath(product.imageUrl)}
+                  alt=""
+                  width={256}
+                  height={256}
+                  sizes="128px"
+                  className="h-full w-full object-contain p-2 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-safe:group-hover:scale-[1.04]"
+                />
+              ) : (
+                <ProductBottlePlaceholder />
+              )}
+            </div>
+            <span className="product-stage-shadow" aria-hidden />
           </div>
         </button>
         <div className="flex min-w-0 flex-1 flex-col justify-center">
@@ -322,19 +325,22 @@ function ShopProductCard({
   }
 
   const imgBlockGrid = (
-    <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-t-xl bg-neutral-50">
-      {product.imageUrl ? (
-        <Image
-          src={publicAssetPath(product.imageUrl)}
-          alt=""
-          width={360}
-          height={360}
-          sizes="(max-width: 640px) 50vw, 240px"
-          className="h-full w-full object-contain p-4 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-safe:group-hover:scale-[1.03]"
-        />
-      ) : (
-        <ProductBottlePlaceholder />
-      )}
+    <div className="product-stage relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-t-xl bg-neutral-50">
+      <div className="product-stage-inner flex items-center justify-center">
+        {product.imageUrl ? (
+          <Image
+            src={publicAssetPath(product.imageUrl)}
+            alt=""
+            width={480}
+            height={480}
+            sizes="(max-width: 640px) 92vw, (max-width: 1024px) 45vw, 360px"
+            className="h-full w-full object-contain p-4 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-safe:group-hover:scale-[1.03]"
+          />
+        ) : (
+          <ProductBottlePlaceholder />
+        )}
+      </div>
+      <span className="product-stage-shadow" aria-hidden />
     </div>
   );
 

@@ -22,7 +22,7 @@ const iconPhone = (
 );
 
 const cardClass =
-  "flex w-full flex-col items-start gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-4 text-left transition hover:border-white/30 hover:bg-white/10";
+  "flex w-full flex-col items-start gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-4 text-left transition hover:border-white/30 hover:bg-white/10 motion-safe:duration-300 motion-safe:hover:-translate-y-0.5";
 
 type Props = {
   hoursLabel: string;

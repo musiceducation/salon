@@ -37,7 +37,7 @@ export function WeChatFloat({ wechatId, title, body, copiedLabel }: Props) {
       <button
         type="button"
         onClick={handleCopy}
-        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#07C160] text-white shadow-lg transition hover:scale-105 hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-white/95 focus-visible:ring-offset-2"
+        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#07C160] text-white shadow-lg transition hover:shadow-xl motion-safe:hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/95 focus-visible:ring-offset-2"
         aria-label={copied ? copiedLabel : `WeChat ${wechatId}`}
       >
         {icon}

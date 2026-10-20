@@ -1,5 +1,5 @@
-import Image from "next/image";
-import { publicAssetPath } from "@/lib/public-asset-path";
+import Link from "next/link";
+import { ArtDirectedPhoto } from "@/components/art-directed-photo";
 
 type Props = {
   brandTitle: string;
@@ -12,23 +12,18 @@ type Props = {
   shopHref: string;
 };
 
-/** Store interior — WebP for LCP (Safari-safe with `unoptimized`). */
-const HERO_PATH = "/ad-stock/03-salon-interior-wide.webp";
+const HERO_DESKTOP = "/ad-stock/03-salon-interior-wide.webp";
+const HERO_MOBILE = "/ad-stock/03-salon-interior-640.webp";
 
 export function HeroSalon(p: Props) {
-  const heroSrc = publicAssetPath(HERO_PATH);
   return (
     <section className="relative isolate min-h-[min(72vh,720px)] w-full overflow-hidden">
       <div className="pointer-events-none absolute inset-0 -z-10">
-        {/* Bypass `/_next/image`: Safari on localhost often skips painting optimized hero URLs; static `/ad-stock/…` is direct. */}
-        <Image
-          src={heroSrc}
-          alt=""
-          fill
+        <ArtDirectedPhoto
           priority
-          sizes="100vw"
-          unoptimized
-          className="object-cover"
+          mobile={{ src: HERO_MOBILE, width: 640, height: 360, media: "(max-width: 767px)" }}
+          desktop={{ src: HERO_DESKTOP, width: 1024, height: 576, media: "(min-width: 768px)" }}
+          className="hero-photo absolute inset-0 h-full w-full object-cover"
         />
         <div
           className="absolute inset-0"
@@ -39,7 +34,14 @@ export function HeroSalon(p: Props) {
           aria-hidden
         />
       </div>
-      <div className="mx-auto flex min-h-[min(72vh,720px)] max-w-6xl flex-col justify-center gap-6 px-4 py-20 sm:px-6 sm:py-24">
+      <div className="hero-depth" aria-hidden>
+        <div className="hero-depth-stage">
+          <div className="hero-depth-disc" />
+          <div className="hero-depth-ring" />
+          <div className="hero-depth-ring-inner" />
+        </div>
+      </div>
+      <div className="relative z-10 mx-auto flex min-h-[min(72vh,720px)] max-w-6xl flex-col justify-center gap-6 px-4 py-20 sm:px-6 sm:py-24">
         <h1 className="heading-hero max-w-3xl text-white">{p.brandTitle}</h1>
         <p className="max-w-measure text-base leading-cjk text-zinc-200 sm:text-lg">
           {p.brandSubtitle}
@@ -63,12 +65,12 @@ export function HeroSalon(p: Props) {
           >
             {p.contactCta}
           </a>
-          <a
+          <Link
             href={p.shopHref}
             className="inline-flex items-center justify-center rounded-full border border-white/30 bg-transparent px-5 py-2.5 text-sm font-medium text-white transition hover:border-white/50 hover:bg-white/10"
           >
             {p.shopNow}
-          </a>
+          </Link>
         </div>
       </div>
     </section>

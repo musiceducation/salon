@@ -96,7 +96,7 @@ export function ShopProductDetailPanel({
         role="dialog"
         aria-modal="true"
         aria-labelledby="shop-pdp-title"
-        className="relative flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:max-h-[88vh] sm:rounded-2xl"
+        className="pdp-panel relative flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:max-h-[88vh] sm:rounded-2xl"
       >
         <div className="flex items-center justify-between border-b border-neutral-200 px-4 py-3 sm:px-6">
           <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-400">
@@ -114,18 +114,21 @@ export function ShopProductDetailPanel({
 
         <div className="overflow-y-auto overscroll-contain">
           <div className="grid gap-6 p-4 sm:grid-cols-2 sm:p-6">
-            <div className="flex aspect-square items-center justify-center rounded-xl bg-neutral-50">
-              {product.imageUrl ? (
-                <Image
-                  src={publicAssetPath(product.imageUrl)}
-                  alt={title}
-                  width={480}
-                  height={480}
-                  sizes="(max-width: 640px) 90vw, 240px"
-                  className="h-full w-full object-contain p-6"
-                  priority
-                />
-              ) : null}
+            <div className="product-stage product-stage-rest relative flex aspect-square items-center justify-center overflow-hidden rounded-xl bg-neutral-50">
+              <div className="product-stage-inner flex items-center justify-center">
+                {product.imageUrl ? (
+                  <Image
+                    src={publicAssetPath(product.imageUrl)}
+                    alt={title}
+                    width={480}
+                    height={480}
+                    sizes="(max-width: 640px) 90vw, 360px"
+                    className="h-full w-full object-contain p-6"
+                    loading="eager"
+                  />
+                ) : null}
+              </div>
+              <span className="product-stage-shadow" aria-hidden />
             </div>
 
             <div className="flex flex-col">

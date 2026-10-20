@@ -46,7 +46,7 @@ export function SalonHeader(t: Nav) {
             height={44}
             className="h-9 w-9 rounded-sm object-cover sm:h-11 sm:w-11"
             sizes="44px"
-            priority
+            loading="eager"
           />
           <span className="font-display text-lg font-semibold leading-tight tracking-tight text-zinc-900 sm:text-xl">
             {t.brandName}

@@ -265,9 +265,11 @@ export function PriceListSection(p: Props) {
   return (
     <section id="price-list" className="border-b border-zinc-200/80 bg-white text-zinc-900">
       <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
-        <h2 className="heading-section text-zinc-900">{p.priceListTitle}</h2>
-        <p className="mt-4 max-w-measure text-base leading-cjk text-zinc-600">{p.intro}</p>
-        <p className="mt-2 max-w-measure text-[0.8125rem] leading-cjk text-zinc-500">{p.disclaimer}</p>
+        <div data-reveal>
+          <h2 className="heading-section text-zinc-900">{p.priceListTitle}</h2>
+          <p className="mt-4 max-w-measure text-base leading-cjk text-zinc-600">{p.intro}</p>
+          <p className="mt-2 max-w-measure text-[0.8125rem] leading-cjk text-zinc-500">{p.disclaimer}</p>
+        </div>
         <div className="mt-6 flex flex-col gap-5 sm:mt-8 sm:gap-6">
           {data.sections.map((s) => renderSection(s))}
         </div>
