@@ -152,3 +152,201 @@ html {
   outline: 2px solid #d4d4d8;
   outline-offset: 2px;
 }
+
+/* --- Motion ---------------------------------------------------------------------------
+   Calm salon motion: opacity and a few pixels of travel. View timelines are progressive
+   — browsers without `animation-timeline: view()` keep content fully visible.
+   WebGL was not added: the catalog is flat product photography (no models), and a
+   Three.js chunk would compete with the hero photo on mobile. Depth is CSS perspective. */
+
+@media (prefers-reduced-motion: no-preference) {
+  .page-enter {
+    animation: page-enter 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    [data-reveal] {
+      animation: reveal-up linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 42%;
+    }
+  }
+}
+
+@keyframes reveal-up {
+  from {
+    opacity: 0.2;
+    transform: translateY(0.85rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-photo {
+    animation: hero-ken 22s ease-out both;
+  }
+}
+
+@keyframes hero-ken {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.045);
+  }
+}
+
+/* Gilded CSS 3D accent. Hidden below the desktop breakpoint so it never covers the
+   hero type or the mobile LCP photo. */
+.hero-depth {
+  display: none;
+}
+
+@media (min-width: 1200px) {
+  .hero-depth {
+    display: block;
+    position: absolute;
+    z-index: 1;
+    top: 50%;
+    right: max(1.25rem, calc((100vw - 72rem) / 2 + 0.5rem));
+    width: 17.5rem;
+    height: 17.5rem;
+    margin-top: -8.75rem;
+    perspective: 880px;
+    pointer-events: none;
+  }
+}
+
+.hero-depth-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-depth-stage {
+    animation: hero-depth-drift 16s ease-in-out infinite;
+  }
+}
+
+.hero-depth-ring,
+.hero-depth-ring-inner,
+.hero-depth-disc {
+  position: absolute;
+  border-radius: 9999px;
+}
+
+.hero-depth-ring {
+  inset: 6%;
+  border: 1px solid rgba(236, 214, 170, 0.75);
+  transform: rotateX(68deg) rotateZ(-18deg);
+  box-shadow:
+    0 0 28px rgba(214, 176, 112, 0.22),
+    inset 0 0 16px rgba(255, 236, 200, 0.12);
+}
+
+.hero-depth-ring-inner {
+  inset: 20%;
+  border: 1px solid rgba(255, 244, 220, 0.4);
+  transform: rotateX(68deg) rotateZ(-18deg) translateZ(22px);
+}
+
+.hero-depth-disc {
+  inset: 30%;
+  background: radial-gradient(circle, rgba(232, 196, 138, 0.34), rgba(232, 196, 138, 0) 68%);
+  transform: rotateX(68deg) translateZ(10px);
+}
+
+@keyframes hero-depth-drift {
+  0%,
+  100% {
+    transform: rotateY(-16deg) translateY(0);
+  }
+  50% {
+    transform: rotateY(14deg) translateY(-12px);
+  }
+}
+
+.product-stage {
+  perspective: 900px;
+}
+
+.product-stage-inner {
+  height: 100%;
+  width: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.product-stage-shadow {
+  pointer-events: none;
+  position: absolute;
+  right: 18%;
+  bottom: 9%;
+  left: 18%;
+  height: 11%;
+  border-radius: 9999px;
+  background: radial-gradient(ellipse, rgba(24, 24, 27, 0.18), transparent 70%);
+  transition:
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.6s ease;
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .group:hover .product-stage-inner {
+    transform: rotateX(7deg) rotateY(-12deg) translateZ(12px);
+  }
+
+  .group:hover .product-stage-shadow {
+    transform: translateY(6px) scaleX(0.84);
+    opacity: 0.85;
+  }
+}
+
+.product-stage-rest .product-stage-inner {
+  transform: rotateX(5deg) rotateY(-10deg);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pdp-panel {
+    animation: pdp-in 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}
+
+@keyframes pdp-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-photo,
+  .hero-depth-stage,
+  .product-stage-inner,
+  .product-stage-rest .product-stage-inner,
+  .pdp-panel,
+  .page-enter {
+    animation: none !important;
+    transform: none !important;
+  }
+}

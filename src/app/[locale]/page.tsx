@@ -127,7 +127,7 @@ export default async function LocaleHomePage({ params }: HomePageProps) {
         />
 
         <section id="story" className="border-b border-zinc-200/80 bg-white">
-          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
+          <div data-reveal className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
             <h2 className="heading-section text-zinc-900">{t.storyTitle}</h2>
             <div className="mt-6 max-w-measure space-y-5 text-base leading-cjk text-zinc-600">
               {t.storyBody.split("\n\n").map((paragraph) => (
@@ -139,19 +139,18 @@ export default async function LocaleHomePage({ params }: HomePageProps) {
 
         <section id="services" className="border-b border-zinc-200/80">
           <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
-            <h2 className="heading-section text-zinc-900">{t.servicesSectionTitle}</h2>
+            <h2 data-reveal className="heading-section text-zinc-900">{t.servicesSectionTitle}</h2>
             <div className="mt-12 grid gap-6 md:grid-cols-3">
               {[
                 { title: t.serviceCutTitle, body: t.serviceCutBody },
                 { title: t.serviceTechTitle, body: t.serviceTechBody },
                 { title: t.serviceCareTitle, body: t.serviceCareBody },
               ].map((item) => (
-                <div
-                  key={item.title}
-                  className="group border border-zinc-200/90 bg-white p-8 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-amber-200/80 hover:shadow-md"
-                >
-                  <h3 className="heading-card text-zinc-900">{item.title}</h3>
-                  <p className="mt-4 text-sm leading-cjk text-zinc-600">{item.body}</p>
+                <div key={item.title} data-reveal>
+                  <div className="group h-full border border-zinc-200/90 bg-white p-8 shadow-sm motion-safe:transition motion-safe:duration-300 motion-safe:hover:-translate-y-0.5 hover:border-amber-200/80 motion-safe:hover:shadow-md">
+                    <h3 className="heading-card text-zinc-900">{item.title}</h3>
+                    <p className="mt-4 text-sm leading-cjk text-zinc-600">{item.body}</p>
+                  </div>
                 </div>
               ))}
             </div>
@@ -169,7 +168,7 @@ export default async function LocaleHomePage({ params }: HomePageProps) {
           id="contact"
           className="scroll-mt-20 border-b border-zinc-800/60 bg-zinc-950 text-zinc-100 sm:scroll-mt-24"
         >
-          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
+          <div data-reveal className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
             <h2 className="heading-section text-white">{t.contactCtaTitle}</h2>
             <p className="mt-4 max-w-measure text-base leading-cjk text-zinc-400">{t.contactCtaBody}</p>
             <ContactCta

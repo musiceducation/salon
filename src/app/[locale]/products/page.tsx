@@ -106,10 +106,12 @@ export default async function ProductsPage({ params }: PageProps) {
           className="border-b border-neutral-200/90 bg-gradient-to-b from-zinc-100 via-white to-zinc-50 text-zinc-900"
         >
           <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
-            <h1 className="heading-section text-zinc-900">{t.shopSectionTitle}</h1>
-            <p className="mt-4 max-w-measure text-base leading-cjk text-zinc-600">
-              {t.shopSectionNote}
-            </p>
+            <div data-reveal>
+              <h1 className="heading-section text-zinc-900">{t.shopSectionTitle}</h1>
+              <p className="mt-4 max-w-measure text-base leading-cjk text-zinc-600">
+                {t.shopSectionNote}
+              </p>
+            </div>
 
             <ShopCheckout
               locale={locale}
