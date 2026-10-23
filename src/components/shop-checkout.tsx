@@ -169,6 +169,9 @@ function formatProductTitle(p: Product, locale: string) {
   if (locale === "zh-HK") {
     return p.nameZh;
   }
+  if (p.nameEn.toLowerCase().includes("tonso")) {
+    return p.nameEn;
+  }
   return p.nameEn.toUpperCase();
 }
 
@@ -178,7 +181,7 @@ function priceDisplay(cents: number, currency = "mop") {
 
 function inferCategoryKey(p: { nameZh: string; nameEn: string }): CategoryKey {
   const s = `${p.nameZh} ${p.nameEn}`.toLowerCase();
-  if (/\btee\b|t-shirt|memorial tee|紀念/.test(s)) {
+  if (/\btee\b|t-shirt|memorial tee|短袖|tonso · lamp|紀念/.test(s)) {
     return "apparel";
   }
   if (/shampoo|洗髮|洗发/.test(s)) {

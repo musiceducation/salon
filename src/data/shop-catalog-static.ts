@@ -26,10 +26,10 @@ export function staticCatalogId(slug: string): string {
 export const shopCatalogSkus: ShopCatalogSku[] = [
   {
     slug: "tonso-memorial-tee",
-    nameZh: "tonso oversized Tee",
-    nameEn: "tonso oversized tee",
+    nameZh: "tonso · lamp 重磅寬鬆短袖（啞黑）",
+    nameEn: "tonso · lamp Heavyweight Oversized Tee (Matte Black)",
     description:
-      "tonso 是低調的日常字標，把紀念與信仰輕輕放在身上（詩篇 119:105，光之路）。這件是可以出街的穿著，不是活動宣傳衫。啞黑重磅 oversized 空白衫，約 300g，手感柔，街牌寬版。尺碼 S–2XL。前左胸只有一枚細標；背面大幅油畫，白色經文 Your word is a lamp for my feet, a light on my path.（Psalm 119:105）。直噴（DTG）邊緣柔進黑布，沒有硬邊方框；黑布先打白底，顏色才留得住，畫像噴進布裡，而不是貼上一張貼紙。網店標價 MOP 298，到店會員價 MOP 268。到店試穿選碼 · WeChat +853 66509780 · Instagram @n_nsalon",
+      "省去張揚的標語，只留日常能穿出門的克制。啞黑寬鬆輪廓下，左胸藏著極細字標與霧山；背後以油畫筆觸交織白字「Your word is a lamp for my feet」，在步履之間保留一點安靜的光。選用約 300g 啞黑重磅棉料，微落肩 Oversized 剪裁，單穿硬挺不貼身，洗後依然保持俐落垂墜感。採用高精細度數位直噴工藝，讓油畫肌理與極細字體自然融入布面，拒絕厚重膠感，呈現低調內斂的微霧視覺。提供 S–2XL 寬鬆尺碼，定價 MOP 298（門市會員專享 MOP 268），歡迎親臨門市試穿，或直接透過 IG / WeChat 私訊留碼。",
     imageUrl: "/shop/tonso-memorial-tee.png",
     priceCents: 29800,
     currency: "mop",

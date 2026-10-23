@@ -174,7 +174,11 @@ export default async function LocaleHomePage({ params }: HomePageProps) {
           member={t.teeQuietMember}
           cta={t.teeQuietCta}
           ctaHref={`${productsPath}?q=tonso`}
-          imageAlt={locale === "zh-HK" ? "tonso oversized Tee" : "tonso oversized tee"}
+          imageAlt={
+            locale === "zh-HK"
+              ? "tonso · lamp 重磅寬鬆短袖（啞黑）"
+              : "tonso · lamp Heavyweight Oversized Tee (Matte Black)"
+          }
         />
 
         <section
