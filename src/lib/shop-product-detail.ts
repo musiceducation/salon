@@ -421,3 +421,22 @@ export function getProductDetailContent(
   }
   return CATEGORY_FALLBACK[category][lang];
 }
+
+/** Photos for a card or dialog. Single-image products return one slide, or none. */
+export function getProductGallerySlides(
+  productId: string,
+  category: CategoryKey,
+  locale: string,
+  names?: { nameZh?: string; nameEn?: string },
+  fallbackSrc?: string | null,
+): { src: string; label: string }[] {
+  const gallery = getProductDetailContent(productId, category, locale, names).gallery;
+  if (gallery?.length) {
+    return gallery;
+  }
+  if (fallbackSrc) {
+    const label = locale === "zh-HK" ? (names?.nameZh ?? "") : (names?.nameEn ?? "");
+    return [{ src: fallbackSrc, label }];
+  }
+  return [];
+}

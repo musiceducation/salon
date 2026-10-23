@@ -1,10 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useState } from "react";
-import { publicAssetPath } from "@/lib/public-asset-path";
 import { getProductDetailContent } from "@/lib/shop-product-detail";
 import type { ShopCheckoutCopy } from "@/lib/shop-checkout-copy";
+import { ShopImageSwipe } from "@/components/shop-image-swipe";
 import { ShopQuantityStepper } from "@/components/shop-quantity-stepper";
 
 type Product = {
@@ -67,7 +66,6 @@ export function ShopProductDetailPanel({
   const [quantity, setQuantity] = useState(1);
   const [size, setSize] = useState<string | null>(null);
   const [sizeError, setSizeError] = useState(false);
-  const [imageIndex, setImageIndex] = useState(0);
   const sizes = detail.sizes ?? [];
   const gallery =
     detail.gallery?.length
@@ -75,13 +73,11 @@ export function ShopProductDetailPanel({
       : product.imageUrl
         ? [{ src: product.imageUrl, label: title }]
         : [];
-  const activeImage = gallery[imageIndex] ?? gallery[0];
 
   useEffect(() => {
     setQuantity(1);
     setSize(null);
     setSizeError(false);
-    setImageIndex(0);
   }, [product.id]);
 
   useEffect(() => {
@@ -112,7 +108,7 @@ export function ShopProductDetailPanel({
         aria-labelledby="shop-pdp-title"
         className="relative flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:max-h-[88vh] sm:rounded-2xl"
       >
-        <div className="flex items-center justify-between border-b border-neutral-200 px-4 py-3 sm:px-6">
+        <div className="flex shrink-0 items-center justify-between border-b border-neutral-200 px-4 py-3 sm:px-6">
           <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-400">
             {categoryLabel}
           </p>
@@ -126,55 +122,23 @@ export function ShopProductDetailPanel({
           </button>
         </div>
 
-        <div className="overflow-y-auto overscroll-contain">
-          <div className="grid gap-6 p-4 sm:grid-cols-2 sm:p-6">
-            <div>
-              <div className="flex aspect-square items-center justify-center rounded-xl bg-neutral-50">
-                {activeImage ? (
-                  <Image
-                    src={publicAssetPath(activeImage.src)}
-                    alt={`${title} — ${activeImage.label}`}
-                    width={480}
-                    height={480}
-                    sizes="(max-width: 640px) 90vw, 240px"
-                    className="h-full w-full object-contain p-6"
-                    priority={imageIndex === 0}
-                  />
-                ) : null}
-              </div>
-              {gallery.length > 1 ? (
-                <div className="mt-3 flex flex-wrap gap-2" role="tablist" aria-label={title}>
-                  {gallery.map((image, index) => {
-                    const selected = index === imageIndex;
-                    return (
-                      <button
-                        key={image.src}
-                        type="button"
-                        role="tab"
-                        aria-selected={selected}
-                        onClick={() => setImageIndex(index)}
-                        className={`flex w-16 flex-col overflow-hidden rounded-lg border bg-neutral-50 ${
-                          selected ? "border-zinc-900" : "border-neutral-200"
-                        }`}
-                      >
-                        <Image
-                          src={publicAssetPath(image.src)}
-                          alt={image.label}
-                          width={72}
-                          height={72}
-                          className="h-16 w-16 object-contain"
-                        />
-                        <span className="border-t border-neutral-200 px-0.5 py-1 text-center text-[9px] leading-tight text-neutral-600">
-                          {image.label}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          <div className="sm:grid sm:grid-cols-2 sm:gap-6 sm:p-6">
+            <div className="bg-neutral-50 sm:rounded-xl">
+              {gallery.length ? (
+                <ShopImageSwipe
+                  slides={gallery}
+                  title={title}
+                  sizes="(max-width: 640px) 100vw, 360px"
+                  frameClassName="relative h-[34vh] min-h-[200px] w-full sm:aspect-square sm:h-auto"
+                  imageClassName="h-full w-full object-contain p-3"
+                  showCaption
+                  priority
+                />
               ) : null}
             </div>
 
-            <div className="flex flex-col">
+            <div className="flex flex-col px-4 py-3 sm:px-0 sm:py-0">
               {detail.salonPick ? (
                 <span className="mb-2 w-fit rounded-full bg-zinc-900 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white">
                   {t.shopSalonPick}
@@ -184,48 +148,7 @@ export function ShopProductDetailPanel({
                 {title}
               </h2>
               <p className="mt-2 text-lg font-medium text-neutral-900">{priceLabel}</p>
-              <p className="mt-2 text-xs text-neutral-500">{t.shopRetailAvailability}</p>
-
-              {sizes.length ? (
-                <div className="mt-4">
-                  <p id="shop-pdp-size-label" className="text-sm font-semibold text-neutral-900">
-                    {t.shopSizeLabel}
-                  </p>
-                  <div
-                    className="mt-2 flex flex-wrap gap-2"
-                    role="radiogroup"
-                    aria-labelledby="shop-pdp-size-label"
-                  >
-                    {sizes.map((option) => {
-                      const selected = size === option;
-                      return (
-                        <button
-                          key={option}
-                          type="button"
-                          role="radio"
-                          aria-checked={selected}
-                          onClick={() => {
-                            setSize(option);
-                            setSizeError(false);
-                          }}
-                          className={`min-h-10 min-w-12 rounded-full border px-3 text-sm font-medium transition ${
-                            selected
-                              ? "border-zinc-900 bg-zinc-900 text-white"
-                              : "border-neutral-300 bg-white text-neutral-800 hover:border-zinc-900"
-                          }`}
-                        >
-                          {option}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {sizeError ? (
-                    <p className="mt-2 text-xs text-red-700" role="alert">
-                      {t.shopSizeRequired}
-                    </p>
-                  ) : null}
-                </div>
-              ) : null}
+              <p className="mt-1 text-xs text-neutral-500">{t.shopRetailAvailability}</p>
 
               {detail.story?.length ? (
                 <div className="mt-4 space-y-3 text-sm leading-cjk text-neutral-700">
@@ -268,8 +191,48 @@ export function ShopProductDetailPanel({
           </div>
         </div>
 
-        <div className="sticky bottom-0 border-t border-neutral-200 bg-white px-4 py-4 sm:px-6">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="shrink-0 border-t border-neutral-200 bg-white px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-6">
+          {sizes.length ? (
+            <div className="mb-3">
+              <p id="shop-pdp-size-label" className="text-sm font-semibold text-neutral-900">
+                {t.shopSizeLabel}
+              </p>
+              <div
+                className="mt-2 flex flex-wrap gap-2"
+                role="radiogroup"
+                aria-labelledby="shop-pdp-size-label"
+              >
+                {sizes.map((option) => {
+                  const selected = size === option;
+                  return (
+                    <button
+                      key={option}
+                      type="button"
+                      role="radio"
+                      aria-checked={selected}
+                      onClick={() => {
+                        setSize(option);
+                        setSizeError(false);
+                      }}
+                      className={`min-h-10 min-w-12 rounded-full border px-3 text-sm font-medium transition ${
+                        selected
+                          ? "border-zinc-900 bg-zinc-900 text-white"
+                          : "border-neutral-300 bg-white text-neutral-800 hover:border-zinc-900"
+                      }`}
+                    >
+                      {option}
+                    </button>
+                  );
+                })}
+              </div>
+              {sizeError ? (
+                <p className="mt-2 text-xs text-red-700" role="alert">
+                  {t.shopSizeRequired}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+          <div className="flex items-center gap-3">
             <ShopQuantityStepper
               value={quantity}
               onChange={setQuantity}
@@ -286,7 +249,7 @@ export function ShopProductDetailPanel({
                 }
                 onAddToCart(quantity, size ?? undefined);
               }}
-              className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-zinc-900 px-8 text-sm font-semibold text-white transition hover:bg-zinc-800 active:scale-[0.98] sm:w-auto"
+              className="inline-flex min-h-12 flex-1 items-center justify-center rounded-full bg-zinc-900 px-6 text-sm font-semibold text-white transition hover:bg-zinc-800 active:scale-[0.98]"
             >
               {t.shopAddToCart}
             </button>
