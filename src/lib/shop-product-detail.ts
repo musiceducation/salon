@@ -41,8 +41,10 @@ const PRODUCT_DETAILS: Record<string, { zh: ProductDetailContent; en: ProductDet
       ],
       sizes: ["S", "M", "L", "XL", "2XL"],
       gallery: [
-        { src: "/shop/tonso-memorial-tee.png", label: "正面" },
-        { src: "/shop/tonso-memorial-tee-back.png", label: "背面" },
+        { src: "/shop/tonso-memorial-tee.png", label: "上身正面" },
+        { src: "/shop/tonso-memorial-tee-worn-back.png", label: "上身背面" },
+        { src: "/shop/tonso-memorial-tee-flat-front.png", label: "平鋪正面" },
+        { src: "/shop/tonso-memorial-tee-flat-back.png", label: "平鋪背面" },
       ],
     },
     en: {
@@ -64,8 +66,10 @@ const PRODUCT_DETAILS: Record<string, { zh: ProductDetailContent; en: ProductDet
       ],
       sizes: ["S", "M", "L", "XL", "2XL"],
       gallery: [
-        { src: "/shop/tonso-memorial-tee.png", label: "Front" },
-        { src: "/shop/tonso-memorial-tee-back.png", label: "Back" },
+        { src: "/shop/tonso-memorial-tee.png", label: "Worn front" },
+        { src: "/shop/tonso-memorial-tee-worn-back.png", label: "Worn back" },
+        { src: "/shop/tonso-memorial-tee-flat-front.png", label: "Flat front" },
+        { src: "/shop/tonso-memorial-tee-flat-back.png", label: "Flat back" },
       ],
     },
   },

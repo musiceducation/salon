@@ -143,7 +143,7 @@ export function ShopProductDetailPanel({
                 ) : null}
               </div>
               {gallery.length > 1 ? (
-                <div className="mt-3 flex gap-2" role="tablist" aria-label={title}>
+                <div className="mt-3 flex flex-wrap gap-2" role="tablist" aria-label={title}>
                   {gallery.map((image, index) => {
                     const selected = index === imageIndex;
                     return (
@@ -153,7 +153,7 @@ export function ShopProductDetailPanel({
                         role="tab"
                         aria-selected={selected}
                         onClick={() => setImageIndex(index)}
-                        className={`overflow-hidden rounded-lg border bg-neutral-50 ${
+                        className={`flex w-16 flex-col overflow-hidden rounded-lg border bg-neutral-50 ${
                           selected ? "border-zinc-900" : "border-neutral-200"
                         }`}
                       >
@@ -164,6 +164,9 @@ export function ShopProductDetailPanel({
                           height={72}
                           className="h-16 w-16 object-contain"
                         />
+                        <span className="border-t border-neutral-200 px-0.5 py-1 text-center text-[9px] leading-tight text-neutral-600">
+                          {image.label}
+                        </span>
                       </button>
                     );
                   })}
