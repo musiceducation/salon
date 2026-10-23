@@ -23,7 +23,8 @@ import {
   SHOP_SEARCH_FOCUS_EVENT,
 } from "@/lib/shop-cart-bridge";
 import { formatMoney } from "@/lib/format-money";
-import { getProductDetailContent } from "@/lib/shop-product-detail";
+import { getProductDetailContent, getProductGallerySlides } from "@/lib/shop-product-detail";
+import { ShopImageSwipe } from "@/components/shop-image-swipe";
 import { fallbackSheetOrderId, queueSpreadsheetSync } from "@/lib/spreadsheet-sync";
 
 const ShopCartDrawer = dynamic(() =>
@@ -296,6 +297,14 @@ function ShopProductCard({
   locale: string;
 }) {
   const title = formatProductTitle(product, locale);
+  const slides = getProductGallerySlides(
+    product.id,
+    inferCategoryKey(product),
+    locale,
+    { nameZh: product.nameZh, nameEn: product.nameEn },
+    product.imageUrl,
+  );
+  const gallerySizes = layout === "list" ? "128px" : "(max-width: 640px) 100vw, 280px";
 
   if (layout === "list") {
     return (
@@ -304,22 +313,24 @@ function ShopProductCard({
           isSelected ? "border-zinc-900 ring-2 ring-zinc-900/20" : "border-neutral-200 hover:border-neutral-300"
         }`}
       >
-        <button type="button" onClick={onViewDetail} className="w-28 shrink-0 sm:w-32">
-          <div className="relative flex aspect-square items-center justify-center overflow-hidden rounded-lg bg-neutral-50">
-            {product.imageUrl ? (
-              <Image
-                src={publicAssetPath(product.imageUrl)}
-                alt=""
-                width={200}
-                height={200}
-                sizes="128px"
-                className="h-full w-full object-contain p-2 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-safe:group-hover:scale-[1.04]"
-              />
-            ) : (
-              <ProductBottlePlaceholder />
-            )}
-          </div>
-        </button>
+        <div className="w-28 shrink-0 sm:w-32">
+          {slides.length ? (
+            <ShopImageSwipe
+              slides={slides}
+              title={title}
+              onActivate={onViewDetail}
+              sizes={gallerySizes}
+              frameClassName="relative aspect-square w-full overflow-hidden rounded-lg bg-neutral-50"
+              imageClassName="h-full w-full object-contain p-2"
+            />
+          ) : (
+            <button type="button" onClick={onViewDetail} className="w-full" aria-label={title}>
+              <div className="relative flex aspect-square items-center justify-center overflow-hidden rounded-lg bg-neutral-50">
+                <ProductBottlePlaceholder />
+              </div>
+            </button>
+          )}
+        </div>
         <div className="flex min-w-0 flex-1 flex-col justify-center">
           <button type="button" onClick={onViewDetail} className="text-left">
             <h3 className="text-sm font-medium text-neutral-900">{title}</h3>
@@ -331,7 +342,7 @@ function ShopProductCard({
           <button
             type="button"
             onClick={onAdd}
-            className="mt-3 w-fit rounded-full border border-neutral-300 bg-white px-4 py-2 text-xs font-medium uppercase tracking-wider text-neutral-800 transition-all duration-200 ease-out hover:border-zinc-900 hover:bg-zinc-50 active:scale-[0.98] motion-reduce:active:scale-100"
+            className="mt-3 min-h-11 w-full rounded-full bg-zinc-900 px-4 text-xs font-medium uppercase tracking-wider text-white transition-all duration-200 ease-out hover:bg-zinc-800 active:scale-[0.98] motion-reduce:active:scale-100"
           >
             {t.shopAddToCart}
           </button>
@@ -339,23 +350,6 @@ function ShopProductCard({
       </article>
     );
   }
-
-  const imgBlockGrid = (
-    <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-t-xl bg-neutral-50">
-      {product.imageUrl ? (
-        <Image
-          src={publicAssetPath(product.imageUrl)}
-          alt=""
-          width={360}
-          height={360}
-          sizes="(max-width: 640px) 50vw, 240px"
-          className="h-full w-full object-contain p-4 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-safe:group-hover:scale-[1.03]"
-        />
-      ) : (
-        <ProductBottlePlaceholder />
-      )}
-    </div>
-  );
 
   return (
     <article
@@ -365,27 +359,44 @@ function ShopProductCard({
           : "border-neutral-100 hover:border-neutral-200"
       }`}
     >
+      {slides.length ? (
+        <ShopImageSwipe
+          slides={slides}
+          title={title}
+          onActivate={onViewDetail}
+          sizes={gallerySizes}
+          frameClassName="relative aspect-square w-full overflow-hidden rounded-t-xl bg-neutral-50"
+          imageClassName="h-full w-full object-contain p-2"
+        />
+      ) : (
+        <button type="button" onClick={onViewDetail} className="w-full" aria-label={title}>
+          <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-t-xl bg-neutral-50">
+            <ProductBottlePlaceholder />
+          </div>
+        </button>
+      )}
       <button
         type="button"
         onClick={onViewDetail}
-        className="w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2"
+        className="w-full px-3 pb-1 pt-3 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2"
         aria-pressed={isSelected}
         aria-label={`${title} — ${t.shopViewDetails}`}
       >
-        {imgBlockGrid}
-        <h3 className="mt-4 line-clamp-2 px-1 text-sm font-medium leading-snug text-neutral-900">{title}</h3>
-        <p className="mt-2 text-sm text-neutral-800">{priceDisplay(product.priceCents, product.currency)}</p>
-        <span className="mt-2 inline-block px-1 text-xs font-medium text-neutral-500 underline underline-offset-2">
+        <h3 className="line-clamp-2 text-sm font-medium leading-snug text-neutral-900">{title}</h3>
+        <p className="mt-1 text-sm text-neutral-800">{priceDisplay(product.priceCents, product.currency)}</p>
+        <span className="mt-1.5 inline-block text-xs font-medium text-neutral-500 underline underline-offset-2">
           {t.shopViewDetails}
         </span>
       </button>
-      <button
-        type="button"
-        onClick={onAdd}
-        className="mt-4 w-full rounded-b-xl border-x border-b border-neutral-200 bg-white py-2.5 text-xs font-medium uppercase tracking-wider text-neutral-800 transition-all duration-200 ease-out hover:border-zinc-900 hover:bg-zinc-50 active:scale-[0.99] motion-reduce:active:scale-100"
-      >
-        {t.shopAddToCart}
-      </button>
+      <div className="px-3 pb-3 pt-2">
+        <button
+          type="button"
+          onClick={onAdd}
+          className="min-h-11 w-full rounded-full bg-zinc-900 px-4 text-xs font-medium uppercase tracking-wider text-white transition-all duration-200 ease-out hover:bg-zinc-800 active:scale-[0.99] motion-reduce:active:scale-100"
+        >
+          {t.shopAddToCart}
+        </button>
+      </div>
     </article>
   );
 }
@@ -1088,8 +1099,8 @@ export function ShopCheckout({
                   viewMode === "list"
                     ? "flex list-none flex-col gap-4"
                     : viewMode === "grid-2"
-                      ? "grid list-none grid-cols-1 gap-6 sm:grid-cols-2"
-                      : "grid list-none grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3"
+                      ? "grid list-none grid-cols-1 gap-4 sm:grid-cols-2"
+                      : "grid list-none grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-8 lg:grid-cols-3"
                 }
               >
                 {filteredProducts.map((product) => (
