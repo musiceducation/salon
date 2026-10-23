@@ -11,6 +11,8 @@ export type ProductDetailContent = {
   story?: string[];
   /** Apparel sizes the salon must receive with the order. */
   sizes?: string[];
+  /** Extra product photos. First item is the worn front when present. */
+  gallery?: { src: string; label: string }[];
   /** 0–5 hold meter (styling products). */
   holdLevel?: number;
   /** 0–5 shine meter (styling products). */
@@ -38,6 +40,10 @@ const PRODUCT_DETAILS: Record<string, { zh: ProductDetailContent; en: ProductDet
         "留碼可親臨門市，或透過 IG / WeChat 私訊",
       ],
       sizes: ["S", "M", "L", "XL", "2XL"],
+      gallery: [
+        { src: "/shop/tonso-memorial-tee.png", label: "正面" },
+        { src: "/shop/tonso-memorial-tee-back.png", label: "背面" },
+      ],
     },
     en: {
       story: [
@@ -57,6 +63,10 @@ const PRODUCT_DETAILS: Record<string, { zh: ProductDetailContent; en: ProductDet
         "To hold a size, visit the store or message on Instagram or WeChat",
       ],
       sizes: ["S", "M", "L", "XL", "2XL"],
+      gallery: [
+        { src: "/shop/tonso-memorial-tee.png", label: "Front" },
+        { src: "/shop/tonso-memorial-tee-back.png", label: "Back" },
+      ],
     },
   },
   "static-villytone-kx360-hair-treatment-lotion-500ml": {

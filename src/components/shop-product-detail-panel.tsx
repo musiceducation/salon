@@ -67,12 +67,21 @@ export function ShopProductDetailPanel({
   const [quantity, setQuantity] = useState(1);
   const [size, setSize] = useState<string | null>(null);
   const [sizeError, setSizeError] = useState(false);
+  const [imageIndex, setImageIndex] = useState(0);
   const sizes = detail.sizes ?? [];
+  const gallery =
+    detail.gallery?.length
+      ? detail.gallery
+      : product.imageUrl
+        ? [{ src: product.imageUrl, label: title }]
+        : [];
+  const activeImage = gallery[imageIndex] ?? gallery[0];
 
   useEffect(() => {
     setQuantity(1);
     setSize(null);
     setSizeError(false);
+    setImageIndex(0);
   }, [product.id]);
 
   useEffect(() => {
@@ -119,17 +128,46 @@ export function ShopProductDetailPanel({
 
         <div className="overflow-y-auto overscroll-contain">
           <div className="grid gap-6 p-4 sm:grid-cols-2 sm:p-6">
-            <div className="flex aspect-square items-center justify-center rounded-xl bg-neutral-50">
-              {product.imageUrl ? (
-                <Image
-                  src={publicAssetPath(product.imageUrl)}
-                  alt={title}
-                  width={480}
-                  height={480}
-                  sizes="(max-width: 640px) 90vw, 240px"
-                  className="h-full w-full object-contain p-6"
-                  priority
-                />
+            <div>
+              <div className="flex aspect-square items-center justify-center rounded-xl bg-neutral-50">
+                {activeImage ? (
+                  <Image
+                    src={publicAssetPath(activeImage.src)}
+                    alt={`${title} — ${activeImage.label}`}
+                    width={480}
+                    height={480}
+                    sizes="(max-width: 640px) 90vw, 240px"
+                    className="h-full w-full object-contain p-6"
+                    priority={imageIndex === 0}
+                  />
+                ) : null}
+              </div>
+              {gallery.length > 1 ? (
+                <div className="mt-3 flex gap-2" role="tablist" aria-label={title}>
+                  {gallery.map((image, index) => {
+                    const selected = index === imageIndex;
+                    return (
+                      <button
+                        key={image.src}
+                        type="button"
+                        role="tab"
+                        aria-selected={selected}
+                        onClick={() => setImageIndex(index)}
+                        className={`overflow-hidden rounded-lg border bg-neutral-50 ${
+                          selected ? "border-zinc-900" : "border-neutral-200"
+                        }`}
+                      >
+                        <Image
+                          src={publicAssetPath(image.src)}
+                          alt={image.label}
+                          width={72}
+                          height={72}
+                          className="h-16 w-16 object-contain"
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
               ) : null}
             </div>
 
