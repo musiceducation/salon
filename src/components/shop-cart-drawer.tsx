@@ -15,6 +15,7 @@ export function ShopCartDrawer({
   open,
   product,
   quantity,
+  size = null,
   locale,
   subtotalLabel,
   t,
@@ -26,6 +27,7 @@ export function ShopCartDrawer({
   open: boolean;
   product: Product | undefined;
   quantity: number;
+  size?: string | null;
   locale: string;
   subtotalLabel: string;
   t: ShopCheckoutCopy;
@@ -89,6 +91,11 @@ export function ShopCartDrawer({
           {product ? (
             <div className="rounded-xl border border-neutral-200 bg-neutral-50/80 p-4">
               <p className="text-sm font-medium text-neutral-900">{title}</p>
+              {size ? (
+                <p className="mt-1 text-xs text-neutral-600">
+                  {t.shopSizeLabel} {size}
+                </p>
+              ) : null}
               <div className="mt-3 flex items-center justify-between gap-3">
                 <label className="flex items-center gap-2 text-sm text-neutral-600">
                   {t.shopQuantityLabel}

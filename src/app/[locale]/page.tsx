@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { HeroSalon } from "@/components/hero-salon";
 import { SalonPageShell } from "@/components/salon-page-shell";
 import { ShopPromoBanner } from "@/components/shop-promo-banner";
+import { ShopQuietTeeCard } from "@/components/shop-quiet-tee-card";
 import { PriceListSection } from "@/components/price-list-section";
 import { getMessages, isSupportedLocale, supportedLocales } from "@/lib/i18n";
 import { localeAbsoluteUrl, localeHref } from "@/lib/locale-path";
@@ -163,6 +164,21 @@ export default async function LocaleHomePage({ params }: HomePageProps) {
           body={t.shopBannerBody}
           cta={t.shopBannerCta}
           ctaHref={productsPath}
+        />
+
+        <ShopQuietTeeCard
+          eyebrow={t.teeQuietEyebrow}
+          title={t.teeQuietTitle}
+          body={t.teeQuietBody}
+          price={t.teeQuietPrice}
+          member={t.teeQuietMember}
+          cta={t.teeQuietCta}
+          ctaHref={`${productsPath}?q=tonso`}
+          imageAlt={
+            locale === "zh-HK"
+              ? "tonso · lamp 重磅寬鬆短袖（啞黑）"
+              : "tonso · lamp Heavyweight Oversized Tee (Matte Black)"
+          }
         />
 
         <section

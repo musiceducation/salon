@@ -2,11 +2,17 @@
 
 import { shopCatalogSkus, staticCatalogId } from "@/data/shop-catalog-static";
 
-type CategoryKey = "shampoo" | "conditioner" | "treatment" | "styling" | "uncategorized";
+type CategoryKey = "shampoo" | "conditioner" | "treatment" | "styling" | "apparel" | "uncategorized";
 
 export type ProductDetailContent = {
   benefits: string[];
   howToUse: string[];
+  /** Product-page paragraphs (meaning, cloth, print). Shown above the short lists. */
+  story?: string[];
+  /** Apparel sizes the salon must receive with the order. */
+  sizes?: string[];
+  /** Extra product photos. First item is the worn front when present. */
+  gallery?: { src: string; label: string }[];
   /** 0–5 hold meter (styling products). */
   holdLevel?: number;
   /** 0–5 shine meter (styling products). */
@@ -15,6 +21,58 @@ export type ProductDetailContent = {
 };
 
 const PRODUCT_DETAILS: Record<string, { zh: ProductDetailContent; en: ProductDetailContent }> = {
+  "static-tonso-memorial-tee": {
+    zh: {
+      story: [
+        "省去張揚的標語，只留日常能穿出門的克制。啞黑寬鬆輪廓下，左胸藏著極細字標與霧山；背後以油畫筆觸交織白字「Your word is a lamp for my feet」，在步履之間保留一點安靜的光。",
+        "選用約 300g 啞黑重磅棉料，微落肩 Oversized 剪裁，單穿硬挺不貼身，洗後依然保持俐落垂墜感。",
+        "採用高精細度數位直噴工藝，讓油畫肌理與極細字體自然融入布面，拒絕厚重膠感，呈現低調內斂的微霧視覺。",
+        "提供 S–2XL 寬鬆尺碼，定價 MOP 298（門市會員專享 MOP 268），歡迎親臨門市試穿，或直接透過 IG / WeChat 私訊留碼。",
+      ],
+      benefits: [
+        "左胸極細字標與霧山，背後油畫筆觸與白字",
+        "約 300g 啞黑重磅棉，微落肩寬鬆剪裁",
+        "數位直噴融入布面，微霧視覺，沒有厚重膠感",
+      ],
+      howToUse: [
+        "寬鬆版型，尺碼 S–2XL，建議親臨門市試穿",
+        "反轉、冷水洗，避免高溫烘乾，以保住直噴",
+        "留碼可親臨門市，或透過 IG / WeChat 私訊",
+      ],
+      sizes: ["S", "M", "L", "XL", "2XL"],
+      gallery: [
+        { src: "/shop/tonso-memorial-tee.png", label: "上身正面" },
+        { src: "/shop/tonso-memorial-tee-worn-back.png", label: "上身背面" },
+        { src: "/shop/tonso-memorial-tee-flat-front.png", label: "平鋪正面" },
+        { src: "/shop/tonso-memorial-tee-flat-back.png", label: "平鋪背面" },
+      ],
+    },
+    en: {
+      story: [
+        "Skip the loud slogan. What remains is a restraint you can wear out the door. Under the matte-black oversized shape, a very fine wordmark and a mist ridge sit on the left chest. On the back, oil-paint strokes weave through the white words “Your word is a lamp for my feet,” keeping a little quiet light between steps.",
+        "Cut from about 300gsm matte-black heavyweight cotton, with a slightly dropped shoulder and an oversized fit. On its own it holds its shape without clinging, and after washing it still falls clean.",
+        "High-resolution direct-to-garment lets the oil-paint grain and the very fine type settle into the cloth. No heavy rubber hand — a quiet, misted look, soft-fading into the black fabric.",
+        "Sizes S–2XL, in a relaxed cut. MOP 298, with an in-store member price of MOP 268. Try it on in store, or message on Instagram or WeChat to hold a size.",
+      ],
+      benefits: [
+        "Fine chest wordmark and mist ridge; oil paint and white type on the back",
+        "About 300gsm matte-black heavyweight cotton, dropped-shoulder oversized cut",
+        "Direct-to-garment that settles into the cloth, a soft mist rather than a rubber print",
+      ],
+      howToUse: [
+        "Relaxed fit, sizes S–2XL — try it on in store",
+        "Wash inside out in cold water; skip high heat so the print stays",
+        "To hold a size, visit the store or message on Instagram or WeChat",
+      ],
+      sizes: ["S", "M", "L", "XL", "2XL"],
+      gallery: [
+        { src: "/shop/tonso-memorial-tee.png", label: "Worn front" },
+        { src: "/shop/tonso-memorial-tee-worn-back.png", label: "Worn back" },
+        { src: "/shop/tonso-memorial-tee-flat-front.png", label: "Flat front" },
+        { src: "/shop/tonso-memorial-tee-flat-back.png", label: "Flat back" },
+      ],
+    },
+  },
   "static-villytone-kx360-hair-treatment-lotion-500ml": {
     zh: {
       salonPick: true,
@@ -299,6 +357,16 @@ const CATEGORY_FALLBACK: Record<
       ],
     },
   },
+  apparel: {
+    zh: {
+      benefits: ["日常穿著", "到店可試穿選碼", "歡迎 WeChat 查詢"],
+      howToUse: ["請按洗標護理", "深色衣物建議反轉洗", "如需選碼可到店試穿"],
+    },
+    en: {
+      benefits: ["Everyday wear", "Try on in store for size", "Message us on WeChat"],
+      howToUse: ["Follow the care label", "Turn dark garments inside out to wash", "Visit the salon if you want to try a size"],
+    },
+  },
   uncategorized: {
     zh: {
       benefits: ["藝能店內同售專業產品", "歡迎 WeChat 查詢用法", "到店試用更安心"],
@@ -319,6 +387,17 @@ const CATEGORY_FALLBACK: Record<
   },
 };
 
+function isTonsoTeeIdentity(
+  productId: string,
+  names?: { nameZh?: string; nameEn?: string },
+): boolean {
+  if (productId.includes("tonso-memorial-tee")) {
+    return true;
+  }
+  const blob = `${names?.nameZh ?? ""} ${names?.nameEn ?? ""}`.toLowerCase();
+  return blob.includes("tonso") && /\btee\b/.test(blob);
+}
+
 export function getProductDetailContent(
   productId: string,
   category: CategoryKey,
@@ -329,6 +408,9 @@ export function getProductDetailContent(
   const byId = PRODUCT_DETAILS[productId];
   if (byId) {
     return byId[lang];
+  }
+  if (isTonsoTeeIdentity(productId, names)) {
+    return PRODUCT_DETAILS["static-tonso-memorial-tee"][lang];
   }
   const match = shopCatalogSkus.find(
     (sku) => sku.nameZh === names?.nameZh || sku.nameEn === names?.nameEn,

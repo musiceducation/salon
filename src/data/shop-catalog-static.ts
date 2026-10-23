@@ -25,6 +25,19 @@ export function staticCatalogId(slug: string): string {
  */
 export const shopCatalogSkus: ShopCatalogSku[] = [
   {
+    slug: "tonso-memorial-tee",
+    nameZh: "tonso · lamp 重磅寬鬆短袖（啞黑）",
+    nameEn: "tonso · lamp Heavyweight Oversized Tee (Matte Black)",
+    description:
+      "省去張揚的標語，只留日常能穿出門的克制。啞黑寬鬆輪廓下，左胸藏著極細字標與霧山；背後以油畫筆觸交織白字「Your word is a lamp for my feet」，在步履之間保留一點安靜的光。選用約 300g 啞黑重磅棉料，微落肩 Oversized 剪裁，單穿硬挺不貼身，洗後依然保持俐落垂墜感。採用高精細度數位直噴工藝，讓油畫肌理與極細字體自然融入布面，拒絕厚重膠感，呈現低調內斂的微霧視覺。提供 S–2XL 寬鬆尺碼，定價 MOP 298（門市會員專享 MOP 268），歡迎親臨門市試穿，或直接透過 IG / WeChat 私訊留碼。",
+    imageUrl: "/shop/tonso-memorial-tee.png",
+    priceCents: 29800,
+    currency: "mop",
+    listOrder: 0,
+    isActive: true,
+    demoId: "demo-tonso-memorial-tee",
+  },
+  {
     slug: "vivaltone-puny-balancing-shampoo-750ml",
     nameZh: "PUNY 平衡洗髮露（細軟油頭）750ml",
     nameEn: "PUNY Balancing Shampoo 750ml",

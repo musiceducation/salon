@@ -16,7 +16,7 @@ type Product = {
   imageUrl?: string | null;
 };
 
-type CategoryKey = "shampoo" | "conditioner" | "treatment" | "styling" | "uncategorized";
+type CategoryKey = "shampoo" | "conditioner" | "treatment" | "styling" | "apparel" | "uncategorized";
 
 function HoldShineMeter({
   label,
@@ -55,7 +55,7 @@ export function ShopProductDetailPanel({
   category: CategoryKey;
   t: ShopCheckoutCopy;
   onClose: () => void;
-  onAddToCart: (quantity: number) => void;
+  onAddToCart: (quantity: number, size?: string) => void;
   priceLabel: string;
   categoryLabel: string;
 }) {
@@ -65,9 +65,23 @@ export function ShopProductDetailPanel({
     nameEn: product.nameEn,
   });
   const [quantity, setQuantity] = useState(1);
+  const [size, setSize] = useState<string | null>(null);
+  const [sizeError, setSizeError] = useState(false);
+  const [imageIndex, setImageIndex] = useState(0);
+  const sizes = detail.sizes ?? [];
+  const gallery =
+    detail.gallery?.length
+      ? detail.gallery
+      : product.imageUrl
+        ? [{ src: product.imageUrl, label: title }]
+        : [];
+  const activeImage = gallery[imageIndex] ?? gallery[0];
 
   useEffect(() => {
     setQuantity(1);
+    setSize(null);
+    setSizeError(false);
+    setImageIndex(0);
   }, [product.id]);
 
   useEffect(() => {
@@ -114,17 +128,49 @@ export function ShopProductDetailPanel({
 
         <div className="overflow-y-auto overscroll-contain">
           <div className="grid gap-6 p-4 sm:grid-cols-2 sm:p-6">
-            <div className="flex aspect-square items-center justify-center rounded-xl bg-neutral-50">
-              {product.imageUrl ? (
-                <Image
-                  src={publicAssetPath(product.imageUrl)}
-                  alt={title}
-                  width={480}
-                  height={480}
-                  sizes="(max-width: 640px) 90vw, 240px"
-                  className="h-full w-full object-contain p-6"
-                  priority
-                />
+            <div>
+              <div className="flex aspect-square items-center justify-center rounded-xl bg-neutral-50">
+                {activeImage ? (
+                  <Image
+                    src={publicAssetPath(activeImage.src)}
+                    alt={`${title} — ${activeImage.label}`}
+                    width={480}
+                    height={480}
+                    sizes="(max-width: 640px) 90vw, 240px"
+                    className="h-full w-full object-contain p-6"
+                    priority={imageIndex === 0}
+                  />
+                ) : null}
+              </div>
+              {gallery.length > 1 ? (
+                <div className="mt-3 flex flex-wrap gap-2" role="tablist" aria-label={title}>
+                  {gallery.map((image, index) => {
+                    const selected = index === imageIndex;
+                    return (
+                      <button
+                        key={image.src}
+                        type="button"
+                        role="tab"
+                        aria-selected={selected}
+                        onClick={() => setImageIndex(index)}
+                        className={`flex w-16 flex-col overflow-hidden rounded-lg border bg-neutral-50 ${
+                          selected ? "border-zinc-900" : "border-neutral-200"
+                        }`}
+                      >
+                        <Image
+                          src={publicAssetPath(image.src)}
+                          alt={image.label}
+                          width={72}
+                          height={72}
+                          className="h-16 w-16 object-contain"
+                        />
+                        <span className="border-t border-neutral-200 px-0.5 py-1 text-center text-[9px] leading-tight text-neutral-600">
+                          {image.label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               ) : null}
             </div>
 
@@ -139,6 +185,55 @@ export function ShopProductDetailPanel({
               </h2>
               <p className="mt-2 text-lg font-medium text-neutral-900">{priceLabel}</p>
               <p className="mt-2 text-xs text-neutral-500">{t.shopRetailAvailability}</p>
+
+              {sizes.length ? (
+                <div className="mt-4">
+                  <p id="shop-pdp-size-label" className="text-sm font-semibold text-neutral-900">
+                    {t.shopSizeLabel}
+                  </p>
+                  <div
+                    className="mt-2 flex flex-wrap gap-2"
+                    role="radiogroup"
+                    aria-labelledby="shop-pdp-size-label"
+                  >
+                    {sizes.map((option) => {
+                      const selected = size === option;
+                      return (
+                        <button
+                          key={option}
+                          type="button"
+                          role="radio"
+                          aria-checked={selected}
+                          onClick={() => {
+                            setSize(option);
+                            setSizeError(false);
+                          }}
+                          className={`min-h-10 min-w-12 rounded-full border px-3 text-sm font-medium transition ${
+                            selected
+                              ? "border-zinc-900 bg-zinc-900 text-white"
+                              : "border-neutral-300 bg-white text-neutral-800 hover:border-zinc-900"
+                          }`}
+                        >
+                          {option}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {sizeError ? (
+                    <p className="mt-2 text-xs text-red-700" role="alert">
+                      {t.shopSizeRequired}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {detail.story?.length ? (
+                <div className="mt-4 space-y-3 text-sm leading-cjk text-neutral-700">
+                  {detail.story.map((paragraph) => (
+                    <p key={paragraph}>{paragraph}</p>
+                  ))}
+                </div>
+              ) : null}
 
               {detail.holdLevel != null ? (
                 <div className="mt-4 space-y-1">
@@ -184,7 +279,13 @@ export function ShopProductDetailPanel({
             />
             <button
               type="button"
-              onClick={() => onAddToCart(quantity)}
+              onClick={() => {
+                if (sizes.length && !size) {
+                  setSizeError(true);
+                  return;
+                }
+                onAddToCart(quantity, size ?? undefined);
+              }}
               className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-zinc-900 px-8 text-sm font-semibold text-white transition hover:bg-zinc-800 active:scale-[0.98] sm:w-auto"
             >
               {t.shopAddToCart}
