@@ -136,17 +136,6 @@ export async function POST(request: Request) {
         const hasEmail = customerEmail.length > 0;
         const hasPhone = customerPhone.length > 0;
 
-        if (!hasEmail && !hasPhone) {
-          return {
-            status: 400,
-            body: {
-              message: zh
-                ? "請填寫電郵或電話其中一項。"
-                : "Please enter either an email or a phone number.",
-            },
-          };
-        }
-
         if (hasEmail && !isValidEmail(customerEmail)) {
           return {
             status: 400,

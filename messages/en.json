@@ -105,7 +105,6 @@
   "shopContactPhoneHint": "So we can confirm the order. Email alone is also fine.",
   "shopContactPhoneInvalid": "Please enter a valid phone number (6–15 digits).",
   "shopContactEmailInvalid": "Please enter a valid email address.",
-  "shopContactRequired": "Please enter a phone number or an email.",
   "shopPaymentLabel": "Payment method",
   "shopPaymentHintLocal": "Local transfers are verified manually during business hours after you send a screenshot.",
   "shopPaymentHintAfterOrder": "Pay-to details appear after you confirm the order",

@@ -742,10 +742,6 @@ export function ShopCheckout({
     const email = customerEmail.trim();
     const phone = digitsOnly(customerPhone);
 
-    if (!email && !phone) {
-      setMessage(t.shopContactRequired);
-      return;
-    }
     if (phone && !isValidPhoneDigits(phone)) {
       setMessage(t.shopContactPhoneInvalid);
       return;
