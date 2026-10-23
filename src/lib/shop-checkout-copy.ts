@@ -50,7 +50,6 @@ export type ShopCheckoutCopy = Pick<
   | "shopContactPhoneHint"
   | "shopContactPhoneInvalid"
   | "shopContactEmailInvalid"
-  | "shopContactRequired"
   | "shopPaymentLabel"
   | "shopPaymentHintAfterOrder"
   | "shopPaymentAccountLabel"
@@ -138,7 +137,6 @@ export function pickShopCheckoutCopy(t: Messages): ShopCheckoutCopy {
     shopContactPhoneHint: t.shopContactPhoneHint,
     shopContactPhoneInvalid: t.shopContactPhoneInvalid,
     shopContactEmailInvalid: t.shopContactEmailInvalid,
-    shopContactRequired: t.shopContactRequired,
     shopPaymentLabel: t.shopPaymentLabel,
     shopPaymentHintAfterOrder: t.shopPaymentHintAfterOrder,
     shopPaymentAccountLabel: t.shopPaymentAccountLabel,
