@@ -2,11 +2,13 @@
 
 import { shopCatalogSkus, staticCatalogId } from "@/data/shop-catalog-static";
 
-type CategoryKey = "shampoo" | "conditioner" | "treatment" | "styling" | "uncategorized";
+type CategoryKey = "shampoo" | "conditioner" | "treatment" | "styling" | "apparel" | "uncategorized";
 
 export type ProductDetailContent = {
   benefits: string[];
   howToUse: string[];
+  /** Product-page paragraphs (meaning, cloth, print). Shown above the short lists. */
+  story?: string[];
   /** 0–5 hold meter (styling products). */
   holdLevel?: number;
   /** 0–5 shine meter (styling products). */
@@ -15,6 +17,44 @@ export type ProductDetailContent = {
 };
 
 const PRODUCT_DETAILS: Record<string, { zh: ProductDetailContent; en: ProductDetailContent }> = {
+  "static-tonso-memorial-tee": {
+    zh: {
+      story: [
+        "tonso 是低調的日常字標，把紀念與信仰輕輕放在身上（詩篇 119:105，光之路）。這件是可以出街的穿著，不是活動宣傳衫。",
+        "啞黑重磅 oversized 空白衫，約 280gsm，手感柔，街牌寬版。尺碼 S–2XL。",
+        "前左胸只有一枚細標，位置安靜，像日常街牌而不是大聲的 logo。背面是大幅油畫，配上白色經文：Your word is a lamp for my feet, a light on my path.（Psalm 119:105）。直噴（DTG）邊緣柔進黑布，沒有硬邊方框；黑布先打白底，顏色才留得住。畫是噴進布裡，看起來像畫在衫上，不是貼上一張貼紙。",
+        "網店標價 MOP 298，到店會員價 MOP 268。歡迎到店試穿選碼 · WeChat +853 66509780 · Instagram @n_nsalon",
+      ],
+      benefits: [
+        "低調字標，紀念與信仰的輕量日常穿著",
+        "約 280gsm 啞黑重磅，oversize 街牌版，S–2XL",
+        "直噴柔邊入黑布，畫在衫上而不是貼紙",
+      ],
+      howToUse: [
+        "版型偏大，建議到店試穿再選 S–2XL",
+        "反轉、冷水洗，避免高溫烘乾，以保住直噴顏色",
+        "選碼或現貨可到店、WeChat +853 66509780，或 Instagram @n_nsalon",
+      ],
+    },
+    en: {
+      story: [
+        "tonso is a quiet everyday wordmark — a light way to wear a memorial and a line of faith (Psalm 119:105, a lamp on the path). Streetwear for ordinary days, not event merch.",
+        "Matte black heavyweight oversized blank, about 280gsm, soft hand, street cut. Sizes S–2XL.",
+        "The left-chest lockup stays small, the way quiet streetwear is placed. The back carries a large oil painting and the verse in white: “Your word is a lamp for my feet, a light on my path.” (Psalm 119:105). Direct-to-garment print fades into the black cloth — no hard box. A white underbase keeps the colour rich on black, so the art looks painted into the tee, not stuck on like a sticker.",
+        "List price MOP 298. In-salon member price MOP 268. Try on in store for your size · WeChat +853 66509780 · Instagram @n_nsalon",
+      ],
+      benefits: [
+        "A quiet wordmark for everyday wear",
+        "About 280gsm matte black heavyweight, oversized, S–2XL",
+        "DTG with soft edges into the cloth, not a sticker print",
+      ],
+      howToUse: [
+        "The cut is oversized — try S–2XL on in store before you choose",
+        "Wash inside out in cold water; skip high heat so the print stays",
+        "For size or stock: the salon, WeChat +853 66509780, or Instagram @n_nsalon",
+      ],
+    },
+  },
   "static-villytone-kx360-hair-treatment-lotion-500ml": {
     zh: {
       salonPick: true,
@@ -297,6 +337,16 @@ const CATEGORY_FALLBACK: Record<
         "Focus on ends or stressed zones",
         "Rinse or leave in per product directions",
       ],
+    },
+  },
+  apparel: {
+    zh: {
+      benefits: ["日常穿著", "到店可試穿選碼", "歡迎 WeChat 查詢"],
+      howToUse: ["請按洗標護理", "深色衣物建議反轉洗", "如需選碼可到店試穿"],
+    },
+    en: {
+      benefits: ["Everyday wear", "Try on in store for size", "Message us on WeChat"],
+      howToUse: ["Follow the care label", "Turn dark garments inside out to wash", "Visit the salon if you want to try a size"],
     },
   },
   uncategorized: {

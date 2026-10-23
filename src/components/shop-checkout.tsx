@@ -55,10 +55,17 @@ type ShopCheckoutProps = {
 
 type PaymentMethod = ShopPaymentMethod;
 type SortKey = "default" | "price-asc" | "price-desc";
-type CategoryKey = "shampoo" | "conditioner" | "treatment" | "styling" | "uncategorized";
+type CategoryKey = "shampoo" | "conditioner" | "treatment" | "styling" | "apparel" | "uncategorized";
 type ViewMode = "grid-3" | "grid-2" | "list";
 
-const ALL_CATEGORY_KEYS: CategoryKey[] = ["shampoo", "conditioner", "treatment", "styling", "uncategorized"];
+const ALL_CATEGORY_KEYS: CategoryKey[] = [
+  "shampoo",
+  "conditioner",
+  "treatment",
+  "styling",
+  "apparel",
+  "uncategorized",
+];
 
 type LocalPaymentResponse = {
   orderId: string;
@@ -167,6 +174,9 @@ function priceDisplay(cents: number, currency = "mop") {
 
 function inferCategoryKey(p: { nameZh: string; nameEn: string }): CategoryKey {
   const s = `${p.nameZh} ${p.nameEn}`.toLowerCase();
+  if (/\btee\b|t-shirt|memorial tee|紀念/.test(s)) {
+    return "apparel";
+  }
   if (/shampoo|洗髮|洗发/.test(s)) {
     return "shampoo";
   }
@@ -207,6 +217,8 @@ function categoryLabel(t: ShopCheckoutCopy, key: CategoryKey) {
       return t.catTreatment;
     case "styling":
       return t.catStyling;
+    case "apparel":
+      return t.catApparel;
     default:
       return t.catUncategorized;
   }

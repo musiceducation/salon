@@ -16,7 +16,7 @@ type Product = {
   imageUrl?: string | null;
 };
 
-type CategoryKey = "shampoo" | "conditioner" | "treatment" | "styling" | "uncategorized";
+type CategoryKey = "shampoo" | "conditioner" | "treatment" | "styling" | "apparel" | "uncategorized";
 
 function HoldShineMeter({
   label,
@@ -139,6 +139,14 @@ export function ShopProductDetailPanel({
               </h2>
               <p className="mt-2 text-lg font-medium text-neutral-900">{priceLabel}</p>
               <p className="mt-2 text-xs text-neutral-500">{t.shopRetailAvailability}</p>
+
+              {detail.story?.length ? (
+                <div className="mt-4 space-y-3 text-sm leading-cjk text-neutral-700">
+                  {detail.story.map((paragraph) => (
+                    <p key={paragraph}>{paragraph}</p>
+                  ))}
+                </div>
+              ) : null}
 
               {detail.holdLevel != null ? (
                 <div className="mt-4 space-y-1">

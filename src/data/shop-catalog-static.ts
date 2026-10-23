@@ -25,6 +25,19 @@ export function staticCatalogId(slug: string): string {
  */
 export const shopCatalogSkus: ShopCatalogSku[] = [
   {
+    slug: "tonso-memorial-tee",
+    nameZh: "tonso 紀念 Tee",
+    nameEn: "tonso memorial tee",
+    description:
+      "tonso 是低調的日常字標，把紀念與信仰輕輕放在身上（詩篇 119:105，光之路）。這件是可以出街的穿著，不是活動宣傳衫。啞黑重磅 oversized 空白衫，約 280gsm，手感柔，街牌寬版。尺碼 S–2XL。前左胸只有一枚細標；背面大幅油畫，白色經文 Your word is a lamp for my feet, a light on my path.（Psalm 119:105）。直噴（DTG）邊緣柔進黑布，沒有硬邊方框；黑布先打白底，顏色才留得住，畫像噴進布裡，而不是貼上一張貼紙。網店標價 MOP 298，到店會員價 MOP 268。到店試穿選碼 · WeChat +853 66509780 · Instagram @n_nsalon",
+    imageUrl: "/shop/tonso-memorial-tee.png",
+    priceCents: 29800,
+    currency: "mop",
+    listOrder: 0,
+    isActive: true,
+    demoId: "demo-tonso-memorial-tee",
+  },
+  {
     slug: "vivaltone-puny-balancing-shampoo-750ml",
     nameZh: "PUNY 平衡洗髮露（細軟油頭）750ml",
     nameEn: "PUNY Balancing Shampoo 750ml",

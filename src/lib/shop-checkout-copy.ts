@@ -64,6 +64,7 @@ export type ShopCheckoutCopy = Pick<
   | "catConditioner"
   | "catTreatment"
   | "catStyling"
+  | "catApparel"
   | "catUncategorized"
   | "shopNoFilterMatch"
   | "shopClearFilters"
@@ -149,6 +150,7 @@ export function pickShopCheckoutCopy(t: Messages): ShopCheckoutCopy {
     catConditioner: t.catConditioner,
     catTreatment: t.catTreatment,
     catStyling: t.catStyling,
+    catApparel: t.catApparel,
     catUncategorized: t.catUncategorized,
     shopNoFilterMatch: t.shopNoFilterMatch,
     shopClearFilters: t.shopClearFilters,
