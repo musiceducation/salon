@@ -9,6 +9,8 @@ export type ProductDetailContent = {
   howToUse: string[];
   /** Product-page paragraphs (meaning, cloth, print). Shown above the short lists. */
   story?: string[];
+  /** Apparel sizes the salon must receive with the order. */
+  sizes?: string[];
   /** 0–5 hold meter (styling products). */
   holdLevel?: number;
   /** 0–5 shine meter (styling products). */
@@ -21,13 +23,13 @@ const PRODUCT_DETAILS: Record<string, { zh: ProductDetailContent; en: ProductDet
     zh: {
       story: [
         "tonso 是低調的日常字標，把紀念與信仰輕輕放在身上（詩篇 119:105，光之路）。這件是可以出街的穿著，不是活動宣傳衫。",
-        "啞黑重磅 oversized 空白衫，約 280gsm，手感柔，街牌寬版。尺碼 S–2XL。",
+        "啞黑重磅 oversized 空白衫，約 300g，手感柔，街牌寬版。尺碼 S–2XL。",
         "前左胸只有一枚細標，位置安靜，像日常街牌而不是大聲的 logo。背面是大幅油畫，配上白色經文：Your word is a lamp for my feet, a light on my path.（Psalm 119:105）。直噴（DTG）邊緣柔進黑布，沒有硬邊方框；黑布先打白底，顏色才留得住。畫是噴進布裡，看起來像畫在衫上，不是貼上一張貼紙。",
         "網店標價 MOP 298，到店會員價 MOP 268。歡迎到店試穿選碼 · WeChat +853 66509780 · Instagram @n_nsalon",
       ],
       benefits: [
         "低調字標，紀念與信仰的輕量日常穿著",
-        "約 280gsm 啞黑重磅，oversize 街牌版，S–2XL",
+        "約 300g 啞黑重磅，oversize 街牌版，S–2XL",
         "直噴柔邊入黑布，畫在衫上而不是貼紙",
       ],
       howToUse: [
@@ -35,17 +37,18 @@ const PRODUCT_DETAILS: Record<string, { zh: ProductDetailContent; en: ProductDet
         "反轉、冷水洗，避免高溫烘乾，以保住直噴顏色",
         "選碼或現貨可到店、WeChat +853 66509780，或 Instagram @n_nsalon",
       ],
+      sizes: ["S", "M", "L", "XL", "2XL"],
     },
     en: {
       story: [
         "tonso is a quiet everyday wordmark — a light way to wear a memorial and a line of faith (Psalm 119:105, a lamp on the path). Streetwear for ordinary days, not event merch.",
-        "Matte black heavyweight oversized blank, about 280gsm, soft hand, street cut. Sizes S–2XL.",
+        "Matte black heavyweight oversized blank, about 300gsm, soft hand, street cut. Sizes S–2XL.",
         "The left-chest lockup stays small, the way quiet streetwear is placed. The back carries a large oil painting and the verse in white: “Your word is a lamp for my feet, a light on my path.” (Psalm 119:105). Direct-to-garment print fades into the black cloth — no hard box. A white underbase keeps the colour rich on black, so the art looks painted into the tee, not stuck on like a sticker.",
         "List price MOP 298. In-salon member price MOP 268. Try on in store for your size · WeChat +853 66509780 · Instagram @n_nsalon",
       ],
       benefits: [
         "A quiet wordmark for everyday wear",
-        "About 280gsm matte black heavyweight, oversized, S–2XL",
+        "About 300gsm matte black heavyweight, oversized, S–2XL",
         "DTG with soft edges into the cloth, not a sticker print",
       ],
       howToUse: [
@@ -53,6 +56,7 @@ const PRODUCT_DETAILS: Record<string, { zh: ProductDetailContent; en: ProductDet
         "Wash inside out in cold water; skip high heat so the print stays",
         "For size or stock: the salon, WeChat +853 66509780, or Instagram @n_nsalon",
       ],
+      sizes: ["S", "M", "L", "XL", "2XL"],
     },
   },
   "static-villytone-kx360-hair-treatment-lotion-500ml": {
@@ -369,6 +373,17 @@ const CATEGORY_FALLBACK: Record<
   },
 };
 
+function isTonsoTeeIdentity(
+  productId: string,
+  names?: { nameZh?: string; nameEn?: string },
+): boolean {
+  if (productId.includes("tonso-memorial-tee")) {
+    return true;
+  }
+  const blob = `${names?.nameZh ?? ""} ${names?.nameEn ?? ""}`.toLowerCase();
+  return blob.includes("tonso") && /\btee\b/.test(blob);
+}
+
 export function getProductDetailContent(
   productId: string,
   category: CategoryKey,
@@ -379,6 +394,9 @@ export function getProductDetailContent(
   const byId = PRODUCT_DETAILS[productId];
   if (byId) {
     return byId[lang];
+  }
+  if (isTonsoTeeIdentity(productId, names)) {
+    return PRODUCT_DETAILS["static-tonso-memorial-tee"][lang];
   }
   const match = shopCatalogSkus.find(
     (sku) => sku.nameZh === names?.nameZh || sku.nameEn === names?.nameEn,

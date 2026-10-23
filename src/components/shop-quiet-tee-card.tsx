@@ -14,7 +14,7 @@ type Props = {
 
 const TEE_IMAGE = "/shop/tonso-memorial-tee.png";
 
-/** Quiet home note for the memorial tee. Sits beside the hair-care shop banner. */
+/** Quiet home note for the tonso oversized tee. Sits under the hair-care shop banner. */
 export function ShopQuietTeeCard(p: Props) {
   return (
     <section className="border-b border-zinc-800 bg-zinc-950 text-zinc-100">

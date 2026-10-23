@@ -23,6 +23,7 @@ import {
   SHOP_SEARCH_FOCUS_EVENT,
 } from "@/lib/shop-cart-bridge";
 import { formatMoney } from "@/lib/format-money";
+import { getProductDetailContent } from "@/lib/shop-product-detail";
 import { fallbackSheetOrderId, queueSpreadsheetSync } from "@/lib/spreadsheet-sync";
 
 const ShopCartDrawer = dynamic(() =>
@@ -96,6 +97,7 @@ function buildStaticOrderLines(
   locale: string,
   product: Product | undefined,
   quantity: number,
+  size: string | null,
   customerName: string,
   customerEmail: string,
   customerPhone: string,
@@ -118,6 +120,7 @@ function buildStaticOrderLines(
     return [
       "【藝能網店訂購】",
       `商品：${pname} × ${quantity}`,
+      size ? `尺碼：${size}` : "",
       `金額：${totalFormatted}`,
       `付款方式：${payLabel}`,
       payAccount ? `${accountLabel}：${payAccount}` : "",
@@ -131,6 +134,7 @@ function buildStaticOrderLines(
   return [
     "[n_nsalon web order]",
     `Item: ${pname} × ${quantity}`,
+    size ? `Size: ${size}` : "",
     `Total: ${totalFormatted}`,
     `Payment: ${payLabel}`,
     payAccount ? `${accountLabel}: ${payAccount}` : "",
@@ -458,6 +462,7 @@ export function ShopCheckout({
   const [sort, setSort] = useState<SortKey>("default");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(() => defaultCheckoutPaymentMethod());
   const [quantity, setQuantity] = useState(1);
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
@@ -585,6 +590,7 @@ export function ShopCheckout({
     if (saved && products.some((p) => p.id === saved.productId)) {
       setSelectedProductId(saved.productId);
       setQuantity(saved.quantity);
+      setSelectedSize(saved.size ?? null);
       setCartTouched(true);
     }
   }, [products]);
@@ -607,9 +613,13 @@ export function ShopCheckout({
 
   useEffect(() => {
     if (cartTouched && selectedProductId) {
-      publishShopCart({ productId: selectedProductId, quantity });
+      publishShopCart({
+        productId: selectedProductId,
+        quantity,
+        ...(selectedSize ? { size: selectedSize } : {}),
+      });
     }
-  }, [cartTouched, selectedProductId, quantity]);
+  }, [cartTouched, selectedProductId, quantity, selectedSize]);
 
   useEffect(() => {
     const resolved = resolveCheckoutPaymentMethod(paymentMethod);
@@ -683,9 +693,20 @@ export function ShopCheckout({
     setDetailProductId(product.id);
   }
 
-  function addToCart(product: Product, qty = 1) {
-    const sameItem = cartTouched && selectedProductId === product.id;
+  function productNeedsSize(product: Product) {
+    return Boolean(
+      getProductDetailContent(product.id, inferCategoryKey(product), locale, {
+        nameZh: product.nameZh,
+        nameEn: product.nameEn,
+      }).sizes?.length,
+    );
+  }
+
+  function addToCart(product: Product, qty = 1, size?: string) {
+    const nextSize = size ?? null;
+    const sameItem = cartTouched && selectedProductId === product.id && selectedSize === nextSize;
     setSelectedProductId(product.id);
+    setSelectedSize(nextSize);
     setQuantity(sameItem ? Math.min(CART_QTY_MAX, quantity + qty) : qty);
     setDetailProductId(null);
     setCartTouched(true);
@@ -693,6 +714,10 @@ export function ShopCheckout({
   }
 
   function handleAddToCart(product: Product) {
+    if (productNeedsSize(product)) {
+      openProductDetail(product);
+      return;
+    }
     addToCart(product, 1);
   }
 
@@ -703,6 +728,11 @@ export function ShopCheckout({
     }
     if (!cartTouched || !selectedProductId) {
       setMessage(t.shopCheckoutEmptyCart);
+      return;
+    }
+    if (selectedProduct && productNeedsSize(selectedProduct) && !selectedSize) {
+      setMessage(t.shopSizeRequired);
+      openProductDetail(selectedProduct);
       return;
     }
 
@@ -741,7 +771,13 @@ export function ShopCheckout({
           customerName,
           customerEmail: email,
           customerPhone: phone,
-          items: [{ productId: selectedProductId, quantity }],
+          items: [
+            {
+              productId: selectedProductId,
+              quantity,
+              ...(selectedSize ? { size: selectedSize } : {}),
+            },
+          ],
         }),
       });
 
@@ -838,6 +874,7 @@ export function ShopCheckout({
       locale,
       selectedProduct,
       quantity,
+      selectedSize,
       customerName,
       customerEmail,
       customerPhone,
@@ -850,6 +887,7 @@ export function ShopCheckout({
       digitsOnly(customerPhone),
       selectedProduct.id,
       String(quantity),
+      selectedSize ?? "",
       checkoutPaymentMethod,
     ].join("|");
     if (sheetKey !== lastStaticSheetKeyRef.current) {
@@ -858,7 +896,7 @@ export function ShopCheckout({
         orderId: fallbackSheetOrderId("ORD"),
         customerName: customerName.trim(),
         phone: digitsOnly(customerPhone),
-        service: `${selectedProduct.nameZh} × ${quantity}`,
+        service: `${selectedProduct.nameZh}${selectedSize ? ` · ${selectedSize}` : ""} × ${quantity}`,
         notes: customerEmail.trim(),
         amount: subtotalCents / 100,
         paidAmount: 0,
@@ -891,6 +929,7 @@ export function ShopCheckout({
             locale,
             selectedProduct,
             quantity,
+            selectedSize,
             customerName,
             customerEmail,
             customerPhone,
@@ -1201,7 +1240,8 @@ export function ShopCheckout({
               {hasCartItem && selectedProduct ? (
                 <div className="mt-1 flex flex-wrap items-baseline justify-between gap-2">
                   <p>
-                    {locale === "zh-HK" ? selectedProduct.nameZh : selectedProduct.nameEn} × {quantity} →{" "}
+                    {locale === "zh-HK" ? selectedProduct.nameZh : selectedProduct.nameEn}
+                    {selectedSize ? ` · ${selectedSize}` : ""} × {quantity} →{" "}
                     {priceDisplay(subtotalCents, selectedProduct.currency)}
                   </p>
                   <button
@@ -1363,7 +1403,7 @@ export function ShopCheckout({
           category={inferCategoryKey(detailProduct)}
           t={t}
           onClose={() => setDetailProductId(null)}
-          onAddToCart={(qty) => addToCart(detailProduct, qty)}
+          onAddToCart={(qty, size) => addToCart(detailProduct, qty, size)}
           priceLabel={priceDisplay(detailProduct.priceCents, detailProduct.currency)}
           categoryLabel={categoryLabel(t, inferCategoryKey(detailProduct))}
         />
@@ -1374,6 +1414,7 @@ export function ShopCheckout({
           open={cartOpen}
           product={selectedProduct}
           quantity={quantity}
+          size={selectedSize}
           locale={locale}
           subtotalLabel={
             selectedProduct ? priceDisplay(subtotalCents, selectedProduct.currency) : "—"
@@ -1392,6 +1433,7 @@ export function ShopCheckout({
             <div className="min-w-0 flex-1">
               <p className="truncate text-xs text-neutral-600">
                 {locale === "zh-HK" ? selectedProduct.nameZh : selectedProduct.nameEn}
+                {selectedSize ? ` · ${selectedSize}` : ""}
               </p>
               <p className="text-sm font-semibold text-neutral-900">
                 {priceDisplay(subtotalCents, selectedProduct.currency)}

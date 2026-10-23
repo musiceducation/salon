@@ -14,9 +14,12 @@ import {
 } from "@/lib/shop-payment-methods";
 import { submitOrderToSpreadsheet } from "@/lib/spreadsheet-sync";
 
+const TEE_SIZES = ["S", "M", "L", "XL", "2XL"] as const;
+
 type CheckoutItem = {
   productId: string;
   quantity: number;
+  size?: string;
 };
 
 type CheckoutPayload = {
@@ -35,9 +38,31 @@ type ResolvedLine = {
     nameEn: string;
     priceCents: number;
     currency: string;
+    slug?: string;
   };
   quantity: number;
+  size: string | null;
 };
+
+function normalizeTeeSize(value: unknown): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+  const size = value.trim().toUpperCase();
+  return (TEE_SIZES as readonly string[]).includes(size) ? size : null;
+}
+
+function lineIsTonsoTee(product: { id: string; nameZh: string; nameEn: string; slug?: string }) {
+  if (product.slug === "tonso-memorial-tee" || product.id.includes("tonso-memorial-tee")) {
+    return true;
+  }
+  const blob = `${product.nameZh} ${product.nameEn}`.toLowerCase();
+  return blob.includes("tonso") && /\btee\b/.test(blob);
+}
+
+function serviceLabel(line: ResolvedLine) {
+  return `${line.product.nameZh}${line.size ? ` · ${line.size}` : ""} × ${line.quantity}`;
+}
 
 function digitsOnly(phone: string) {
   return phone.replace(/\D/g, "");
@@ -65,14 +90,17 @@ async function resolveMappedItems(items: CheckoutItem[]): Promise<ResolvedLine[]
           if (!product || item.quantity <= 0) {
             return null;
           }
-          return { product, quantity: item.quantity };
+          return { product, quantity: item.quantity, size: normalizeTeeSize(item.size) };
         })
         .filter((entry): entry is NonNullable<typeof entry> => entry !== null);
     }
   } catch {
     /* fall through to static catalog */
   }
-  return resolveCheckoutProductsFromCatalog(items);
+  return resolveCheckoutProductsFromCatalog(items).map((line) => ({
+    ...line,
+    size: normalizeTeeSize(items.find((item) => item.productId === line.product.id)?.size),
+  }));
 }
 
 export async function POST(request: Request) {
@@ -160,6 +188,23 @@ export async function POST(request: Request) {
         }
         const orderCurrency = orderCurrencies[0] ?? "mop";
 
+        const lines = mappedItems.map((line) => ({
+          ...line,
+          size: lineIsTonsoTee(line.product) ? line.size : null,
+        }));
+        if (lines.some((line) => lineIsTonsoTee(line.product) && !line.size)) {
+          return {
+            status: 400,
+            body: {
+              message: zh ? "請選擇尺碼（S–2XL）。" : "Please choose a size (S–2XL).",
+            },
+          };
+        }
+        const sizeNote = lines
+          .filter((line) => line.size)
+          .map((line) => `尺碼 ${line.size}`)
+          .join("、");
+
         const orderContact = {
           customerName,
           customerEmail: hasEmail ? customerEmail : "",
@@ -172,9 +217,7 @@ export async function POST(request: Request) {
               orderId,
               customerName,
               phone: hasPhone ? customerPhone : "",
-              service: mappedItems
-                .map((item) => `${item.product.nameZh} × ${item.quantity}`)
-                .join("、"),
+              service: lines.map((item) => serviceLabel(item)).join("、"),
               notes: hasEmail ? customerEmail : "",
               amount: totalAmountCents / 100,
               paidAmount: 0,
@@ -201,8 +244,9 @@ export async function POST(request: Request) {
                 paymentUploadToken: uploadToken,
                 paymentAccount: instructions.account,
                 paymentNote: instructions.note,
+                ...(sizeNote ? { lastStatusNote: sizeNote } : {}),
                 items: {
-                  create: mappedItems.map((item) => ({
+                  create: lines.map((item) => ({
                     productId: item.product.id,
                     quantity: item.quantity,
                     unitPriceCents: item.product.priceCents,
@@ -271,8 +315,9 @@ export async function POST(request: Request) {
               status: "pending",
               paymentMethod: "stripe_card",
               paymentNote: "Paid through Stripe card checkout.",
+              ...(sizeNote ? { lastStatusNote: sizeNote } : {}),
               items: {
-                create: mappedItems.map((item) => ({
+                create: lines.map((item) => ({
                   productId: item.product.id,
                   quantity: item.quantity,
                   unitPriceCents: item.product.priceCents,
@@ -296,13 +341,13 @@ export async function POST(request: Request) {
             mode: "payment",
             payment_method_types: ["card"],
             ...(hasEmail ? { customer_email: customerEmail } : {}),
-            line_items: mappedItems.map((item) => ({
+            line_items: lines.map((item) => ({
               quantity: item.quantity,
               price_data: {
                 currency: item.product.currency,
                 unit_amount: item.product.priceCents,
                 product_data: {
-                  name: body.locale === "zh-HK" ? item.product.nameZh : item.product.nameEn,
+                  name: `${body.locale === "zh-HK" ? item.product.nameZh : item.product.nameEn}${item.size ? ` · ${item.size}` : ""}`,
                 },
               },
             })),

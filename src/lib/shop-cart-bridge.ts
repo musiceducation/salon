@@ -13,12 +13,15 @@ export const SHOP_CART_CHANGED = SHOP_CART_CHANGE_EVENT;
 export type ShopCartSnapshot = {
   productId: string;
   quantity: number;
+  /** Apparel size, when the product requires one. */
+  size?: string;
 } | null;
 
 export type ShopCartChangedDetail = {
   count: number;
   touched: boolean;
   productId?: string;
+  size?: string;
 };
 
 export function readShopCart(): ShopCartSnapshot {
@@ -35,6 +38,7 @@ export function readShopCart(): ShopCartSnapshot {
       quantity?: unknown;
       count?: unknown;
       touched?: unknown;
+      size?: unknown;
     };
     if (typeof parsed.productId !== "string" || !parsed.productId) {
       return null;
@@ -43,7 +47,12 @@ export function readShopCart(): ShopCartSnapshot {
     if (!Number.isFinite(quantity) || quantity < 1) {
       return null;
     }
-    return { productId: parsed.productId, quantity: Math.min(10, Math.floor(quantity)) };
+    const size = typeof parsed.size === "string" && parsed.size.trim() ? parsed.size.trim() : undefined;
+    return {
+      productId: parsed.productId,
+      quantity: Math.min(10, Math.floor(quantity)),
+      ...(size ? { size } : {}),
+    };
   } catch {
     return null;
   }
@@ -75,7 +84,11 @@ export function publishShopCart(cart: ShopCartSnapshot) {
 
 export function dispatchShopCartChanged(detail: ShopCartChangedDetail) {
   if (detail.touched && detail.count > 0 && detail.productId) {
-    publishShopCart({ productId: detail.productId, quantity: detail.count });
+    publishShopCart({
+      productId: detail.productId,
+      quantity: detail.count,
+      ...(detail.size ? { size: detail.size } : {}),
+    });
   } else {
     publishShopCart(null);
   }

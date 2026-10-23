@@ -55,7 +55,7 @@ export function ShopProductDetailPanel({
   category: CategoryKey;
   t: ShopCheckoutCopy;
   onClose: () => void;
-  onAddToCart: (quantity: number) => void;
+  onAddToCart: (quantity: number, size?: string) => void;
   priceLabel: string;
   categoryLabel: string;
 }) {
@@ -65,9 +65,14 @@ export function ShopProductDetailPanel({
     nameEn: product.nameEn,
   });
   const [quantity, setQuantity] = useState(1);
+  const [size, setSize] = useState<string | null>(null);
+  const [sizeError, setSizeError] = useState(false);
+  const sizes = detail.sizes ?? [];
 
   useEffect(() => {
     setQuantity(1);
+    setSize(null);
+    setSizeError(false);
   }, [product.id]);
 
   useEffect(() => {
@@ -140,6 +145,47 @@ export function ShopProductDetailPanel({
               <p className="mt-2 text-lg font-medium text-neutral-900">{priceLabel}</p>
               <p className="mt-2 text-xs text-neutral-500">{t.shopRetailAvailability}</p>
 
+              {sizes.length ? (
+                <div className="mt-4">
+                  <p id="shop-pdp-size-label" className="text-sm font-semibold text-neutral-900">
+                    {t.shopSizeLabel}
+                  </p>
+                  <div
+                    className="mt-2 flex flex-wrap gap-2"
+                    role="radiogroup"
+                    aria-labelledby="shop-pdp-size-label"
+                  >
+                    {sizes.map((option) => {
+                      const selected = size === option;
+                      return (
+                        <button
+                          key={option}
+                          type="button"
+                          role="radio"
+                          aria-checked={selected}
+                          onClick={() => {
+                            setSize(option);
+                            setSizeError(false);
+                          }}
+                          className={`min-h-10 min-w-12 rounded-full border px-3 text-sm font-medium transition ${
+                            selected
+                              ? "border-zinc-900 bg-zinc-900 text-white"
+                              : "border-neutral-300 bg-white text-neutral-800 hover:border-zinc-900"
+                          }`}
+                        >
+                          {option}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {sizeError ? (
+                    <p className="mt-2 text-xs text-red-700" role="alert">
+                      {t.shopSizeRequired}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
+
               {detail.story?.length ? (
                 <div className="mt-4 space-y-3 text-sm leading-cjk text-neutral-700">
                   {detail.story.map((paragraph) => (
@@ -192,7 +238,13 @@ export function ShopProductDetailPanel({
             />
             <button
               type="button"
-              onClick={() => onAddToCart(quantity)}
+              onClick={() => {
+                if (sizes.length && !size) {
+                  setSizeError(true);
+                  return;
+                }
+                onAddToCart(quantity, size ?? undefined);
+              }}
               className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-zinc-900 px-8 text-sm font-semibold text-white transition hover:bg-zinc-800 active:scale-[0.98] sm:w-auto"
             >
               {t.shopAddToCart}

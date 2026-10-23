@@ -21,6 +21,8 @@ export type ShopCheckoutCopy = Pick<
   | "shopViewDetails"
   | "shopClose"
   | "shopQuantityLabel"
+  | "shopSizeLabel"
+  | "shopSizeRequired"
   | "shopDecreaseQty"
   | "shopIncreaseQty"
   | "shopWhyWeLoveIt"
@@ -107,6 +109,8 @@ export function pickShopCheckoutCopy(t: Messages): ShopCheckoutCopy {
     shopViewDetails: t.shopViewDetails,
     shopClose: t.shopClose,
     shopQuantityLabel: t.shopQuantityLabel,
+    shopSizeLabel: t.shopSizeLabel,
+    shopSizeRequired: t.shopSizeRequired,
     shopDecreaseQty: t.shopDecreaseQty,
     shopIncreaseQty: t.shopIncreaseQty,
     shopWhyWeLoveIt: t.shopWhyWeLoveIt,
