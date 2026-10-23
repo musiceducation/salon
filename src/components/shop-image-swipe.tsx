@@ -168,7 +168,7 @@ export function ShopImageSwipe({
       </div>
       <div className="pointer-events-none absolute inset-x-0 bottom-2 z-10 flex justify-center">
         <div
-          className="pointer-events-auto flex items-center gap-0.5 rounded-full bg-black/40 px-1.5 py-0.5"
+          className="pointer-events-auto flex items-center gap-0.5 rounded-full bg-black/55 px-1.5 py-0.5"
           role="tablist"
           aria-label={title}
         >
@@ -189,7 +189,7 @@ export function ShopImageSwipe({
               >
                 <span
                   className={`h-1.5 rounded-full transition-[width,background-color] ${
-                    selected ? "w-3.5 bg-white" : "w-1.5 bg-white/55"
+                    selected ? "w-3.5 bg-white" : "w-1.5 bg-white/85"
                   }`}
                 />
               </button>
