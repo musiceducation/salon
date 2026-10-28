@@ -108,7 +108,7 @@ export function ShopProductDetailPanel({
         role="dialog"
         aria-modal="true"
         aria-labelledby="shop-pdp-title"
-        className="relative flex h-full w-full max-w-6xl flex-col overflow-hidden bg-[#0c0c0e] text-stone-100 shadow-2xl sm:h-[min(92vh,900px)] sm:border sm:border-white/10"
+        className="showroom-wall relative flex h-full w-full max-w-6xl flex-col overflow-hidden text-stone-100 shadow-2xl sm:h-[min(94vh,920px)] sm:border sm:border-white/10"
       >
         <div className="flex shrink-0 items-center justify-between px-4 py-3 sm:px-6">
           <p className="text-[10px] tracking-[0.28em] text-stone-500">{categoryLabel}</p>
@@ -122,26 +122,24 @@ export function ShopProductDetailPanel({
           </button>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain lg:grid lg:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.8fr)] lg:overflow-hidden">
-          <div className="showroom-bay relative min-h-[42vh] lg:h-full lg:min-h-0">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain lg:grid lg:grid-cols-[minmax(0,1.35fr)_minmax(260px,0.72fr)] lg:overflow-hidden">
+          <div className="showroom-bay relative min-h-[46vh] lg:h-full lg:min-h-0">
             {gallery.length ? (
               <ShopImageSwipe
                 slides={gallery}
                 title={title}
-                sizes="(max-width: 1024px) 100vw, 640px"
-                frameClassName="relative h-[42vh] min-h-[240px] w-full lg:absolute lg:inset-0 lg:h-full"
-                imageClassName="showroom-arrive h-full w-full object-contain p-6 sm:p-10"
+                sizes="(max-width: 1024px) 100vw, 720px"
+                frameClassName="relative h-[46vh] min-h-[260px] w-full lg:absolute lg:inset-0 lg:h-full"
+                imageClassName="showroom-arrive showroom-cut h-full w-full object-contain p-8 sm:p-12"
                 priority
               />
             ) : null}
             <div className="showroom-vignette pointer-events-none absolute inset-0" />
-            <div className="showroom-hero-plinth pointer-events-none absolute inset-x-0 bottom-0" />
-            <div className="showroom-led pointer-events-none absolute inset-x-8 bottom-0" />
           </div>
 
           <div className="flex flex-col px-5 py-6 sm:px-8 lg:min-h-0 lg:overflow-y-auto lg:px-10 lg:py-8">
             {detail.salonPick ? (
-              <p className="text-[10px] tracking-[0.28em] text-[#9eb6ff]">{t.shopSalonPick}</p>
+              <p className="text-[10px] tracking-[0.28em] text-stone-400">{t.shopSalonPick}</p>
             ) : null}
             <h2
               id="shop-pdp-title"
@@ -149,11 +147,11 @@ export function ShopProductDetailPanel({
             >
               {title}
             </h2>
-            <p className="showroom-arrive mt-12 font-light leading-none tracking-tight text-stone-50 text-[clamp(3.25rem,8vw,5.75rem)] sm:mt-16">
+            <p className="showroom-arrive mt-10 font-light leading-none tracking-tight text-stone-50 text-[clamp(3.25rem,7vw,5.5rem)] sm:mt-14">
               {priceLabel}
             </p>
-            {memberNote ? <p className="mt-3 text-xs tracking-wide text-stone-500">{memberNote}</p> : null}
-            <p className="mt-4 text-[11px] tracking-wide text-stone-500">{t.shopRetailAvailability}</p>
+            {memberNote ? <p className="mt-3 text-xs tracking-wide text-stone-400">{memberNote}</p> : null}
+            <p className="mt-4 text-[11px] tracking-wide text-stone-400">{t.shopRetailAvailability}</p>
 
             {detail.story?.length ? (
               <div className="mt-10 space-y-3 text-sm leading-cjk text-stone-400">
@@ -195,7 +193,7 @@ export function ShopProductDetailPanel({
           </div>
         </div>
 
-        <div className="shrink-0 border-t border-white/10 bg-[#0c0c0e] px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-6">
+        <div className="shrink-0 border-t border-white/10 bg-[#0c0b0a] px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-6">
           {sizes.length ? (
             <div className="mb-3">
               <p id="shop-pdp-size-label" className="text-[11px] tracking-[0.18em] text-stone-400">

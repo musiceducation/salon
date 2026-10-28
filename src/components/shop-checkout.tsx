@@ -292,8 +292,6 @@ function ShowroomBay({
     <div className={`showroom-bay relative overflow-hidden ${className}`}>
       {children}
       <div className="showroom-vignette pointer-events-none absolute inset-0 z-[1]" />
-      <div className="showroom-plinth pointer-events-none absolute inset-x-0 bottom-0 z-[1]" />
-      <div className="showroom-led pointer-events-none absolute inset-x-4 bottom-0 z-[2]" />
     </div>
   );
 }
@@ -303,7 +301,6 @@ function ShopProductCard({
   layout,
   isInBag,
   onViewDetail,
-  onAdd,
   t,
   locale,
 }: {
@@ -311,7 +308,6 @@ function ShopProductCard({
   layout: "grid" | "list";
   isInBag: boolean;
   onViewDetail: () => void;
-  onAdd: () => void;
   t: ShopCheckoutCopy;
   locale: string;
 }) {
@@ -326,7 +322,7 @@ function ShopProductCard({
   const gallerySizes = layout === "list" ? "160px" : "(max-width: 640px) 100vw, 320px";
   const price = priceDisplay(product.priceCents, product.currency);
   const memberNote = memberNoteFor(product, t.shopMemberPriceNote);
-  const bagRing = isInBag ? "ring-1 ring-[#9eb6ff]/80" : "";
+  const bagRing = isInBag ? "ring-1 ring-stone-300/70" : "";
 
   const stage = slides.length ? (
     <ShopImageSwipe
@@ -339,7 +335,7 @@ function ShopProductCard({
           ? "relative h-full w-full"
           : "relative aspect-[4/5] w-full sm:aspect-[5/6]"
       }
-      imageClassName="showroom-object h-full w-full object-contain p-6"
+      imageClassName="showroom-object showroom-cut h-full w-full object-contain p-6"
     />
   ) : (
     <button type="button" onClick={onViewDetail} className="relative block h-full w-full" aria-label={title}>
@@ -363,20 +359,13 @@ function ShopProductCard({
           <button
             type="button"
             onClick={onViewDetail}
-            className="text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#9eb6ff]"
+            className="text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-stone-300"
             aria-label={`${title} — ${t.shopViewDetails}`}
           >
             <h3 className="text-sm font-normal leading-snug text-stone-200">{title}</h3>
-            <p className="showroom-price mt-4 text-3xl font-light tracking-tight text-stone-50">{price}</p>
+            <p className="mt-3 text-2xl font-light tracking-tight text-stone-100">{price}</p>
             {memberNote ? <p className="mt-1 text-[11px] text-stone-400">{memberNote}</p> : null}
             <span className="mt-3 inline-block text-[11px] tracking-[0.16em] text-stone-400">{t.shopViewDetails}</span>
-          </button>
-          <button
-            type="button"
-            onClick={onAdd}
-            className="mt-4 min-h-11 w-full max-w-xs border border-white/20 px-4 text-xs tracking-wide text-stone-200 transition hover:border-white/50 hover:text-white"
-          >
-            {t.shopAddToCart}
           </button>
         </div>
       </article>
@@ -387,35 +376,30 @@ function ShopProductCard({
     <article className={`group flex flex-col text-left ${bagRing}`}>
       <ShowroomBay className="w-full">
         {stage}
-        <p className="showroom-price pointer-events-none absolute left-4 top-4 z-[2] text-2xl font-light tracking-tight text-stone-50">
-          {price}
-        </p>
       </ShowroomBay>
-      <div className="flex items-start justify-between gap-3 px-1 pb-1 pt-3">
-        <button
-          type="button"
-          onClick={onViewDetail}
-          className="min-w-0 flex-1 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#9eb6ff]"
-          aria-pressed={isInBag}
-          aria-label={`${title} — ${t.shopViewDetails}`}
-        >
-          <h3 className="line-clamp-2 text-[13px] font-normal leading-snug text-stone-200">{title}</h3>
-          {memberNote ? <p className="mt-1 text-[11px] text-stone-400">{memberNote}</p> : null}
-          <span className="mt-1.5 inline-block text-[11px] tracking-[0.16em] text-stone-400">{t.shopViewDetails}</span>
-        </button>
-      </div>
       <button
         type="button"
-        onClick={onAdd}
-        className="mt-2 min-h-11 w-full border border-white/15 px-3 text-[11px] tracking-[0.14em] text-stone-300 transition hover:border-white/45 hover:text-white"
+        onClick={onViewDetail}
+        className="mt-3 w-full px-1 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-stone-300"
+        aria-pressed={isInBag}
+        aria-label={`${title} — ${price} — ${t.shopViewDetails}`}
       >
-        {t.shopAddToCart}
+        <h3 className="line-clamp-2 text-[13px] font-normal leading-snug text-stone-200">{title}</h3>
+        <p className="mt-1.5 text-lg font-light tracking-tight text-stone-100">{price}</p>
+        {memberNote ? <p className="mt-1 text-[11px] text-stone-400">{memberNote}</p> : null}
+        <span className="mt-1.5 inline-block text-[11px] tracking-[0.16em] text-stone-400">{t.shopViewDetails}</span>
       </button>
     </article>
   );
 }
 
-function FilterSidebar({
+function chipClass(on: boolean) {
+  return on
+    ? "min-h-11 border border-stone-100 bg-stone-100 px-3.5 text-sm text-zinc-950"
+    : "min-h-11 border border-white/20 bg-transparent px-3.5 text-sm text-stone-300 transition hover:border-white/45 hover:text-white";
+}
+
+function CategoryChips({
   t,
   categoryOptions,
   filterCats,
@@ -428,50 +412,27 @@ function FilterSidebar({
   toggleFilter: (c: CategoryKey) => void;
   clearFilters: () => void;
 }) {
-  const detailsClass =
-    "border-b border-white/10 py-1 [&_summary::-webkit-details-marker]:hidden [&_summary::marker]:content-['']";
-  const summaryClass =
-    "flex cursor-pointer list-none items-center justify-between gap-2 py-3 text-left text-[11px] tracking-[0.16em] text-stone-300 transition-colors duration-200 ease-out hover:text-white";
-
   return (
-    <div className="space-y-0">
-      <details open className={detailsClass}>
-        <summary className={summaryClass}>
-          <span>
-            <span className="text-stone-500">{t.shopFilterProductTypeEn}</span>
-            <span className="mx-1 text-stone-600">·</span>
-            <span>{t.shopFilterProductType}</span>
-          </span>
-          <span className="text-stone-500" aria-hidden>
-            ▾
-          </span>
-        </summary>
-        <div className="space-y-2 pb-3 pl-0.5">
-          <label className="flex min-h-11 cursor-pointer items-center gap-2 py-0.5 text-sm text-stone-300 transition-colors duration-150 ease-out hover:text-white">
-            <input
-              type="checkbox"
-              className="h-4 w-4 accent-[#7aa2ff]"
-              checked={filterCats.length === 0}
-              onChange={() => clearFilters()}
-            />
-            <span>{t.shopFilterAllTypes}</span>
-          </label>
-          {categoryOptions.map((key) => (
-            <label
-              key={key}
-              className="flex min-h-11 cursor-pointer items-center gap-2 py-0.5 text-sm text-stone-300 transition-colors duration-150 ease-out hover:text-white"
-            >
-              <input
-                type="checkbox"
-                className="h-4 w-4 accent-[#7aa2ff]"
-                checked={filterCats.includes(key)}
-                onChange={() => toggleFilter(key)}
-              />
-              <span>{categoryLabel(t, key)}</span>
-            </label>
-          ))}
-        </div>
-      </details>
+    <div className="flex flex-wrap gap-2" role="group" aria-label={t.shopFilterProductType}>
+      <button
+        type="button"
+        aria-pressed={filterCats.length === 0}
+        onClick={clearFilters}
+        className={chipClass(filterCats.length === 0)}
+      >
+        {t.shopFilterAllTypes}
+      </button>
+      {categoryOptions.map((key) => (
+        <button
+          key={key}
+          type="button"
+          aria-pressed={filterCats.includes(key)}
+          onClick={() => toggleFilter(key)}
+          className={chipClass(filterCats.includes(key))}
+        >
+          {categoryLabel(t, key)}
+        </button>
+      ))}
     </div>
   );
 }
@@ -741,14 +702,6 @@ export function ShopCheckout({
     setCartOpen(true);
   }
 
-  function handleAddToCart(product: Product) {
-    if (productNeedsSize(product)) {
-      openProductDetail(product);
-      return;
-    }
-    addToCart(product, 1);
-  }
-
   async function onCheckout(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (isStaticSite) {
@@ -980,36 +933,16 @@ export function ShopCheckout({
           <p className="text-sm text-stone-500">{t.shopEmptyCta}</p>
         </div>
       ) : (
-        <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
-          <div className="lg:hidden">
-            <details className="border border-white/15 bg-white/[0.03] px-3">
-              <summary className="cursor-pointer py-3 text-sm text-stone-200 transition-colors duration-200 hover:text-white">
-                {locale === "zh-HK" ? "篩選" : "Filters"}
-              </summary>
-              <div className="pb-3">
-                <FilterSidebar
-                  t={t}
-                  categoryOptions={categoryOptions}
-                  filterCats={filterCats}
-                  toggleFilter={toggleFilter}
-                  clearFilters={clearFilters}
-                />
-              </div>
-            </details>
-          </div>
-
-          <aside className="hidden w-56 shrink-0 lg:block" aria-label="Filters">
-            <FilterSidebar
+        <div>
+          <div className="min-w-0">
+            <CategoryChips
               t={t}
               categoryOptions={categoryOptions}
               filterCats={filterCats}
               toggleFilter={toggleFilter}
               clearFilters={clearFilters}
             />
-          </aside>
-
-          <div className="min-w-0 flex-1">
-            <div className="mb-4">
+            <div className="mb-4 mt-4">
               <label htmlFor="shop-product-search" className="sr-only">
                 {t.shopSearchLabel}
               </label>
@@ -1020,7 +953,7 @@ export function ShopCheckout({
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
                 placeholder={t.shopSearchPlaceholder}
-                className="w-full border border-white/15 bg-white/[0.03] px-3 py-2.5 text-sm text-stone-100 transition-[border-color,box-shadow] duration-200 ease-out placeholder:text-stone-500 focus:border-[#9eb6ff] focus:outline-none focus:ring-1 focus:ring-[#9eb6ff]"
+                className="w-full border border-white/15 bg-white/[0.03] px-3 py-2.5 text-sm text-stone-100 transition-[border-color,box-shadow] duration-200 ease-out placeholder:text-stone-500 focus:border-stone-300 focus:outline-none focus:ring-1 focus:ring-stone-300"
                 autoComplete="off"
               />
             </div>
@@ -1079,7 +1012,7 @@ export function ShopCheckout({
                   id="shop-sort"
                   value={sort}
                   onChange={(e) => setSort(e.target.value as SortKey)}
-                  className="w-full cursor-pointer appearance-none border border-white/15 bg-transparent py-2 pl-3 pr-8 text-sm text-stone-100 [color-scheme:dark] transition-[border-color,box-shadow] duration-200 ease-out focus:border-[#9eb6ff] focus:outline-none focus:ring-1 focus:ring-[#9eb6ff]"
+                  className="w-full cursor-pointer appearance-none border border-white/15 bg-transparent py-2 pl-3 pr-8 text-sm text-stone-100 [color-scheme:dark] transition-[border-color,box-shadow] duration-200 ease-out focus:border-stone-300 focus:outline-none focus:ring-1 focus:ring-stone-300"
                   style={selectArrowStyle}
                 >
                   <option value="default">{t.shopSortDefault}</option>
@@ -1124,7 +1057,6 @@ export function ShopCheckout({
                       layout={viewMode === "list" ? "list" : "grid"}
                       isInBag={cartTouched && product.id === selectedProductId}
                       onViewDetail={() => openProductDetail(product)}
-                      onAdd={() => handleAddToCart(product)}
                       t={t}
                       locale={locale}
                     />

@@ -153,104 +153,49 @@ html {
   outline-offset: 2px;
 }
 
-/* /products showroom. Hover and focus use a slow ~3s beat: the object lifts,
-   the warm plinth light comes up, and the price grows in the dark space. */
+/* /products showroom: near-black Macau stage, soft oval light, no colored shelf LEDs. */
 .showroom-wall {
-  background-color: #09090b;
+  background-color: #0c0b0a;
   background-image:
-    linear-gradient(
-      128deg,
-      transparent 47%,
-      rgba(255, 255, 255, 0.045) 47.5%,
-      rgba(255, 255, 255, 0.045) 52.5%,
-      transparent 53%
-    ),
-    linear-gradient(
-      232deg,
-      transparent 47%,
-      rgba(255, 255, 255, 0.03) 47.5%,
-      rgba(255, 255, 255, 0.03) 52.5%,
-      transparent 53%
-    );
-  background-size: 240px 170px;
+    radial-gradient(ellipse 90% 42% at 50% -8%, rgba(255, 244, 230, 0.05), transparent 58%),
+    radial-gradient(ellipse 38% 28% at 100% 100%, rgba(72, 58, 44, 0.2), transparent 70%);
 }
 
 .showroom-bay {
-  background:
-    radial-gradient(ellipse 78% 34% at 50% 100%, rgba(48, 102, 214, 0.32), transparent 70%),
-    linear-gradient(180deg, #16161a 0%, #0c0c0f 100%);
+  background-color: #121110;
+  background-image:
+    radial-gradient(ellipse 42% 10% at 50% 80%, rgba(0, 0, 0, 0.55), transparent 72%),
+    radial-gradient(ellipse 54% 42% at 50% 48%, rgba(255, 246, 236, 0.16), rgba(255, 246, 236, 0.04) 48%, transparent 74%);
+}
+
+.showroom-cut {
+  -webkit-mask-image: radial-gradient(ellipse 74% 72% at 50% 48%, #000 42%, transparent 78%);
+  mask-image: radial-gradient(ellipse 74% 72% at 50% 48%, #000 42%, transparent 78%);
 }
 
 .showroom-object {
-  transition: transform 2.8s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .group:hover .showroom-object,
 .group:focus-within .showroom-object {
-  transform: translateY(-3.5%) scale(1.04);
+  transform: translateY(-2.5%);
 }
 
 .showroom-vignette {
-  background:
-    linear-gradient(
-      180deg,
-      rgba(9, 9, 11, 0.9) 0%,
-      rgba(9, 9, 11, 0.38) 18%,
-      rgba(9, 9, 11, 0) 36%,
-      rgba(9, 9, 11, 0) 64%,
-      rgba(9, 9, 11, 0.62) 100%
-    ),
-    linear-gradient(90deg, rgba(9, 9, 11, 0.78), transparent 20%, transparent 80%, rgba(9, 9, 11, 0.78));
-}
-
-.showroom-plinth {
-  height: 30%;
   background: radial-gradient(
-    ellipse 68% 90% at 50% 100%,
-    rgba(255, 140, 74, 0.62),
-    rgba(255, 140, 74, 0) 72%
+    ellipse 62% 56% at 50% 46%,
+    rgba(12, 11, 10, 0.12) 0%,
+    rgba(12, 11, 10, 0.28) 40%,
+    rgba(12, 11, 10, 0.78) 68%,
+    rgba(12, 11, 10, 0.98) 100%
   );
-  opacity: 0.5;
-  mix-blend-mode: screen;
-  transition: opacity 2.8s ease;
-}
-
-.group:hover .showroom-plinth,
-.group:focus-within .showroom-plinth {
-  opacity: 1;
-}
-
-.showroom-led {
-  height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(126, 176, 255, 0.95), transparent);
-  box-shadow: 0 0 16px 3px rgba(70, 130, 255, 0.45);
-}
-
-.showroom-price {
-  transform: scale(1);
-  transform-origin: left center;
-  transition: transform 2.8s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.group:hover .showroom-price,
-.group:focus-within .showroom-price {
-  transform: scale(1.42);
-}
-
-.showroom-hero-plinth {
-  height: 34%;
-  background: radial-gradient(
-    ellipse 62% 90% at 50% 100%,
-    rgba(255, 132, 64, 0.72),
-    rgba(255, 132, 64, 0) 70%
-  );
-  mix-blend-mode: screen;
 }
 
 @keyframes showroom-arrive {
   from {
     opacity: 0;
-    transform: translateY(14px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -259,20 +204,16 @@ html {
 }
 
 .showroom-arrive {
-  animation: showroom-arrive 2.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: showroom-arrive 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .showroom-object,
-  .showroom-plinth,
-  .showroom-price {
+  .showroom-object {
     transition: none;
   }
 
   .group:hover .showroom-object,
-  .group:focus-within .showroom-object,
-  .group:hover .showroom-price,
-  .group:focus-within .showroom-price {
+  .group:focus-within .showroom-object {
     transform: none;
   }
 

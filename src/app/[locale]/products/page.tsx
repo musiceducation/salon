@@ -100,16 +100,13 @@ export default async function ProductsPage({ params }: PageProps) {
 
         <section id="shop" className="showroom-wall border-b border-white/10 text-stone-100">
           <div className="mx-auto max-w-6xl px-4 pb-16 pt-10 sm:px-6 sm:pb-24 sm:pt-16">
-            <p className="text-[11px] tracking-[0.32em] text-stone-500">n_nsalon</p>
-            <h1 className="mt-4 text-sm font-medium tracking-[0.28em] text-stone-300">{t.shopSectionTitle}</h1>
+            <p className="text-[11px] tracking-[0.28em] text-stone-400">{t.heroTagline}</p>
+            <h1 className="mt-4 text-sm font-medium tracking-[0.22em] text-stone-200">{t.shopSectionTitle}</h1>
             <p className="mt-8 max-w-xl text-2xl font-light leading-snug text-stone-50 sm:text-[2rem]">
               {t.shopStageCaption}
             </p>
             <p className="mt-4 max-w-xl text-xs leading-cjk text-stone-400">{t.shopSectionNote}</p>
-            <div
-              className="mt-10 h-px bg-gradient-to-r from-transparent via-[#6ea8ff] to-transparent"
-              aria-hidden
-            />
+            <div className="mt-10 h-px bg-white/10" aria-hidden />
 
             <ShopCheckout
               locale={locale}
