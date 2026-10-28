@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import dynamic from "next/dynamic";
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { ShopCheckoutCopy } from "@/lib/shop-checkout-copy";
 import { publicAssetPath } from "@/lib/public-asset-path";
 import {
@@ -215,6 +215,11 @@ function inferCategoryKey(p: { nameZh: string; nameEn: string }): CategoryKey {
   return "uncategorized";
 }
 
+function memberNoteFor(product: { id: string; nameZh: string; nameEn: string }, note: string) {
+  const blob = `${product.id} ${product.nameZh} ${product.nameEn}`.toLowerCase();
+  return blob.includes("tonso") ? note : null;
+}
+
 function categoryLabel(t: ShopCheckoutCopy, key: CategoryKey) {
   switch (key) {
     case "shampoo":
@@ -265,16 +270,30 @@ function PaymentCollectionQr({
 
 function ProductBottlePlaceholder() {
   return (
-    <div
-      className="flex h-28 w-16 items-end justify-center sm:h-32 sm:w-20"
-      style={{ filter: "drop-shadow(0 12px 20px rgba(0,0,0,0.08))" }}
-    >
-      <svg viewBox="0 0 64 120" className="h-full w-full text-neutral-300" aria-hidden>
+    <div className="flex h-28 w-16 items-end justify-center sm:h-32 sm:w-20">
+      <svg viewBox="0 0 64 120" className="h-full w-full text-stone-500" aria-hidden>
         <rect x="18" y="0" width="28" height="10" rx="2" className="fill-current opacity-50" />
-        <rect x="14" y="10" width="36" height="70" rx="4" className="fill-white stroke-neutral-200" strokeWidth="1" />
-        <rect x="20" y="18" width="24" height="48" rx="1" className="fill-neutral-100" />
-        <path d="M22 80 Q32 90 42 80 L40 110 Q32 115 24 110 Z" className="fill-white stroke-neutral-200" strokeWidth="1" />
+        <rect x="14" y="10" width="36" height="70" rx="4" className="fill-stone-700 stroke-stone-500" strokeWidth="1" />
+        <rect x="20" y="18" width="24" height="48" rx="1" className="fill-stone-600" />
+        <path d="M22 80 Q32 90 42 80 L40 110 Q32 115 24 110 Z" className="fill-stone-700 stroke-stone-500" strokeWidth="1" />
       </svg>
+    </div>
+  );
+}
+
+function ShowroomBay({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className: string;
+}) {
+  return (
+    <div className={`showroom-bay relative overflow-hidden ${className}`}>
+      {children}
+      <div className="showroom-vignette pointer-events-none absolute inset-0 z-[1]" />
+      <div className="showroom-plinth pointer-events-none absolute inset-x-0 bottom-0 z-[1]" />
+      <div className="showroom-led pointer-events-none absolute inset-x-4 bottom-0 z-[2]" />
     </div>
   );
 }
@@ -282,7 +301,7 @@ function ProductBottlePlaceholder() {
 function ShopProductCard({
   product,
   layout,
-  isSelected,
+  isInBag,
   onViewDetail,
   onAdd,
   t,
@@ -290,7 +309,7 @@ function ShopProductCard({
 }: {
   product: Product;
   layout: "grid" | "list";
-  isSelected: boolean;
+  isInBag: boolean;
   onViewDetail: () => void;
   onAdd: () => void;
   t: ShopCheckoutCopy;
@@ -304,45 +323,58 @@ function ShopProductCard({
     { nameZh: product.nameZh, nameEn: product.nameEn },
     product.imageUrl,
   );
-  const gallerySizes = layout === "list" ? "128px" : "(max-width: 640px) 100vw, 280px";
+  const gallerySizes = layout === "list" ? "160px" : "(max-width: 640px) 100vw, 320px";
+  const price = priceDisplay(product.priceCents, product.currency);
+  const memberNote = memberNoteFor(product, t.shopMemberPriceNote);
+  const bagRing = isInBag ? "ring-1 ring-[#9eb6ff]/80" : "";
+
+  const stage = slides.length ? (
+    <ShopImageSwipe
+      slides={slides}
+      title={title}
+      onActivate={onViewDetail}
+      sizes={gallerySizes}
+      frameClassName={
+        layout === "list"
+          ? "relative h-full w-full"
+          : "relative aspect-[4/5] w-full sm:aspect-[5/6]"
+      }
+      imageClassName="showroom-object h-full w-full object-contain p-6"
+    />
+  ) : (
+    <button type="button" onClick={onViewDetail} className="relative block h-full w-full" aria-label={title}>
+      <div
+        className={
+          layout === "list"
+            ? "flex h-full w-full items-center justify-center"
+            : "flex aspect-[4/5] w-full items-center justify-center sm:aspect-[5/6]"
+        }
+      >
+        <ProductBottlePlaceholder />
+      </div>
+    </button>
+  );
 
   if (layout === "list") {
     return (
-      <article
-        className={`group flex gap-4 rounded-xl border bg-white p-4 text-left shadow-sm transition-all duration-300 ease-out motion-safe:hover:-translate-y-0.5 motion-safe:hover:shadow-md ${
-          isSelected ? "border-zinc-900 ring-2 ring-zinc-900/20" : "border-neutral-200 hover:border-neutral-300"
-        }`}
-      >
-        <div className="w-28 shrink-0 sm:w-32">
-          {slides.length ? (
-            <ShopImageSwipe
-              slides={slides}
-              title={title}
-              onActivate={onViewDetail}
-              sizes={gallerySizes}
-              frameClassName="relative aspect-square w-full overflow-hidden rounded-lg bg-neutral-50"
-              imageClassName="h-full w-full object-contain p-2"
-            />
-          ) : (
-            <button type="button" onClick={onViewDetail} className="w-full" aria-label={title}>
-              <div className="relative flex aspect-square items-center justify-center overflow-hidden rounded-lg bg-neutral-50">
-                <ProductBottlePlaceholder />
-              </div>
-            </button>
-          )}
-        </div>
-        <div className="flex min-w-0 flex-1 flex-col justify-center">
-          <button type="button" onClick={onViewDetail} className="text-left">
-            <h3 className="text-sm font-medium text-neutral-900">{title}</h3>
-            <p className="mt-1 text-sm text-neutral-800">{priceDisplay(product.priceCents, product.currency)}</p>
-            <span className="mt-2 inline-block text-xs font-medium text-neutral-500 underline underline-offset-2">
-              {t.shopViewDetails}
-            </span>
+      <article className={`group flex gap-4 text-left sm:gap-6 ${bagRing}`}>
+        <ShowroomBay className="h-36 w-28 shrink-0 sm:h-40 sm:w-36">{stage}</ShowroomBay>
+        <div className="flex min-w-0 flex-1 flex-col justify-center py-1">
+          <button
+            type="button"
+            onClick={onViewDetail}
+            className="text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#9eb6ff]"
+            aria-label={`${title} — ${t.shopViewDetails}`}
+          >
+            <h3 className="text-sm font-normal leading-snug text-stone-200">{title}</h3>
+            <p className="showroom-price mt-4 text-3xl font-light tracking-tight text-stone-50">{price}</p>
+            {memberNote ? <p className="mt-1 text-[11px] text-stone-400">{memberNote}</p> : null}
+            <span className="mt-3 inline-block text-[11px] tracking-[0.16em] text-stone-400">{t.shopViewDetails}</span>
           </button>
           <button
             type="button"
             onClick={onAdd}
-            className="mt-3 min-h-11 w-full rounded-full bg-zinc-900 px-4 text-xs font-medium uppercase tracking-wider text-white transition-all duration-200 ease-out hover:bg-zinc-800 active:scale-[0.98] motion-reduce:active:scale-100"
+            className="mt-4 min-h-11 w-full max-w-xs border border-white/20 px-4 text-xs tracking-wide text-stone-200 transition hover:border-white/50 hover:text-white"
           >
             {t.shopAddToCart}
           </button>
@@ -352,51 +384,33 @@ function ShopProductCard({
   }
 
   return (
-    <article
-      className={`group flex flex-col rounded-xl border bg-white text-center shadow-sm transition-all duration-300 ease-out motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-lg ${
-        isSelected
-          ? "border-zinc-900 shadow-md ring-2 ring-zinc-900/20"
-          : "border-neutral-100 hover:border-neutral-200"
-      }`}
-    >
-      {slides.length ? (
-        <ShopImageSwipe
-          slides={slides}
-          title={title}
-          onActivate={onViewDetail}
-          sizes={gallerySizes}
-          frameClassName="relative aspect-square w-full overflow-hidden rounded-t-xl bg-neutral-50"
-          imageClassName="h-full w-full object-contain p-2"
-        />
-      ) : (
-        <button type="button" onClick={onViewDetail} className="w-full" aria-label={title}>
-          <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-t-xl bg-neutral-50">
-            <ProductBottlePlaceholder />
-          </div>
-        </button>
-      )}
-      <button
-        type="button"
-        onClick={onViewDetail}
-        className="w-full px-3 pb-1 pt-3 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2"
-        aria-pressed={isSelected}
-        aria-label={`${title} — ${t.shopViewDetails}`}
-      >
-        <h3 className="line-clamp-2 text-sm font-medium leading-snug text-neutral-900">{title}</h3>
-        <p className="mt-1 text-sm text-neutral-800">{priceDisplay(product.priceCents, product.currency)}</p>
-        <span className="mt-1.5 inline-block text-xs font-medium text-neutral-500 underline underline-offset-2">
-          {t.shopViewDetails}
-        </span>
-      </button>
-      <div className="px-3 pb-3 pt-2">
+    <article className={`group flex flex-col text-left ${bagRing}`}>
+      <ShowroomBay className="w-full">
+        {stage}
+        <p className="showroom-price pointer-events-none absolute left-4 top-4 z-[2] text-2xl font-light tracking-tight text-stone-50">
+          {price}
+        </p>
+      </ShowroomBay>
+      <div className="flex items-start justify-between gap-3 px-1 pb-1 pt-3">
         <button
           type="button"
-          onClick={onAdd}
-          className="min-h-11 w-full rounded-full bg-zinc-900 px-4 text-xs font-medium uppercase tracking-wider text-white transition-all duration-200 ease-out hover:bg-zinc-800 active:scale-[0.99] motion-reduce:active:scale-100"
+          onClick={onViewDetail}
+          className="min-w-0 flex-1 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#9eb6ff]"
+          aria-pressed={isInBag}
+          aria-label={`${title} — ${t.shopViewDetails}`}
         >
-          {t.shopAddToCart}
+          <h3 className="line-clamp-2 text-[13px] font-normal leading-snug text-stone-200">{title}</h3>
+          {memberNote ? <p className="mt-1 text-[11px] text-stone-400">{memberNote}</p> : null}
+          <span className="mt-1.5 inline-block text-[11px] tracking-[0.16em] text-stone-400">{t.shopViewDetails}</span>
         </button>
       </div>
+      <button
+        type="button"
+        onClick={onAdd}
+        className="mt-2 min-h-11 w-full border border-white/15 px-3 text-[11px] tracking-[0.14em] text-stone-300 transition hover:border-white/45 hover:text-white"
+      >
+        {t.shopAddToCart}
+      </button>
     </article>
   );
 }
@@ -415,28 +429,28 @@ function FilterSidebar({
   clearFilters: () => void;
 }) {
   const detailsClass =
-    "border-b border-neutral-200 py-1 [&_summary::-webkit-details-marker]:hidden [&_summary::marker]:content-['']";
+    "border-b border-white/10 py-1 [&_summary::-webkit-details-marker]:hidden [&_summary::marker]:content-['']";
   const summaryClass =
-    "flex cursor-pointer list-none items-center justify-between gap-2 py-3 text-left text-xs font-semibold uppercase tracking-wide text-neutral-800 transition-colors duration-200 ease-out hover:text-neutral-950";
+    "flex cursor-pointer list-none items-center justify-between gap-2 py-3 text-left text-[11px] tracking-[0.16em] text-stone-300 transition-colors duration-200 ease-out hover:text-white";
 
   return (
     <div className="space-y-0">
       <details open className={detailsClass}>
         <summary className={summaryClass}>
           <span>
-            <span className="text-neutral-500">{t.shopFilterProductTypeEn}</span>
-            <span className="mx-1 text-neutral-300">·</span>
+            <span className="text-stone-500">{t.shopFilterProductTypeEn}</span>
+            <span className="mx-1 text-stone-600">·</span>
             <span>{t.shopFilterProductType}</span>
           </span>
-          <span className="text-neutral-400" aria-hidden>
+          <span className="text-stone-500" aria-hidden>
             ▾
           </span>
         </summary>
         <div className="space-y-2 pb-3 pl-0.5">
-          <label className="flex cursor-pointer items-center gap-2 rounded-md py-0.5 text-sm text-neutral-700 transition-colors duration-150 ease-out hover:text-neutral-900">
+          <label className="flex min-h-11 cursor-pointer items-center gap-2 py-0.5 text-sm text-stone-300 transition-colors duration-150 ease-out hover:text-white">
             <input
               type="checkbox"
-              className="rounded border-neutral-300 transition-colors duration-150"
+              className="h-4 w-4 accent-[#7aa2ff]"
               checked={filterCats.length === 0}
               onChange={() => clearFilters()}
             />
@@ -445,11 +459,11 @@ function FilterSidebar({
           {categoryOptions.map((key) => (
             <label
               key={key}
-              className="flex cursor-pointer items-center gap-2 rounded-md py-0.5 text-sm text-neutral-700 transition-colors duration-150 ease-out hover:text-neutral-900"
+              className="flex min-h-11 cursor-pointer items-center gap-2 py-0.5 text-sm text-stone-300 transition-colors duration-150 ease-out hover:text-white"
             >
               <input
                 type="checkbox"
-                className="rounded border-neutral-300 transition-colors duration-150"
+                className="h-4 w-4 accent-[#7aa2ff]"
                 checked={filterCats.includes(key)}
                 onChange={() => toggleFilter(key)}
               />
@@ -953,7 +967,7 @@ export function ShopCheckout({
   const labelClass = "flex flex-col gap-1.5 text-sm text-neutral-700";
 
   const selectArrowStyle = {
-    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23737373' d='M3 4.5L6 7.5L9 4.5'/%3E%3C/svg%3E")`,
+    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23a8a29e' d='M3 4.5L6 7.5L9 4.5'/%3E%3C/svg%3E")`,
     backgroundRepeat: "no-repeat" as const,
     backgroundPosition: "right 0.75rem center",
   };
@@ -962,14 +976,14 @@ export function ShopCheckout({
     <div className="mt-6 space-y-0">
       {totalCatalog === 0 ? (
         <div className="mt-10 space-y-3 py-12 text-center">
-          <p className="text-sm text-neutral-600">{message || t.shopNoProducts}</p>
-          <p className="text-sm text-neutral-500">{t.shopEmptyCta}</p>
+          <p className="text-sm text-stone-300">{message || t.shopNoProducts}</p>
+          <p className="text-sm text-stone-500">{t.shopEmptyCta}</p>
         </div>
       ) : (
         <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
           <div className="lg:hidden">
-            <details className="rounded-lg border border-neutral-200 bg-white px-3 transition-shadow duration-200 ease-out open:shadow-sm">
-              <summary className="cursor-pointer py-3 text-sm font-medium text-neutral-800 transition-colors duration-200 hover:text-neutral-950">
+            <details className="border border-white/15 bg-white/[0.03] px-3">
+              <summary className="cursor-pointer py-3 text-sm text-stone-200 transition-colors duration-200 hover:text-white">
                 {locale === "zh-HK" ? "篩選" : "Filters"}
               </summary>
               <div className="pb-3">
@@ -984,7 +998,7 @@ export function ShopCheckout({
             </details>
           </div>
 
-          <aside className="hidden w-72 shrink-0 lg:block" aria-label="Filters">
+          <aside className="hidden w-56 shrink-0 lg:block" aria-label="Filters">
             <FilterSidebar
               t={t}
               categoryOptions={categoryOptions}
@@ -1006,19 +1020,19 @@ export function ShopCheckout({
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
                 placeholder={t.shopSearchPlaceholder}
-                className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2.5 text-sm text-neutral-900 shadow-sm transition-[border-color,box-shadow] duration-200 ease-out placeholder:text-neutral-400 focus:border-zinc-700 focus:outline-none focus:ring-1 focus:ring-zinc-700"
+                className="w-full border border-white/15 bg-white/[0.03] px-3 py-2.5 text-sm text-stone-100 transition-[border-color,box-shadow] duration-200 ease-out placeholder:text-stone-500 focus:border-[#9eb6ff] focus:outline-none focus:ring-1 focus:ring-[#9eb6ff]"
                 autoComplete="off"
               />
             </div>
-            <div className="mb-6 flex flex-col gap-4 border-b border-neutral-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="mb-6 flex flex-col gap-4 border-b border-white/10 pb-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-1">
                 <button
                   type="button"
                   aria-pressed={viewMode === "grid-3"}
                   aria-label={t.shopViewGridLarge}
                   onClick={() => setViewMode("grid-3")}
-                  className={`rounded-md p-2 text-neutral-600 transition-all duration-200 ease-out hover:bg-neutral-100 active:scale-95 motion-reduce:active:scale-100 ${
-                    viewMode === "grid-3" ? "bg-neutral-200 text-zinc-900" : ""
+                  className={`inline-flex min-h-11 min-w-11 items-center justify-center transition-colors duration-200 ease-out hover:text-white ${
+                    viewMode === "grid-3" ? "text-white" : "text-stone-400"
                   }`}
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
@@ -1030,8 +1044,8 @@ export function ShopCheckout({
                   aria-pressed={viewMode === "grid-2"}
                   aria-label={t.shopViewGridSmall}
                   onClick={() => setViewMode("grid-2")}
-                  className={`rounded-md p-2 text-neutral-600 transition-all duration-200 ease-out hover:bg-neutral-100 active:scale-95 motion-reduce:active:scale-100 ${
-                    viewMode === "grid-2" ? "bg-neutral-200 text-zinc-900" : ""
+                  className={`inline-flex min-h-11 min-w-11 items-center justify-center transition-colors duration-200 ease-out hover:text-white ${
+                    viewMode === "grid-2" ? "text-white" : "text-stone-400"
                   }`}
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
@@ -1043,8 +1057,8 @@ export function ShopCheckout({
                   aria-pressed={viewMode === "list"}
                   aria-label={t.shopViewList}
                   onClick={() => setViewMode("list")}
-                  className={`rounded-md p-2 text-neutral-600 transition-all duration-200 ease-out hover:bg-neutral-100 active:scale-95 motion-reduce:active:scale-100 ${
-                    viewMode === "list" ? "bg-neutral-200 text-zinc-900" : ""
+                  className={`inline-flex min-h-11 min-w-11 items-center justify-center transition-colors duration-200 ease-out hover:text-white ${
+                    viewMode === "list" ? "text-white" : "text-stone-400"
                   }`}
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
@@ -1053,19 +1067,19 @@ export function ShopCheckout({
                 </button>
               </div>
 
-              <p className="text-center text-sm text-neutral-700 sm:flex-1">
+              <p className="text-center text-xs tracking-[0.14em] text-stone-400 sm:flex-1">
                 {t.shopProductCount.replace("{n}", String(n))}
               </p>
 
               <div className="flex w-full flex-col gap-1 sm:w-auto sm:min-w-[200px]">
-                <label htmlFor="shop-sort" className="text-xs text-neutral-500">
+                <label htmlFor="shop-sort" className="text-[11px] tracking-[0.14em] text-stone-500">
                   {t.shopSortByLabel}
                 </label>
                 <select
                   id="shop-sort"
                   value={sort}
                   onChange={(e) => setSort(e.target.value as SortKey)}
-                  className="w-full cursor-pointer appearance-none rounded-md border border-neutral-300 bg-white py-2 pl-3 pr-8 text-sm text-neutral-800 transition-[border-color,box-shadow] duration-200 ease-out focus:border-zinc-600 focus:outline-none focus:ring-1 focus:ring-zinc-600"
+                  className="w-full cursor-pointer appearance-none border border-white/15 bg-transparent py-2 pl-3 pr-8 text-sm text-stone-100 [color-scheme:dark] transition-[border-color,box-shadow] duration-200 ease-out focus:border-[#9eb6ff] focus:outline-none focus:ring-1 focus:ring-[#9eb6ff]"
                   style={selectArrowStyle}
                 >
                   <option value="default">{t.shopSortDefault}</option>
@@ -1075,7 +1089,7 @@ export function ShopCheckout({
               </div>
             </div>
 
-            <p className="mb-4 text-[10px] font-medium uppercase tracking-[0.2em] text-neutral-400">
+            <p className="mb-4 text-[10px] tracking-[0.2em] text-stone-500">
               {t.shopShowing
                 .replace("{from}", n ? "1" : "0")
                 .replace("{to}", String(n))
@@ -1083,12 +1097,12 @@ export function ShopCheckout({
             </p>
 
             {n === 0 ? (
-              <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50/80 px-4 py-8 text-center">
-                <p className="text-sm text-neutral-600">{t.shopNoFilterMatch}</p>
+              <div className="border border-dashed border-white/20 px-4 py-10 text-center">
+                <p className="text-sm text-stone-400">{t.shopNoFilterMatch}</p>
                 <button
                   type="button"
                   onClick={clearFilters}
-                  className="mt-3 text-sm font-medium text-zinc-900 underline underline-offset-2"
+                  className="mt-3 min-h-11 text-sm text-stone-100 underline underline-offset-4"
                 >
                   {t.shopClearFilters}
                 </button>
@@ -1099,8 +1113,8 @@ export function ShopCheckout({
                   viewMode === "list"
                     ? "flex list-none flex-col gap-4"
                     : viewMode === "grid-2"
-                      ? "grid list-none grid-cols-1 gap-4 sm:grid-cols-2"
-                      : "grid list-none grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-8 lg:grid-cols-3"
+                      ? "grid list-none grid-cols-1 gap-8 sm:grid-cols-2"
+                      : "grid list-none grid-cols-1 gap-x-4 gap-y-10 sm:grid-cols-2 lg:grid-cols-3"
                 }
               >
                 {filteredProducts.map((product) => (
@@ -1108,7 +1122,7 @@ export function ShopCheckout({
                     <ShopProductCard
                       product={product}
                       layout={viewMode === "list" ? "list" : "grid"}
-                      isSelected={product.id === selectedProductId}
+                      isInBag={cartTouched && product.id === selectedProductId}
                       onViewDetail={() => openProductDetail(product)}
                       onAdd={() => handleAddToCart(product)}
                       t={t}
@@ -1122,7 +1136,7 @@ export function ShopCheckout({
         </div>
       )}
 
-      <div id="shop-checkout" className="scroll-mt-24 border-t border-neutral-200/90 bg-neutral-50/90 px-0 py-10 sm:py-12">
+      <div id="shop-checkout" className="mt-16 scroll-mt-24 border border-white/10 bg-[#f4f1ea] px-4 py-10 text-zinc-900 sm:mt-20 sm:px-8 sm:py-12">
         <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-neutral-500">
           {localPaymentData ? t.shopLocalPayFlowTitle : t.shopCheckoutTitle}
         </h3>
@@ -1416,6 +1430,7 @@ export function ShopCheckout({
           onAddToCart={(qty, size) => addToCart(detailProduct, qty, size)}
           priceLabel={priceDisplay(detailProduct.priceCents, detailProduct.currency)}
           categoryLabel={categoryLabel(t, inferCategoryKey(detailProduct))}
+          memberNote={memberNoteFor(detailProduct, t.shopMemberPriceNote)}
         />
       ) : null}
 
@@ -1429,6 +1444,7 @@ export function ShopCheckout({
           subtotalLabel={
             selectedProduct ? priceDisplay(subtotalCents, selectedProduct.currency) : "—"
           }
+          memberNote={selectedProduct ? memberNoteFor(selectedProduct, t.shopMemberPriceNote) : null}
           t={t}
           isStaticSite={isStaticSite}
           onClose={() => setCartOpen(false)}
@@ -1438,21 +1454,21 @@ export function ShopCheckout({
       ) : null}
 
       {selectedProduct && cartTouched && !cartOpen && !detailProductId && !localPaymentData ? (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-neutral-200 bg-white/95 px-4 py-3 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] backdrop-blur-sm sm:hidden [padding-bottom:max(0.75rem,env(safe-area-inset-bottom,0px))]">
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#09090b]/95 px-4 py-3 backdrop-blur-sm sm:hidden [padding-bottom:max(0.75rem,env(safe-area-inset-bottom,0px))]">
           <div className="flex items-center gap-3">
             <div className="min-w-0 flex-1">
-              <p className="truncate text-xs text-neutral-600">
+              <p className="truncate text-xs text-stone-400">
                 {locale === "zh-HK" ? selectedProduct.nameZh : selectedProduct.nameEn}
                 {selectedSize ? ` · ${selectedSize}` : ""}
               </p>
-              <p className="text-sm font-semibold text-neutral-900">
+              <p className="text-sm font-light text-stone-100">
                 {priceDisplay(subtotalCents, selectedProduct.currency)}
               </p>
             </div>
             <button
               type="button"
               onClick={() => setCartOpen(true)}
-              className="shrink-0 rounded-full bg-zinc-900 px-5 py-3 text-sm font-semibold text-white"
+              className="shrink-0 border border-white/30 px-5 py-3 text-sm text-stone-100"
             >
               {t.shopStickyViewCart}
             </button>

@@ -38,6 +38,7 @@ export type ShopCheckoutCopy = Pick<
   | "shopCartCheckout"
   | "shopStickyViewCart"
   | "shopRetailAvailability"
+  | "shopMemberPriceNote"
   | "shopCheckoutTitle"
   | "shopCheckoutEmptyCart"
   | "shopOrderSummaryLabel"
@@ -125,6 +126,7 @@ export function pickShopCheckoutCopy(t: Messages): ShopCheckoutCopy {
     shopCartCheckout: t.shopCartCheckout,
     shopStickyViewCart: t.shopStickyViewCart,
     shopRetailAvailability: t.shopRetailAvailability,
+    shopMemberPriceNote: t.shopMemberPriceNote,
     shopCheckoutTitle: t.shopCheckoutTitle,
     shopCheckoutEmptyCart: t.shopCheckoutEmptyCart,
     shopOrderSummaryLabel: t.shopOrderSummaryLabel,

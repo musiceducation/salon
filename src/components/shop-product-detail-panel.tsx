@@ -27,9 +27,9 @@ function HoldShineMeter({
   max?: number;
 }) {
   return (
-    <p className="text-xs text-neutral-600">
+    <p className="text-xs text-stone-400">
       {label}{" "}
-      <span className="font-medium tracking-wider text-neutral-800" aria-hidden>
+      <span className="font-medium tracking-wider text-stone-200" aria-hidden>
         {Array.from({ length: max }, (_, i) => (i < level ? "●" : "○")).join("")}
       </span>
       <span className="sr-only">
@@ -48,6 +48,7 @@ export function ShopProductDetailPanel({
   onAddToCart,
   priceLabel,
   categoryLabel,
+  memberNote,
 }: {
   product: Product;
   locale: string;
@@ -57,6 +58,7 @@ export function ShopProductDetailPanel({
   onAddToCart: (quantity: number, size?: string) => void;
   priceLabel: string;
   categoryLabel: string;
+  memberNote?: string | null;
 }) {
   const title = locale === "zh-HK" ? product.nameZh : product.nameEn;
   const detail = getProductDetailContent(product.id, category, locale, {
@@ -95,10 +97,10 @@ export function ShopProductDetailPanel({
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center sm:p-4">
+    <div className="fixed inset-0 z-[60] flex items-stretch justify-center sm:items-center sm:p-3 md:p-6">
       <button
         type="button"
-        className="absolute inset-0 bg-black/45 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-black/70"
         aria-label={t.shopClose}
         onClick={onClose}
       />
@@ -106,95 +108,97 @@ export function ShopProductDetailPanel({
         role="dialog"
         aria-modal="true"
         aria-labelledby="shop-pdp-title"
-        className="relative flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:max-h-[88vh] sm:rounded-2xl"
+        className="relative flex h-full w-full max-w-6xl flex-col overflow-hidden bg-[#0c0c0e] text-stone-100 shadow-2xl sm:h-[min(92vh,900px)] sm:border sm:border-white/10"
       >
-        <div className="flex shrink-0 items-center justify-between border-b border-neutral-200 px-4 py-3 sm:px-6">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-400">
-            {categoryLabel}
-          </p>
+        <div className="flex shrink-0 items-center justify-between px-4 py-3 sm:px-6">
+          <p className="text-[10px] tracking-[0.28em] text-stone-500">{categoryLabel}</p>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full p-2 text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-900"
+            className="flex h-11 w-11 items-center justify-center text-stone-400 transition hover:text-white"
             aria-label={t.shopClose}
           >
             ✕
           </button>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-          <div className="sm:grid sm:grid-cols-2 sm:gap-6 sm:p-6">
-            <div className="bg-neutral-50 sm:rounded-xl">
-              {gallery.length ? (
-                <ShopImageSwipe
-                  slides={gallery}
-                  title={title}
-                  sizes="(max-width: 640px) 100vw, 360px"
-                  frameClassName="relative h-[34vh] min-h-[200px] w-full sm:aspect-square sm:h-auto"
-                  imageClassName="h-full w-full object-contain p-3"
-                  showCaption
-                  priority
-                />
-              ) : null}
-            </div>
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain lg:grid lg:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.8fr)] lg:overflow-hidden">
+          <div className="showroom-bay relative min-h-[42vh] lg:h-full lg:min-h-0">
+            {gallery.length ? (
+              <ShopImageSwipe
+                slides={gallery}
+                title={title}
+                sizes="(max-width: 1024px) 100vw, 640px"
+                frameClassName="relative h-[42vh] min-h-[240px] w-full lg:absolute lg:inset-0 lg:h-full"
+                imageClassName="showroom-arrive h-full w-full object-contain p-6 sm:p-10"
+                priority
+              />
+            ) : null}
+            <div className="showroom-vignette pointer-events-none absolute inset-0" />
+            <div className="showroom-hero-plinth pointer-events-none absolute inset-x-0 bottom-0" />
+            <div className="showroom-led pointer-events-none absolute inset-x-8 bottom-0" />
+          </div>
 
-            <div className="flex flex-col px-4 py-3 sm:px-0 sm:py-0">
-              {detail.salonPick ? (
-                <span className="mb-2 w-fit rounded-full bg-zinc-900 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white">
-                  {t.shopSalonPick}
-                </span>
-              ) : null}
-              <h2 id="shop-pdp-title" className="text-xl font-semibold text-neutral-900 sm:text-2xl">
-                {title}
-              </h2>
-              <p className="mt-2 text-lg font-medium text-neutral-900">{priceLabel}</p>
-              <p className="mt-1 text-xs text-neutral-500">{t.shopRetailAvailability}</p>
+          <div className="flex flex-col px-5 py-6 sm:px-8 lg:min-h-0 lg:overflow-y-auto lg:px-10 lg:py-8">
+            {detail.salonPick ? (
+              <p className="text-[10px] tracking-[0.28em] text-[#9eb6ff]">{t.shopSalonPick}</p>
+            ) : null}
+            <h2
+              id="shop-pdp-title"
+              className="mt-3 max-w-md text-base font-normal leading-snug tracking-wide text-stone-300 sm:text-lg"
+            >
+              {title}
+            </h2>
+            <p className="showroom-arrive mt-12 font-light leading-none tracking-tight text-stone-50 text-[clamp(3.25rem,8vw,5.75rem)] sm:mt-16">
+              {priceLabel}
+            </p>
+            {memberNote ? <p className="mt-3 text-xs tracking-wide text-stone-500">{memberNote}</p> : null}
+            <p className="mt-4 text-[11px] tracking-wide text-stone-500">{t.shopRetailAvailability}</p>
 
-              {detail.story?.length ? (
-                <div className="mt-4 space-y-3 text-sm leading-cjk text-neutral-700">
-                  {detail.story.map((paragraph) => (
-                    <p key={paragraph}>{paragraph}</p>
-                  ))}
-                </div>
-              ) : null}
-
-              {detail.holdLevel != null ? (
-                <div className="mt-4 space-y-1">
-                  <HoldShineMeter label={t.shopHoldMeter} level={detail.holdLevel} />
-                  <HoldShineMeter label={t.shopShineMeter} level={detail.shineLevel ?? 3} />
-                </div>
-              ) : null}
-
-              <div className="mt-5">
-                <h3 className="text-sm font-semibold text-neutral-900">{t.shopWhyWeLoveIt}</h3>
-                <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-neutral-700">
-                  {detail.benefits.map((line) => (
-                    <li key={line}>{line}</li>
-                  ))}
-                </ul>
+            {detail.story?.length ? (
+              <div className="mt-10 space-y-3 text-sm leading-cjk text-stone-400">
+                {detail.story.map((paragraph) => (
+                  <p key={paragraph}>{paragraph}</p>
+                ))}
               </div>
+            ) : null}
 
-              <div className="mt-5">
-                <h3 className="text-sm font-semibold text-neutral-900">{t.shopHowToUse}</h3>
-                <ol className="mt-2 list-inside list-decimal space-y-1 text-sm text-neutral-700">
-                  {detail.howToUse.map((line) => (
-                    <li key={line}>{line}</li>
-                  ))}
-                </ol>
+            {detail.holdLevel != null ? (
+              <div className="mt-6 space-y-1">
+                <HoldShineMeter label={t.shopHoldMeter} level={detail.holdLevel} />
+                <HoldShineMeter label={t.shopShineMeter} level={detail.shineLevel ?? 3} />
               </div>
+            ) : null}
 
-              <ul className="mt-5 space-y-1 text-xs text-neutral-500">
-                <li>{t.shopInSalonPickup}</li>
-                <li>{t.shopTrustManualReview}</li>
+            <div className="mt-8">
+              <h3 className="text-[11px] tracking-[0.22em] text-stone-500">{t.shopWhyWeLoveIt}</h3>
+              <ul className="mt-3 list-inside list-disc space-y-1.5 text-sm leading-cjk text-stone-300">
+                {detail.benefits.map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
               </ul>
             </div>
+
+            <div className="mt-6">
+              <h3 className="text-[11px] tracking-[0.22em] text-stone-500">{t.shopHowToUse}</h3>
+              <ol className="mt-3 list-inside list-decimal space-y-1.5 text-sm leading-cjk text-stone-300">
+                {detail.howToUse.map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ol>
+            </div>
+
+            <ul className="mt-6 space-y-1 pb-4 text-[11px] leading-relaxed text-stone-500">
+              <li>{t.shopInSalonPickup}</li>
+              <li>{t.shopTrustManualReview}</li>
+            </ul>
           </div>
         </div>
 
-        <div className="shrink-0 border-t border-neutral-200 bg-white px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-6">
+        <div className="shrink-0 border-t border-white/10 bg-[#0c0c0e] px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-6">
           {sizes.length ? (
             <div className="mb-3">
-              <p id="shop-pdp-size-label" className="text-sm font-semibold text-neutral-900">
+              <p id="shop-pdp-size-label" className="text-[11px] tracking-[0.18em] text-stone-400">
                 {t.shopSizeLabel}
               </p>
               <div
@@ -214,10 +218,10 @@ export function ShopProductDetailPanel({
                         setSize(option);
                         setSizeError(false);
                       }}
-                      className={`min-h-10 min-w-12 rounded-full border px-3 text-sm font-medium transition ${
+                      className={`min-h-11 min-w-12 border px-3 text-sm transition ${
                         selected
-                          ? "border-zinc-900 bg-zinc-900 text-white"
-                          : "border-neutral-300 bg-white text-neutral-800 hover:border-zinc-900"
+                          ? "border-stone-100 bg-stone-100 text-zinc-950"
+                          : "border-white/25 bg-transparent text-stone-200 hover:border-white/60"
                       }`}
                     >
                       {option}
@@ -226,7 +230,7 @@ export function ShopProductDetailPanel({
                 })}
               </div>
               {sizeError ? (
-                <p className="mt-2 text-xs text-red-700" role="alert">
+                <p className="mt-2 text-xs text-red-300" role="alert">
                   {t.shopSizeRequired}
                 </p>
               ) : null}
@@ -239,6 +243,7 @@ export function ShopProductDetailPanel({
               decreaseLabel={t.shopDecreaseQty}
               increaseLabel={t.shopIncreaseQty}
               quantityLabel={t.shopQuantityLabel}
+              tone="stage"
             />
             <button
               type="button"
@@ -249,7 +254,7 @@ export function ShopProductDetailPanel({
                 }
                 onAddToCart(quantity, size ?? undefined);
               }}
-              className="inline-flex min-h-12 flex-1 items-center justify-center rounded-full bg-zinc-900 px-6 text-sm font-semibold text-white transition hover:bg-zinc-800 active:scale-[0.98]"
+              className="inline-flex min-h-12 flex-1 items-center justify-center border border-stone-200/80 px-6 text-sm tracking-wide text-stone-100 transition hover:bg-white hover:text-zinc-950"
             >
               {t.shopAddToCart}
             </button>
