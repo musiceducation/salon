@@ -17,6 +17,7 @@ type Props = {
   priority?: boolean;
   /** Active slide name, under the frame. */
   showCaption?: boolean;
+  captionClassName?: string;
 };
 
 export function ShopImageSwipe({
@@ -28,6 +29,7 @@ export function ShopImageSwipe({
   imageClassName = "h-full w-full object-contain",
   priority = false,
   showCaption = false,
+  captionClassName = "text-neutral-500",
 }: Props) {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const pointerRef = useRef({ x: 0, scroll: 0, pointerId: -1, tracking: false, mouse: false });
@@ -64,7 +66,7 @@ export function ShopImageSwipe({
     return (
       <div>
         {frame}
-        <p className="px-3 py-1.5 text-center text-[11px] text-neutral-500">{slide.label}</p>
+        <p className={`px-3 py-1.5 text-center text-[11px] ${captionClassName}`}>{slide.label}</p>
       </div>
     );
   }
@@ -207,7 +209,7 @@ export function ShopImageSwipe({
   return (
     <div>
       {frame}
-      <p className="px-3 py-1.5 text-center text-[11px] tracking-wide text-neutral-500">
+      <p className={`px-3 py-1.5 text-center text-[11px] tracking-wide ${captionClassName}`}>
         {slides[index]?.label}
       </p>
     </div>

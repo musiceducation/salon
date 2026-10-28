@@ -85,31 +85,28 @@ export default async function ProductsPage({ params }: PageProps) {
       jsonLd={jsonLd}
     >
       <main>
-        <nav
-          className="border-b border-zinc-200/80 bg-white"
-          aria-label="Breadcrumb"
-        >
-          <div className="mx-auto max-w-6xl px-4 py-3 text-sm sm:px-6">
-            <Link href={homePath} className="text-zinc-600 underline-offset-4 hover:text-zinc-900 hover:underline">
+        <nav className="bg-[#09090b]" aria-label="Breadcrumb">
+          <div className="mx-auto max-w-6xl px-4 py-3 text-xs tracking-wide sm:px-6">
+            <Link href={homePath} className="text-stone-500 underline-offset-4 hover:text-stone-100 hover:underline">
               {t.navHome}
             </Link>
-            <span className="text-zinc-400" aria-hidden>
+            <span className="text-stone-600" aria-hidden>
               {" "}
               /{" "}
             </span>
-            <span className="text-zinc-900">{t.shopSectionTitle}</span>
+            <span className="text-stone-300">{t.shopSectionTitle}</span>
           </div>
         </nav>
 
-        <section
-          id="shop"
-          className="border-b border-neutral-200/90 bg-gradient-to-b from-zinc-100 via-white to-zinc-50 text-zinc-900"
-        >
-          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
-            <h1 className="heading-section text-zinc-900">{t.shopSectionTitle}</h1>
-            <p className="mt-4 max-w-measure text-base leading-cjk text-zinc-600">
-              {t.shopSectionNote}
+        <section id="shop" className="showroom-wall border-b border-white/10 text-stone-100">
+          <div className="mx-auto max-w-6xl px-4 pb-16 pt-10 sm:px-6 sm:pb-24 sm:pt-16">
+            <p className="text-[11px] tracking-[0.28em] text-stone-400">{t.heroTagline}</p>
+            <h1 className="mt-4 text-sm font-medium tracking-[0.22em] text-stone-200">{t.shopSectionTitle}</h1>
+            <p className="mt-8 max-w-xl text-2xl font-light leading-snug text-stone-50 sm:text-[2rem]">
+              {t.shopStageCaption}
             </p>
+            <p className="mt-4 max-w-xl text-xs leading-cjk text-stone-400">{t.shopSectionNote}</p>
+            <div className="mt-10 h-px bg-white/10" aria-hidden />
 
             <ShopCheckout
               locale={locale}

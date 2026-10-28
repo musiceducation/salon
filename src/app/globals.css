@@ -152,3 +152,72 @@ html {
   outline: 2px solid #d4d4d8;
   outline-offset: 2px;
 }
+
+/* /products showroom: near-black Macau stage, soft oval light, no colored shelf LEDs. */
+.showroom-wall {
+  background-color: #0c0b0a;
+  background-image:
+    radial-gradient(ellipse 90% 42% at 50% -8%, rgba(255, 244, 230, 0.05), transparent 58%),
+    radial-gradient(ellipse 38% 28% at 100% 100%, rgba(72, 58, 44, 0.2), transparent 70%);
+}
+
+.showroom-bay {
+  background-color: #121110;
+  background-image:
+    radial-gradient(ellipse 42% 10% at 50% 80%, rgba(0, 0, 0, 0.55), transparent 72%),
+    radial-gradient(ellipse 54% 42% at 50% 48%, rgba(255, 246, 236, 0.16), rgba(255, 246, 236, 0.04) 48%, transparent 74%);
+}
+
+.showroom-cut {
+  -webkit-mask-image: radial-gradient(ellipse 74% 72% at 50% 48%, #000 42%, transparent 78%);
+  mask-image: radial-gradient(ellipse 74% 72% at 50% 48%, #000 42%, transparent 78%);
+}
+
+.showroom-object {
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.group:hover .showroom-object,
+.group:focus-within .showroom-object {
+  transform: translateY(-2.5%);
+}
+
+.showroom-vignette {
+  background: radial-gradient(
+    ellipse 62% 56% at 50% 46%,
+    rgba(12, 11, 10, 0.12) 0%,
+    rgba(12, 11, 10, 0.28) 40%,
+    rgba(12, 11, 10, 0.78) 68%,
+    rgba(12, 11, 10, 0.98) 100%
+  );
+}
+
+@keyframes showroom-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.showroom-arrive {
+  animation: showroom-arrive 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .showroom-object {
+    transition: none;
+  }
+
+  .group:hover .showroom-object,
+  .group:focus-within .showroom-object {
+    transform: none;
+  }
+
+  .showroom-arrive {
+    animation: none;
+  }
+}
