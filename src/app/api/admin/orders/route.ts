@@ -126,6 +126,7 @@ export async function PATCH(request: Request) {
         amountCents: updatedOrder.totalAmountCents,
         currency: updatedOrder.currency,
         receiptNumber: updatedOrder.receiptNumber,
+        note: updatedOrder.lastStatusNote,
       });
 
       if (emailResult.sent) {

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import dynamic from "next/dynamic";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import type { ShopCheckoutCopy } from "@/lib/shop-checkout-copy";
@@ -24,6 +25,8 @@ import {
 } from "@/lib/shop-cart-bridge";
 import { formatMoney } from "@/lib/format-money";
 import { getProductDetailContent, getProductGallerySlides } from "@/lib/shop-product-detail";
+import { isTonsoMemorialTee, normalizeTonsoTeeSize, TONSO_TEE_SLUG } from "@/lib/tonso-tee";
+import { localeHref } from "@/lib/locale-path";
 import { ShopImageSwipe } from "@/components/shop-image-swipe";
 import { fallbackSheetOrderId, queueSpreadsheetSync } from "@/lib/spreadsheet-sync";
 
@@ -285,6 +288,8 @@ function ShopProductCard({
   isSelected,
   onViewDetail,
   onAdd,
+  detailHref,
+  addHref,
   t,
   locale,
 }: {
@@ -293,10 +298,20 @@ function ShopProductCard({
   isSelected: boolean;
   onViewDetail: () => void;
   onAdd: () => void;
+  /** When set, the tee card opens the flyer page instead of the detail sheet. */
+  detailHref?: string;
+  addHref?: string;
   t: ShopCheckoutCopy;
   locale: string;
 }) {
   const title = formatProductTitle(product, locale);
+  function activateDetail() {
+    if (detailHref) {
+      window.location.assign(detailHref);
+      return;
+    }
+    onViewDetail();
+  }
   const slides = getProductGallerySlides(
     product.id,
     inferCategoryKey(product),
@@ -318,13 +333,13 @@ function ShopProductCard({
             <ShopImageSwipe
               slides={slides}
               title={title}
-              onActivate={onViewDetail}
+              onActivate={activateDetail}
               sizes={gallerySizes}
               frameClassName="relative aspect-square w-full overflow-hidden rounded-lg bg-neutral-50"
               imageClassName="h-full w-full object-contain p-2"
             />
           ) : (
-            <button type="button" onClick={onViewDetail} className="w-full" aria-label={title}>
+            <button type="button" onClick={activateDetail} className="w-full" aria-label={title}>
               <div className="relative flex aspect-square items-center justify-center overflow-hidden rounded-lg bg-neutral-50">
                 <ProductBottlePlaceholder />
               </div>
@@ -332,20 +347,39 @@ function ShopProductCard({
           )}
         </div>
         <div className="flex min-w-0 flex-1 flex-col justify-center">
-          <button type="button" onClick={onViewDetail} className="text-left">
-            <h3 className="text-sm font-medium text-neutral-900">{title}</h3>
-            <p className="mt-1 text-sm text-neutral-800">{priceDisplay(product.priceCents, product.currency)}</p>
-            <span className="mt-2 inline-block text-xs font-medium text-neutral-500 underline underline-offset-2">
-              {t.shopViewDetails}
-            </span>
-          </button>
-          <button
-            type="button"
-            onClick={onAdd}
-            className="mt-3 min-h-11 w-full rounded-full bg-zinc-900 px-4 text-xs font-medium uppercase tracking-wider text-white transition-all duration-200 ease-out hover:bg-zinc-800 active:scale-[0.98] motion-reduce:active:scale-100"
-          >
-            {t.shopAddToCart}
-          </button>
+          {detailHref ? (
+            <Link href={detailHref} className="text-left">
+              <h3 className="text-sm font-medium text-neutral-900">{title}</h3>
+              <p className="mt-1 text-sm text-neutral-800">{priceDisplay(product.priceCents, product.currency)}</p>
+              <span className="mt-2 inline-block text-xs font-medium text-neutral-500 underline underline-offset-2">
+                {t.shopViewDetails}
+              </span>
+            </Link>
+          ) : (
+            <button type="button" onClick={onViewDetail} className="text-left">
+              <h3 className="text-sm font-medium text-neutral-900">{title}</h3>
+              <p className="mt-1 text-sm text-neutral-800">{priceDisplay(product.priceCents, product.currency)}</p>
+              <span className="mt-2 inline-block text-xs font-medium text-neutral-500 underline underline-offset-2">
+                {t.shopViewDetails}
+              </span>
+            </button>
+          )}
+          {addHref ? (
+            <Link
+              href={addHref}
+              className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-zinc-900 px-4 text-xs font-medium uppercase tracking-wider text-white transition-all duration-200 ease-out hover:bg-zinc-800 active:scale-[0.98] motion-reduce:active:scale-100"
+            >
+              {t.shopAddToCart}
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={onAdd}
+              className="mt-3 min-h-11 w-full rounded-full bg-zinc-900 px-4 text-xs font-medium uppercase tracking-wider text-white transition-all duration-200 ease-out hover:bg-zinc-800 active:scale-[0.98] motion-reduce:active:scale-100"
+            >
+              {t.shopAddToCart}
+            </button>
+          )}
         </div>
       </article>
     );
@@ -363,39 +397,62 @@ function ShopProductCard({
         <ShopImageSwipe
           slides={slides}
           title={title}
-          onActivate={onViewDetail}
+          onActivate={activateDetail}
           sizes={gallerySizes}
           frameClassName="relative aspect-square w-full overflow-hidden rounded-t-xl bg-neutral-50"
           imageClassName="h-full w-full object-contain p-2"
         />
       ) : (
-        <button type="button" onClick={onViewDetail} className="w-full" aria-label={title}>
+        <button type="button" onClick={activateDetail} className="w-full" aria-label={title}>
           <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-t-xl bg-neutral-50">
             <ProductBottlePlaceholder />
           </div>
         </button>
       )}
-      <button
-        type="button"
-        onClick={onViewDetail}
-        className="w-full px-3 pb-1 pt-3 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2"
-        aria-pressed={isSelected}
-        aria-label={`${title} — ${t.shopViewDetails}`}
-      >
-        <h3 className="line-clamp-2 text-sm font-medium leading-snug text-neutral-900">{title}</h3>
-        <p className="mt-1 text-sm text-neutral-800">{priceDisplay(product.priceCents, product.currency)}</p>
-        <span className="mt-1.5 inline-block text-xs font-medium text-neutral-500 underline underline-offset-2">
-          {t.shopViewDetails}
-        </span>
-      </button>
-      <div className="px-3 pb-3 pt-2">
+      {detailHref ? (
+        <Link
+          href={detailHref}
+          className="w-full px-3 pb-1 pt-3 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2"
+          aria-label={`${title} — ${t.shopViewDetails}`}
+        >
+          <h3 className="line-clamp-2 text-sm font-medium leading-snug text-neutral-900">{title}</h3>
+          <p className="mt-1 text-sm text-neutral-800">{priceDisplay(product.priceCents, product.currency)}</p>
+          <span className="mt-1.5 inline-block text-xs font-medium text-neutral-500 underline underline-offset-2">
+            {t.shopViewDetails}
+          </span>
+        </Link>
+      ) : (
         <button
           type="button"
-          onClick={onAdd}
-          className="min-h-11 w-full rounded-full bg-zinc-900 px-4 text-xs font-medium uppercase tracking-wider text-white transition-all duration-200 ease-out hover:bg-zinc-800 active:scale-[0.99] motion-reduce:active:scale-100"
+          onClick={onViewDetail}
+          className="w-full px-3 pb-1 pt-3 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2"
+          aria-pressed={isSelected}
+          aria-label={`${title} — ${t.shopViewDetails}`}
         >
-          {t.shopAddToCart}
+          <h3 className="line-clamp-2 text-sm font-medium leading-snug text-neutral-900">{title}</h3>
+          <p className="mt-1 text-sm text-neutral-800">{priceDisplay(product.priceCents, product.currency)}</p>
+          <span className="mt-1.5 inline-block text-xs font-medium text-neutral-500 underline underline-offset-2">
+            {t.shopViewDetails}
+          </span>
         </button>
+      )}
+      <div className="px-3 pb-3 pt-2">
+        {addHref ? (
+          <Link
+            href={addHref}
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-full bg-zinc-900 px-4 text-xs font-medium uppercase tracking-wider text-white transition-all duration-200 ease-out hover:bg-zinc-800 active:scale-[0.99] motion-reduce:active:scale-100"
+          >
+            {t.shopAddToCart}
+          </Link>
+        ) : (
+          <button
+            type="button"
+            onClick={onAdd}
+            className="min-h-11 w-full rounded-full bg-zinc-900 px-4 text-xs font-medium uppercase tracking-wider text-white transition-all duration-200 ease-out hover:bg-zinc-800 active:scale-[0.99] motion-reduce:active:scale-100"
+          >
+            {t.shopAddToCart}
+          </button>
+        )}
       </div>
     </article>
   );
@@ -590,7 +647,7 @@ export function ShopCheckout({
     if (params.get("focus") === "search" || params.get("search") === "1" || params.has("q")) {
       window.setTimeout(() => searchInputRef.current?.focus(), 50);
     }
-    if (params.get("cart") === "1") {
+    if (params.get("cart") === "1" && params.get("sku") !== TONSO_TEE_SLUG) {
       setCartOpen(true);
     }
   }, []);
@@ -600,14 +657,33 @@ export function ShopCheckout({
       return;
     }
     didHydrateCartRef.current = true;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("sku") === TONSO_TEE_SLUG) {
+      const size = normalizeTonsoTeeSize(params.get("size"));
+      const tee = products.find((item) => isTonsoMemorialTee(item));
+      const qty = Number(params.get("qty"));
+      if (tee && size) {
+        setSelectedProductId(tee.id);
+        setSelectedSize(size);
+        setQuantity(Number.isFinite(qty) ? Math.min(CART_QTY_MAX, Math.max(1, Math.floor(qty))) : 1);
+        setCartTouched(true);
+        if (params.get("cart") === "1") {
+          setCartOpen(true);
+        }
+        return;
+      }
+      if (tee && params.has("size") && !size) {
+        setMessage(t.shopSizeRequired);
+      }
+    }
     const saved = readShopCart();
     if (saved && products.some((p) => p.id === saved.productId)) {
       setSelectedProductId(saved.productId);
       setQuantity(saved.quantity);
-      setSelectedSize(saved.size ?? null);
+      setSelectedSize(normalizeTonsoTeeSize(saved.size));
       setCartTouched(true);
     }
-  }, [products]);
+  }, [products, t.shopSizeRequired]);
 
   useEffect(() => {
     function onOpenCart() {
@@ -1103,19 +1179,26 @@ export function ShopCheckout({
                       : "grid list-none grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-8 lg:grid-cols-3"
                 }
               >
-                {filteredProducts.map((product) => (
-                  <li key={product.id}>
-                    <ShopProductCard
-                      product={product}
-                      layout={viewMode === "list" ? "list" : "grid"}
-                      isSelected={product.id === selectedProductId}
-                      onViewDetail={() => openProductDetail(product)}
-                      onAdd={() => handleAddToCart(product)}
-                      t={t}
-                      locale={locale}
-                    />
-                  </li>
-                ))}
+                {filteredProducts.map((product) => {
+                  const teePage = isTonsoMemorialTee(product)
+                    ? localeHref(locale, `products/${TONSO_TEE_SLUG}`)
+                    : undefined;
+                  return (
+                    <li key={product.id}>
+                      <ShopProductCard
+                        product={product}
+                        layout={viewMode === "list" ? "list" : "grid"}
+                        isSelected={product.id === selectedProductId}
+                        onViewDetail={() => openProductDetail(product)}
+                        onAdd={() => handleAddToCart(product)}
+                        detailHref={teePage}
+                        addHref={teePage ? `${teePage}#order` : undefined}
+                        t={t}
+                        locale={locale}
+                      />
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>
@@ -1140,6 +1223,11 @@ export function ShopCheckout({
               {t.shopAmountLabel}：
               {priceDisplay(localPaymentData.amountCents, localPaymentData.currency)}
             </p>
+            {selectedSize ? (
+              <p>
+                {t.shopSizeLabel}：{selectedSize}
+              </p>
+            ) : null}
             <p>
               {paymentAccountLabel(localPaymentData.paymentMethod, t)}：{localPaymentData.paymentAccount}
             </p>
@@ -1163,10 +1251,16 @@ export function ShopCheckout({
                     type="button"
                     onClick={() => {
                       void (async () => {
+                        const sizeLine =
+                          selectedSize && locale === "zh-HK"
+                            ? `尺碼：${selectedSize}\n`
+                            : selectedSize
+                              ? `Size: ${selectedSize}\n`
+                              : "";
                         const proofText =
                           locale === "zh-HK"
-                            ? `【付款截圖】訂單 ${localPaymentData.orderId}\n金額 ${(localPaymentData.amountCents / 100).toFixed(2)} ${localPaymentData.currency.toUpperCase()}\n方式 ${paymentMethodLabel(localPaymentData.paymentMethod, locale)}\n（請附上付款截圖）`
-                            : `[Payment proof] Order ${localPaymentData.orderId}\nAmount ${(localPaymentData.amountCents / 100).toFixed(2)} ${localPaymentData.currency.toUpperCase()}\nVia ${paymentMethodLabel(localPaymentData.paymentMethod, locale)}\n(Please attach payment screenshot)`;
+                            ? `【付款截圖】訂單 ${localPaymentData.orderId}\n${sizeLine}金額 ${(localPaymentData.amountCents / 100).toFixed(2)} ${localPaymentData.currency.toUpperCase()}\n方式 ${paymentMethodLabel(localPaymentData.paymentMethod, locale)}\n（請附上付款截圖）`
+                            : `[Payment proof] Order ${localPaymentData.orderId}\n${sizeLine}Amount ${(localPaymentData.amountCents / 100).toFixed(2)} ${localPaymentData.currency.toUpperCase()}\nVia ${paymentMethodLabel(localPaymentData.paymentMethod, locale)}\n(Please attach payment screenshot)`;
                         const copied = await copyTextToClipboard(proofText);
                         setMessage(
                           copied && orderHelpWeChatId
@@ -1183,7 +1277,7 @@ export function ShopCheckout({
                 {orderHelpEmail ? (
                   <a
                     href={`mailto:${orderHelpEmail}?subject=${encodeURIComponent(`Payment proof ${localPaymentData.orderId}`)}&body=${encodeURIComponent(
-                      `Order ID: ${localPaymentData.orderId}\nAmount: ${(localPaymentData.amountCents / 100).toFixed(2)} ${localPaymentData.currency.toUpperCase()}\n`,
+                      `Order ID: ${localPaymentData.orderId}\n${selectedSize ? `Size: ${selectedSize}\n` : ""}Amount: ${(localPaymentData.amountCents / 100).toFixed(2)} ${localPaymentData.currency.toUpperCase()}\n`,
                     )}`}
                     className="inline-flex w-fit items-center justify-center rounded-full border border-zinc-400 bg-white px-6 py-3 text-sm font-semibold text-zinc-900 transition-all duration-200 ease-out hover:bg-zinc-50"
                   >

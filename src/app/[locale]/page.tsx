@@ -173,7 +173,7 @@ export default async function LocaleHomePage({ params }: HomePageProps) {
           price={t.teeQuietPrice}
           member={t.teeQuietMember}
           cta={t.teeQuietCta}
-          ctaHref={`${productsPath}?q=tonso`}
+          ctaHref={localeHref(locale, "products/tonso-memorial-tee")}
           imageAlt={
             locale === "zh-HK"
               ? "tonso · lamp 重磅寬鬆短袖（啞黑）"

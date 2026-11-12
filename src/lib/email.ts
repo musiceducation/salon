@@ -10,6 +10,8 @@ type SendOrderStatusEmailInput = {
   amountCents: number;
   currency: string;
   receiptNumber?: string | null;
+  /** Order note, including apparel size when the salon recorded one. */
+  note?: string | null;
 };
 
 function getStatusText(status: OrderStatus) {
@@ -66,17 +68,20 @@ export async function sendOrderStatusEmail(input: SendOrderStatusEmailInput) {
   const statusText = getStatusText(input.status);
   const amount = `${(input.amountCents / 100).toFixed(2)} ${input.currency.toUpperCase()}`;
   const subject = `[n_nsalon] ${statusText.en} / ${statusText.zh} - ${input.orderId}`;
+  const note = input.note?.trim() ?? "";
 
   const text = [
     `Hello ${input.customerName},`,
     `Your order ${input.orderId} status is now: ${statusText.en}.`,
     `Amount: ${amount}`,
     input.receiptNumber ? `E-receipt: ${input.receiptNumber}` : "",
+    note ? `Note: ${note}` : "",
     "",
     `您好，${input.customerName}：`,
     `你的訂單 ${input.orderId} 狀態更新為：${statusText.zh}。`,
     `金額：${amount}`,
     input.receiptNumber ? `電子收據編號：${input.receiptNumber}` : "",
+    note ? `備註：${note}` : "",
   ].join("\n");
 
   await transporter.sendMail({
