@@ -1,6 +1,7 @@
 /** PDP copy — Curly Shyll–style “decision zone” content keyed by product or category. */
 
 import { shopCatalogSkus, staticCatalogId } from "@/data/shop-catalog-static";
+import { isTonsoMemorialTee } from "@/lib/tonso-tee";
 
 type CategoryKey = "shampoo" | "conditioner" | "treatment" | "styling" | "apparel" | "uncategorized";
 
@@ -391,11 +392,11 @@ function isTonsoTeeIdentity(
   productId: string,
   names?: { nameZh?: string; nameEn?: string },
 ): boolean {
-  if (productId.includes("tonso-memorial-tee")) {
-    return true;
-  }
-  const blob = `${names?.nameZh ?? ""} ${names?.nameEn ?? ""}`.toLowerCase();
-  return blob.includes("tonso") && /\btee\b/.test(blob);
+  return isTonsoMemorialTee({
+    id: productId,
+    nameZh: names?.nameZh,
+    nameEn: names?.nameEn,
+  });
 }
 
 export function getProductDetailContent(

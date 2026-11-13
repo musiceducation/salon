@@ -13,8 +13,7 @@ import {
   type ShopPaymentMethod,
 } from "@/lib/shop-payment-methods";
 import { submitOrderToSpreadsheet } from "@/lib/spreadsheet-sync";
-
-const TEE_SIZES = ["S", "M", "L", "XL", "2XL"] as const;
+import { isTonsoMemorialTee, normalizeTonsoTeeSize } from "@/lib/tonso-tee";
 
 type CheckoutItem = {
   productId: string;
@@ -45,19 +44,11 @@ type ResolvedLine = {
 };
 
 function normalizeTeeSize(value: unknown): string | null {
-  if (typeof value !== "string") {
-    return null;
-  }
-  const size = value.trim().toUpperCase();
-  return (TEE_SIZES as readonly string[]).includes(size) ? size : null;
+  return normalizeTonsoTeeSize(value);
 }
 
 function lineIsTonsoTee(product: { id: string; nameZh: string; nameEn: string; slug?: string }) {
-  if (product.slug === "tonso-memorial-tee" || product.id.includes("tonso-memorial-tee")) {
-    return true;
-  }
-  const blob = `${product.nameZh} ${product.nameEn}`.toLowerCase();
-  return blob.includes("tonso") && /\btee\b/.test(blob);
+  return isTonsoMemorialTee(product);
 }
 
 function serviceLabel(line: ResolvedLine) {
@@ -191,7 +182,7 @@ export async function POST(request: Request) {
         }
         const sizeNote = lines
           .filter((line) => line.size)
-          .map((line) => `尺碼 ${line.size}`)
+          .map((line) => `尺碼：${line.size}`)
           .join("、");
 
         const orderContact = {

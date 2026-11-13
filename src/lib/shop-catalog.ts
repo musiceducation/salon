@@ -1,12 +1,16 @@
-import { demoToStaticCatalogId, staticShopCatalogForExport } from "@/data/shop-catalog-static";
+import { demoToStaticCatalogId, staticCatalogId, staticShopCatalogForExport } from "@/data/shop-catalog-static";
 import type { HomeProduct } from "@/lib/shop-product";
+import { TONSO_TEE_LIVE_PRODUCT_ID, TONSO_TEE_SLUG } from "@/lib/tonso-tee";
 
 /**
  * Resolve cart lines when Prisma is down or demo/static IDs are used
  * (local checkout without Postgres).
  */
 export function catalogProductById(productId: string): HomeProduct | undefined {
-  const resolved = demoToStaticCatalogId[productId] ?? productId;
+  const resolved =
+    productId === TONSO_TEE_LIVE_PRODUCT_ID
+      ? staticCatalogId(TONSO_TEE_SLUG)
+      : (demoToStaticCatalogId[productId] ?? productId);
   return staticShopCatalogForExport.find((p) => p.id === resolved);
 }
 
